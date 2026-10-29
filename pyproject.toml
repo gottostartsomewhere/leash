@@ -1,0 +1,18 @@
+[project]
+name = "leash"
+version = "0.1.0"
+description = "Scoped, revocable, auditable spending authority for AI agents"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    # pytest-asyncio on Python 3.14, not our code.
+    "ignore:'asyncio.*event_loop_policy' is deprecated:DeprecationWarning",
+]

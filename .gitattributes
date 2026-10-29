@@ -1,0 +1,6 @@
+# Built on Windows, read everywhere. Normalise to LF in the repository so a
+# clone on Linux does not show every file as modified.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.mp4 binary

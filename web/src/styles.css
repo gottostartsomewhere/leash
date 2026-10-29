@@ -1,0 +1,949 @@
+/* Leash.
+ *
+ * The screen is an instrument panel, not a dashboard. Nothing is coloured
+ * until a rule fires, so colour on this screen always means a constraint
+ * engaged. Allowed rows are deliberately plain: a quiet panel means the agent
+ * is inside its authority, and that is the normal state.
+ *
+ * Every number is mono with tabular figures and right-aligned, so columns of
+ * money compare by eye at a glance. */
+
+:root {
+  --ground: #0b0a09;
+  --panel: #121010;
+  --raise: #191615;
+  --sunk: #0d0c0b;
+
+  --line: #2b2622;
+  --line-soft: #1e1a18;
+
+  --ink: #ece7e1;
+  --ink-2: #9d958c;
+  --ink-3: #6a635c;
+  --ink-4: #4a443e;
+
+  /* One warm ramp, keyed to the engine's own severity ordering. */
+  --sev-medium: #9b9289;
+  --sev-high: #dfa33c;
+  --sev-critical: #e2553d;
+
+  --settled: #7fa37a;
+  --focus: #d8cfc3;
+
+  --ui: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", "Cascadia Mono", ui-monospace, monospace;
+
+  --rail: 332px;
+  --topbar: 46px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* -- shell ------------------------------------------------------------- */
+
+.shell {
+  display: grid;
+  grid-template-rows: var(--topbar) 1fr;
+  height: 100%;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.wordmark {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* The mark is the subject: a line with slack in it, tethered at one end. */
+.wordmark-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-id {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ink-2);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.topbar-id b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: var(--rail) 1fr;
+  min-height: 0;
+}
+
+.rail {
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* -- section furniture ------------------------------------------------- */
+
+.section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.hint {
+  color: var(--ink-3);
+  font-size: 11.5px;
+}
+
+/* -- status dot -------------------------------------------------------- */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status.active {
+  color: var(--settled);
+}
+.status.revoked {
+  color: var(--sev-critical);
+}
+.status.expired {
+  color: var(--ink-3);
+}
+
+/* -- the gauge --------------------------------------------------------- */
+
+.gauge {
+  display: flex;
+  height: 30px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  overflow: hidden;
+}
+
+.gauge-seg {
+  transition:
+    width 420ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    background-color 200ms;
+}
+
+.gauge-settled {
+  background: #3f4a3d;
+  border-right: 1px solid var(--ground);
+}
+
+/* Held money is hatched: committed but not yet gone. */
+.gauge-held {
+  background-color: #322b22;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 3px,
+    rgba(223, 163, 60, 0.42) 3px 6px
+  );
+  border-right: 1px solid var(--ground);
+}
+
+.gauge-free {
+  flex: 1;
+}
+
+.gauge-legend {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin-top: 10px;
+}
+
+.gauge-legend > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gauge-legend .k {
+  font-size: 9.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.gauge-legend .v {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+}
+
+.gauge-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 9px;
+}
+
+.gauge-total .big {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 25px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.gauge-total .of {
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+/* -- constraint list --------------------------------------------------- */
+
+.rules {
+  display: flex;
+  flex-direction: column;
+}
+
+.rule {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--line-soft);
+}
+
+.rule:last-child {
+  border-bottom: 0;
+}
+
+.rule-k {
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+.rule-v {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  text-align: right;
+  color: var(--ink);
+}
+
+.rule.fired .rule-k {
+  color: var(--ink);
+}
+
+/* The count is the signal; the rule itself stays readable rather than alarmed. */
+.rule-fires {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--sev-high);
+  cursor: help;
+}
+
+.scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+/* -- chips ------------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  background: var(--raise);
+  color: var(--ink-2);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.chip.rule-chip {
+  border-color: color-mix(in oklab, currentColor 38%, transparent);
+  background: color-mix(in oklab, currentColor 11%, var(--panel));
+}
+
+.chip.medium {
+  color: var(--sev-medium);
+}
+.chip.high {
+  color: var(--sev-high);
+}
+.chip.critical {
+  color: var(--sev-critical);
+  font-weight: 700;
+}
+
+.chip.more {
+  cursor: pointer;
+  color: var(--ink-3);
+  border-style: dashed;
+}
+
+.chip.more:hover {
+  color: var(--ink);
+  border-color: var(--ink-4);
+}
+
+.chip.state-pending {
+  color: var(--sev-high);
+  border-color: color-mix(in oklab, var(--sev-high) 34%, transparent);
+}
+.chip.state-settled {
+  color: var(--settled);
+  border-color: color-mix(in oklab, var(--settled) 34%, transparent);
+}
+.chip.state-released,
+.chip.state-failed {
+  color: var(--ink-3);
+}
+
+/* -- buttons ----------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border: 1px solid var(--line);
+  background: var(--raise);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    border-color 140ms,
+    background-color 140ms,
+    color 140ms;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--ink-4);
+  background: #211d1b;
+}
+
+.btn:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #16120f;
+  font-weight: 600;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #fff;
+  border-color: #fff;
+}
+
+.btn.danger {
+  color: var(--sev-critical);
+  border-color: color-mix(in oklab, var(--sev-critical) 40%, transparent);
+}
+
+.btn.danger:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--sev-critical) 14%, var(--raise));
+  border-color: var(--sev-critical);
+}
+
+.btn.wide {
+  width: 100%;
+}
+
+.btn.small {
+  padding: 4px 9px;
+  font-size: 11px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle.on {
+  color: var(--sev-high);
+  border-color: color-mix(in oklab, var(--sev-high) 40%, transparent);
+  background: color-mix(in oklab, var(--sev-high) 10%, transparent);
+}
+
+/* -- grid frame -------------------------------------------------------- */
+
+.grid-frame {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.grid-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.grid-bar .spacer {
+  margin-left: auto;
+}
+
+.counts {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.counts b {
+  color: var(--ink);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.counts .refused b {
+  color: var(--sev-high);
+}
+
+.grid-host {
+  min-height: 0;
+  min-width: 0;
+}
+
+.actionbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.actionbar .spacer {
+  margin-left: auto;
+}
+
+.selection-note {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+
+/* -- cells ------------------------------------------------------------- */
+
+.verdict {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.verdict.allow {
+  color: var(--ink-3);
+}
+
+.verdict.block {
+  color: var(--sev-high);
+}
+
+.verdict.block.critical {
+  color: var(--sev-critical);
+}
+
+.rules-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.expander {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: transform 150ms ease;
+}
+
+.expander:hover {
+  color: var(--ink);
+}
+
+.expander.open {
+  transform: rotate(90deg);
+  color: var(--ink-2);
+}
+
+.headroom {
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.headroom.offered {
+  color: var(--sev-high);
+}
+
+/* -- the evidence band ------------------------------------------------- */
+
+/* Height is deliberately auto: the band measures itself and tells the grid
+ * what it needs, rather than being clipped to an estimate. */
+.evidence {
+  padding: 10px 14px 13px 46px;
+  background: var(--sunk);
+  border-bottom: 1px solid var(--line);
+}
+
+.evidence-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+
+.evidence-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.evidence-detail {
+  color: var(--ink-2);
+  font-size: 12px;
+  margin-bottom: 9px;
+  max-width: 92ch;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px 22px;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 0;
+}
+
+.fact .k {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+.fact .v {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+/* The cluster is the thing to look at: each prior charge that, alone, was
+ * fine. Drawn as bars against the cap so the overflow is visible, not read. */
+.cluster {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 560px;
+}
+
+.cluster-row {
+  display: grid;
+  grid-template-columns: 74px 1fr 78px;
+  align-items: center;
+  gap: 9px;
+}
+
+.cluster-row .who {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  text-align: right;
+}
+
+.cluster-row .track {
+  height: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  position: relative;
+}
+
+.cluster-row .fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #4a4034;
+}
+
+/* The cap, run down through every bar. Each charge stops short of it; only
+ * the total crosses it, which is the entire argument in one picture. */
+.cluster-row .track::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: var(--cap);
+  border-left: 1px dashed color-mix(in oklab, var(--sev-critical) 72%, transparent);
+}
+
+.cluster-row.current .fill {
+  background: #5c4b38;
+}
+
+.cluster-row.together .track {
+  border-color: color-mix(in oklab, var(--sev-critical) 40%, transparent);
+}
+
+.cluster-row.together .fill {
+  background: color-mix(in oklab, var(--sev-critical) 48%, #4a4034);
+}
+
+.cluster-row.together .amt,
+.cluster-row.together .who {
+  color: var(--sev-critical);
+}
+
+.cluster-row .amt {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  text-align: right;
+  color: var(--ink-2);
+}
+
+.cluster-capline {
+  margin-top: 1px;
+}
+
+.caprail {
+  position: relative;
+  height: 13px;
+}
+
+.caprail .mark {
+  position: absolute;
+  top: 0;
+  left: var(--cap);
+  padding-left: 5px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 13px;
+  color: var(--sev-critical);
+  white-space: nowrap;
+}
+
+/* -- ask console ------------------------------------------------------- */
+
+.ask {
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  padding: 11px 14px 12px;
+}
+
+.ask-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field > span {
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.field input,
+.field select {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: 0;
+  border-color: var(--ink-4);
+}
+
+.field.amount input {
+  text-align: right;
+  width: 94px;
+}
+
+.field.payee select {
+  width: 150px;
+}
+
+.field.category select {
+  width: 124px;
+}
+
+.ask-echo {
+  margin-top: 9px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  min-height: 17px;
+}
+
+.ask-echo.block {
+  color: var(--sev-high);
+}
+
+.ask-echo.critical {
+  color: var(--sev-critical);
+}
+
+/* -- banner ------------------------------------------------------------ */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px;
+  background: color-mix(in oklab, var(--sev-critical) 16%, var(--panel));
+  border-bottom: 1px solid color-mix(in oklab, var(--sev-critical) 36%, transparent);
+  color: var(--sev-critical);
+  font-size: 12px;
+}
+
+.banner .btn {
+  margin-left: auto;
+}
+
+/* -- empty state ------------------------------------------------------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.empty h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  letter-spacing: 0.01em;
+}
+
+.empty p {
+  margin: 0;
+  font-size: 12px;
+  max-width: 44ch;
+  line-height: 1.6;
+}
+
+/* -- spinner ----------------------------------------------------------- */
+
+@keyframes tick {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: tick 620ms linear infinite;
+}
+
+/* -- grid rows --------------------------------------------------------- */
+
+/* A refusal is marked on the row edge like an annunciator lamp, in the same
+ * severity ramp the engine itself uses. Allowed rows are left alone. */
+.ag-row.row-blocked.row-high {
+  box-shadow: inset 2px 0 0 var(--sev-high);
+}
+
+.ag-row.row-blocked.row-critical {
+  box-shadow: inset 2px 0 0 var(--sev-critical);
+  background-color: color-mix(in oklab, var(--sev-critical) 7%, transparent);
+}
+
+.ag-row.row-blocked {
+  color: var(--ink-2);
+}
+
+.ag-row.row-settled {
+  box-shadow: inset 2px 0 0 var(--settled);
+}
+
+.ag-row.row-evidence,
+.ag-row.row-evidence:hover {
+  background: var(--sunk) !important;
+}
+
+.ag-row.row-evidence .ag-cell,
+.ag-row.row-evidence .ag-full-width-row {
+  border: 0;
+}
+
+.ag-full-width-row {
+  overflow: hidden;
+}
+
+.ag-header-cell-text {
+  letter-spacing: 0.13em;
+}
+
+.rail-foot {
+  margin-top: auto;
+  padding: 14px 16px 18px;
+  border-top: 1px solid var(--line);
+}
+
+.rail-foot p {
+  margin: 0 0 10px;
+  color: var(--ink-3);
+  font-size: 11.5px;
+  line-height: 1.55;
+}

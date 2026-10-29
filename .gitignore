@@ -1,0 +1,30 @@
+# Credentials. The PayPal sandbox keys live here and never in the repo.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+web/dist/
+*.tsbuildinfo
+*.local
+
+# Editors and tooling
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,337 @@
+"""HTTP surface.
+
+The flow the demo follows: an agent posts an attempt, the engine decides, an
+allow places a hold, a human approves a set of holds, and only then does one
+PayPal batch move the money. The payout result comes back per item and lands
+on the charge, so the grid tells the truth about what actually settled.
+"""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timedelta, timezone
+from typing import Annotated, Any
+
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
+from .config import Settings, settings as default_settings
+from .ledger import IllegalTransition, Ledger, UnknownCharge
+from .models import Attempt, Charge, ChargeState, Mandate, Velocity
+from .money import Money
+from .payouts import PayoutError, PayoutGateway, PayoutItem, build_gateway
+from .schemas import (
+    AttemptIn,
+    ChargeOut,
+    MandateIn,
+    MoneyOut,
+    PayeeOut,
+    PayoutRequest,
+    terms,
+)
+from .store import (
+    NotFound,
+    Store,
+    build_demo_store,
+    new_batch_id,
+    seed_demo,
+    seed_summary,
+)
+
+app = FastAPI(
+    title="Leash",
+    version="0.1.0",
+    summary="Scoped, revocable, auditable spending authority for AI agents",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+_store: Store | None = None
+_gateway: PayoutGateway | None = None
+
+
+def get_settings() -> Settings:
+    return default_settings()
+
+
+def get_store() -> Store:
+    global _store
+    if _store is None:
+        _store = build_demo_store()
+    return _store
+
+
+def get_gateway() -> PayoutGateway:
+    global _gateway
+    if _gateway is None:
+        _gateway = build_gateway()
+    return _gateway
+
+
+StoreDep = Annotated[Store, Depends(get_store)]
+GatewayDep = Annotated[PayoutGateway, Depends(get_gateway)]
+SettingsDep = Annotated[Settings, Depends(get_settings)]
+
+
+def _ledger(store: Store, mandate_id: str) -> Ledger:
+    try:
+        return store.ledger(mandate_id)
+    except NotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+def _charge_row(charge: Charge) -> ChargeOut:
+    return ChargeOut(
+        id=charge.id,
+        payee=charge.payee,
+        category=charge.category,
+        amount=MoneyOut.of(charge.amount),
+        state=charge.state.value,
+        created_at=charge.created_at.isoformat(),
+        description=charge.description,
+    )
+
+
+# -- health and demo control ---------------------------------------------
+
+
+@app.get("/health")
+def health(settings: SettingsDep, gateway: GatewayDep) -> dict[str, Any]:
+    return {
+        "status": "ok",
+        "gateway": gateway.name,
+        "paypal_configured": settings.paypal_configured,
+    }
+
+
+@app.post("/demo/reset")
+def reset_demo(store: StoreDep, settings: SettingsDep) -> dict[str, Any]:
+    """Rebuild the seeded scenario. Lets a take be re-recorded in a second."""
+    seed_demo(store, settings)
+    return {"reset": True, **seed_summary(store)}
+
+
+@app.get("/payees", response_model=list[PayeeOut])
+def list_payees(store: StoreDep) -> list[PayeeOut]:
+    return [
+        PayeeOut(id=p.id, name=p.name, email=p.email, counterparty=p.counterparty)
+        for p in store.payees()
+    ]
+
+
+# -- mandates -------------------------------------------------------------
+
+
+def _mandate_view(ledger: Ledger) -> dict[str, Any]:
+    """Balances and terms together: how much is left, and what it may go on."""
+    return {**dict(ledger.summary()), "terms": terms(ledger.mandate)}
+
+
+@app.get("/mandates")
+def list_mandates(store: StoreDep) -> list[dict[str, Any]]:
+    return [_mandate_view(ledger) for ledger in store.ledgers()]
+
+
+@app.post("/mandates", status_code=201)
+def create_mandate(body: MandateIn, store: StoreDep) -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    currency = body.currency
+
+    def money(value: Any) -> Money | None:
+        return None if value is None else Money.from_major(value, currency)
+
+    velocity = None
+    if body.velocity is not None:
+        velocity = Velocity(
+            window_seconds=body.velocity.window_seconds,
+            max_count=body.velocity.max_count,
+            max_amount=money(body.velocity.max_amount),
+        )
+
+    try:
+        mandate = Mandate(
+            id=body.id or f"mnd_{uuid.uuid4().hex[:10]}",
+            agent_id=body.agent_id,
+            currency=currency,
+            total_limit=Money.from_major(body.total_limit, currency),
+            starts_at=now,
+            ends_at=now + timedelta(hours=body.duration_hours),
+            per_item_limit=money(body.per_item_limit),
+            per_payee_limit=money(body.per_payee_limit),
+            allowed_categories=(
+                frozenset(body.allowed_categories) if body.allowed_categories else None
+            ),
+            allowed_payees=(
+                frozenset(body.allowed_payees) if body.allowed_payees else None
+            ),
+            velocity=velocity,
+            concentration_max_share=body.concentration_max_share,
+            concentration_floor=money(body.concentration_floor),
+            structuring_window_seconds=body.structuring_window_seconds,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    return _mandate_view(store.open(mandate))
+
+
+@app.get("/mandates/{mandate_id}")
+def get_mandate(mandate_id: str, store: StoreDep) -> dict[str, Any]:
+    return _mandate_view(_ledger(store, mandate_id))
+
+
+@app.post("/mandates/{mandate_id}/revoke")
+def revoke_mandate(mandate_id: str, store: StoreDep) -> dict[str, Any]:
+    """Pull the mandate. Pending holds drop; anything settled stays settled."""
+    ledger = _ledger(store, mandate_id)
+    dropped = ledger.revoke()
+    return {
+        "revoked": True,
+        "released_charge_ids": [c.id for c in dropped],
+        "summary": dict(ledger.summary()),
+    }
+
+
+@app.get("/mandates/{mandate_id}/charges", response_model=list[ChargeOut])
+def list_charges(mandate_id: str, store: StoreDep) -> list[ChargeOut]:
+    return [_charge_row(c) for c in _ledger(store, mandate_id).charges()]
+
+
+@app.get("/mandates/{mandate_id}/decisions")
+def list_decisions(mandate_id: str, store: StoreDep) -> list[dict[str, Any]]:
+    """Every decision with its full trace. This is the audit grid."""
+    return [dict(row) for row in _ledger(store, mandate_id).rows()]
+
+
+# -- the core endpoint ----------------------------------------------------
+
+
+@app.post("/mandates/{mandate_id}/attempts")
+def authorize(mandate_id: str, body: AttemptIn, store: StoreDep) -> dict[str, Any]:
+    """The agent asks to spend. Everything else in this file is bookkeeping."""
+    ledger = _ledger(store, mandate_id)
+    try:
+        attempt = Attempt(
+            id=body.id or f"att_{uuid.uuid4().hex[:10]}",
+            mandate_id=mandate_id,
+            payee=body.payee,
+            category=body.category,
+            amount=Money.from_major(body.amount, body.currency),
+            requested_at=datetime.now(timezone.utc),
+            description=body.description,
+            idempotency_key=body.idempotency_key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    decision = ledger.authorize(attempt)
+    payload = decision.to_dict()
+    payload["summary"] = dict(ledger.summary())
+    return payload
+
+
+# -- approval and settlement ---------------------------------------------
+
+
+@app.post("/mandates/{mandate_id}/payouts")
+async def release_payouts(
+    mandate_id: str,
+    body: PayoutRequest,
+    store: StoreDep,
+    gateway: GatewayDep,
+) -> dict[str, Any]:
+    """Approve held charges and move the money in one batch.
+
+    The batch goes out before anything is marked settled. If the processor
+    refuses, the holds stay held and the whole thing can be retried; a partial
+    result settles what cleared and fails what did not, so the grid matches
+    the money rather than our intentions.
+    """
+    ledger = _ledger(store, mandate_id)
+
+    items: list[PayoutItem] = []
+    for charge_id in body.charge_ids:
+        try:
+            charge = ledger.charge(charge_id)
+        except UnknownCharge as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        if charge.state is not ChargeState.PENDING:
+            raise HTTPException(
+                status_code=409,
+                detail=f"{charge_id} is {charge.state.value}, not a pending hold",
+            )
+        try:
+            payee = store.payee(charge.payee)
+        except NotFound as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        items.append(
+            PayoutItem(
+                charge_id=charge.id,
+                receiver=payee.email,
+                amount=charge.amount,
+                note=charge.description or f"{charge.category} via {payee.name}",
+            )
+        )
+
+    batch_id = new_batch_id()
+    try:
+        result = await gateway.send(items, batch_id=batch_id)
+    except PayoutError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    store.record_batch(result)
+
+    settled: list[str] = []
+    failed: list[str] = []
+    by_charge = {item.charge_id: item.status for item in result.items}
+    for item in items:
+        status = by_charge.get(item.charge_id, result.status)
+        try:
+            if status in {"SUCCESS", "PENDING", "PROCESSING", "UNCLAIMED"}:
+                ledger.settle(item.charge_id)
+                settled.append(item.charge_id)
+            else:
+                ledger.fail(item.charge_id)
+                failed.append(item.charge_id)
+        except IllegalTransition as exc:  # pragma: no cover - guarded above
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    return {
+        "batch": result.to_dict(),
+        "settled_charge_ids": settled,
+        "failed_charge_ids": failed,
+        "summary": dict(ledger.summary()),
+    }
+
+
+@app.post("/charges/{charge_id}/release")
+def release_hold(charge_id: str, store: StoreDep) -> dict[str, Any]:
+    """Decline a held charge and give the budget back."""
+    try:
+        ledger, _ = store.locate_charge(charge_id)
+    except NotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    try:
+        charge = ledger.release(charge_id)
+    except IllegalTransition as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"charge": _charge_row(charge).model_dump(), "summary": dict(ledger.summary())}
+
+
+@app.get("/payouts/{batch_id}")
+async def payout_status(
+    batch_id: str, store: StoreDep, gateway: GatewayDep
+) -> dict[str, Any]:
+    """Live status from the processor, falling back to what we recorded."""
+    try:
+        return (await gateway.status(batch_id)).to_dict()
+    except PayoutError:
+        try:
+            return store.batch(batch_id).to_dict()
+        except NotFound as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc

@@ -1,0 +1,146 @@
+# Leash
+
+Scoped, revocable, auditable spending authority for AI agents, settled over PayPal Payouts.
+
+Hand an agent a wallet with rules. Every attempt to spend is evaluated before any
+money moves, an allow places a hold rather than a payment, and a human approves
+the batch that actually settles.
+
+The interesting part is not what the agent buys. It is what it cannot.
+
+## Why
+
+If you want an AI to spend on your behalf you currently have two options, both
+bad: give it your card and hope, or approve every click and get no value from
+having an agent at all. What is missing is the primitive in between, a spending
+authority that is scoped, revocable and auditable, and that holds even when the
+agent actively works around it.
+
+## The checks
+
+Eleven, run in the order a person would ask the questions. Every one runs even
+after another has failed, because a decision that names all three reasons is
+worth more than one that names the first.
+
+| Check | What it stops |
+| --- | --- |
+| `mandate_inactive` | Spending on a revoked authority |
+| `currency_mismatch` | Comparing amounts that have no common meaning |
+| `outside_window` | Spending before it opens or after it closes |
+| `payee_not_allowed` | Paying someone off the list |
+| `category_not_allowed` | Scope drift, buying outside the remit |
+| `per_item_limit` | A single charge over the cap |
+| `structuring` | A cap evaded by splitting rather than broken |
+| `per_payee_limit` | Too much to one counterparty |
+| `insufficient_budget` | Spending past the total, holds included |
+| `velocity` | Too many charges, or too much, too fast |
+| `concentration` | The whole book quietly ending up with one payee |
+
+### Structuring is the one that matters
+
+An agent told "nothing over $100" and asked for a $120 item will discover,
+entirely on its own, that two charges of $60 both pass. Each is legitimate
+under the per-item check. Only the cluster is not.
+
+So the cap is enforced against recent charges to the same counterparty, not
+against the charge in isolation, and counterparty means the merchant rather
+than the receiver address. One merchant with a US and an EU address is still
+one merchant.
+
+Structuring also outranks the cap it evades in the severity ordering. A charge
+over the limit is a mistake. Two charges engineered to sit under it is intent,
+and the reason a human reads should say so.
+
+## Design notes
+
+- **Amounts are integer minor units** with the currency attached. No float ever
+  touches money, and adding INR to USD raises rather than producing a number
+  that looks fine.
+- **`evaluate` is pure.** Same mandate, same attempt, same history, same verdict,
+  with no processor and no model in the loop. That is what makes it testable
+  against an adversary rather than demoable against a script.
+- **Authorization and capture are separate.** An allow places a hold that counts
+  against every later check until it settles or releases, so two attempts
+  evaluated a millisecond apart cannot both see the full balance.
+- **The full trace is the output**, not just the verdict. Passed checks carry
+  their numbers too, which is what makes the audit view worth looking at.
+- **`max_allowable`** turns "blocked" into "blocked, but $40 would have cleared".
+  The difference between a wall and a boundary.
+- **Revocation** drops pending holds and leaves settled money alone. It stops
+  what has not happened; it does not claw back what has.
+
+## Running it
+
+```bash
+pip install -e ".[dev]"
+pytest
+python scripts/walkthrough.py
+uvicorn leash.api:app --reload
+```
+
+`scripts/walkthrough.py` drives the whole scenario in process and narrates it.
+No server and no credentials needed.
+
+### The screen
+
+```bash
+uvicorn leash.api:app --reload     # terminal one
+npm --prefix web install           # terminal two
+npm --prefix web run dev
+```
+
+Then open <http://localhost:5173>. Vite proxies `/api` to port 8000, so the
+browser only ever talks to one origin.
+
+**Run scenario** resets the demo and plays eleven spends: six clear, five are
+refused, and the fifth attempt is a 150 purchase split into two 75 charges
+across Acme's two receiver addresses. That row opens itself, because it is the
+one worth looking at.
+
+Notes on the grid, since it is doing real work:
+
+- The **evidence band** under a refusal is an AG Grid full-width row, not a
+  tooltip. For a structuring catch it draws the cluster: each charge that was
+  fine on its own, and the cap line that only the total crosses.
+- The band **measures itself** and tells the grid its height, so it reflows
+  correctly at any window width instead of being clipped to an estimate.
+- Only live holds are selectable, so the grid itself says what is actionable.
+- Settling **flashes the cell** that changed, so the moment money moves is
+  visible rather than inferred.
+- This is **AG Grid Community**, with no licence key. An Enterprise trial taken
+  out during a build expires before anyone judges it, and a demo that degrades
+  on a date is not a demo.
+
+The console at the bottom sends one spend by hand, and it stays usable after
+revocation on purpose: asking a dead mandate for money and watching it refuse
+is the proof, and a greyed-out button is not.
+
+### PayPal
+
+With no credentials set the app runs on a simulated gateway that is
+deterministic and offline, which is what makes everything above developable and
+testable without a sandbox. Set these to use the real Payouts API:
+
+```bash
+LEASH_PAYPAL_CLIENT_ID=...
+LEASH_PAYPAL_SECRET=...
+LEASH_PAYPAL_BASE_URL=https://api-m.sandbox.paypal.com
+LEASH_DEMO_RECEIVER_EMAIL=your-sandbox-personal@example.com
+```
+
+`LEASH_DEMO_RECEIVER_EMAIL` points every seeded payee at one address, so a
+single variable makes the demo pay into a real sandbox personal account.
+
+## API
+
+| Method | Path | |
+| --- | --- | --- |
+| `POST` | `/mandates` | Open a spending authority |
+| `POST` | `/mandates/{id}/attempts` | The agent asks to spend |
+| `POST` | `/mandates/{id}/payouts` | Approve held charges, one PayPal batch |
+| `POST` | `/mandates/{id}/revoke` | Pull the mandate, drop the holds |
+| `POST` | `/charges/{id}/release` | Decline one hold |
+| `GET` | `/mandates/{id}` | Balances plus the terms the authority actually grants |
+| `GET` | `/mandates/{id}/decisions` | Every decision with its full trace |
+| `GET` | `/payouts/{batch_id}` | Batch status from the processor |
+| `POST` | `/demo/reset` | Rebuild the seeded scenario |
