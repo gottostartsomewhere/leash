@@ -3,7 +3,8 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from leash.api import app, get_gateway, get_store
+from leash.api import app, get_catalog, get_gateway, get_store
+from leash.catalog import CatalogError, StaticCatalog
 from leash.payouts import SimulatedGateway
 from leash.store import DEMO_MANDATE_ID, build_demo_store
 
@@ -21,9 +22,15 @@ def gateway():
 
 
 @pytest.fixture
-def client(store, gateway):
+def catalog():
+    return StaticCatalog()
+
+
+@pytest.fixture
+def client(store, gateway, catalog):
     app.dependency_overrides[get_store] = lambda: store
     app.dependency_overrides[get_gateway] = lambda: gateway
+    app.dependency_overrides[get_catalog] = lambda: catalog
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
@@ -42,7 +49,132 @@ def test_health_reports_which_gateway_is_live(client):
 
     assert body["status"] == "ok"
     assert body["gateway"] == "simulated"
+    assert body["catalog"] == "static"
     assert body["paypal_configured"] is False
+
+
+# -- the catalogue --------------------------------------------------------
+
+
+def test_searching_the_catalogue_returns_buyable_things(client):
+    body = client.get("/catalog/search", params={"q": "chair"}).json()
+
+    assert body["catalog"] == "static"
+    assert body["items"]
+    first = body["items"][0]
+    assert first["title"]
+    assert first["best"]["amount"] > 0
+    assert first["best"]["currency"] == "USD"
+
+
+def test_a_search_makes_its_merchants_payable(client):
+    before = {p["id"] for p in client.get("/payees").json()}
+
+    client.get("/catalog/search", params={"q": "desk"})
+
+    after = {p["id"] for p in client.get("/payees").json()}
+    assert "northwind_com" in after - before
+
+
+def test_a_merchants_hostnames_are_one_counterparty(client):
+    client.get("/catalog/search", params={"q": "desk"})
+
+    payees = {p["id"]: p["counterparty"] for p in client.get("/payees").json()}
+
+    assert payees["northwind_com"] == "northwind"
+
+
+def test_a_ceiling_narrows_the_search(client):
+    body = client.get(
+        "/catalog/search", params={"q": "chair", "under": "100.00"}
+    ).json()
+
+    assert body["items"]
+    assert all(item["best"]["amount"] <= 10000 for item in body["items"])
+
+
+def test_an_empty_query_is_refused(client):
+    assert client.get("/catalog/search", params={"q": "  "}).status_code == 422
+
+
+def test_an_unreachable_catalogue_is_a_502(client, catalog):
+    class Dead:
+        name = "dead"
+
+        async def search(self, query, *, under=None, limit=8):
+            raise CatalogError("could not reach Channel3")
+
+    app.dependency_overrides[get_catalog] = lambda: Dead()
+
+    response = client.get("/catalog/search", params={"q": "chair"})
+
+    assert response.status_code == 502
+    assert "could not reach" in response.json()["detail"]
+
+
+# -- shopping -------------------------------------------------------------
+
+
+def test_the_agent_buys_something_inside_the_mandate(client):
+    body = client.post(f"{MANDATE}/shop", json={"needs": ["paper"]}).json()
+
+    step = body["steps"][0]
+    assert step["action"] == "bought"
+    assert step["decision"]["verdict"] == "allow"
+    assert body["summary"]["held"] == 3800
+
+
+def test_a_refusal_sends_the_agent_back_to_the_shop(client):
+    # The 150 chair is over the demo mandate's 100 per-item cap, so the agent
+    # reshops under 100 and buys the 88 one instead.
+    body = client.post(f"{MANDATE}/shop", json={"needs": ["chair"]}).json()
+
+    step = body["steps"][0]
+    assert step["action"] == "reshopped"
+    assert step["ceiling"] == 10000
+    assert step["first_choice"]["best"]["amount"] == 15000
+    assert step["offer"]["amount"] == 8800
+    assert body["summary"]["held"] == 8800
+
+
+def test_reshopping_can_be_turned_off_over_the_wire(client):
+    body = client.post(
+        f"{MANDATE}/shop", json={"needs": ["chair"], "reshop": False}
+    ).json()
+
+    assert body["steps"][0]["action"] == "refused"
+    assert body["summary"]["held"] == 0
+
+
+def test_what_the_agent_bought_can_then_be_paid_out(client):
+    # The whole point of registering merchants: a thing the agent found in a
+    # shop has to be payable without anyone adding a payee by hand.
+    client.post(f"{MANDATE}/shop", json={"needs": ["paper"]})
+    charges = client.get(f"{MANDATE}/charges").json()
+    held = [c["id"] for c in charges if c["state"] == "pending"]
+
+    response = client.post(f"{MANDATE}/payouts", json={"charge_ids": held})
+
+    assert response.status_code == 200
+    assert response.json()["settled_charge_ids"] == held
+
+
+def test_an_out_of_scope_find_is_refused_with_a_reason(client):
+    body = client.post(f"{MANDATE}/shop", json={"needs": ["speaker"]}).json()
+
+    step = body["steps"][0]
+    assert step["action"] == "refused"
+    assert "category_not_allowed" in step["decision"]["failed_codes"]
+
+
+def test_shopping_an_unknown_mandate_is_a_404(client):
+    response = client.post("/mandates/mnd_nope/shop", json={"needs": ["paper"]})
+
+    assert response.status_code == 404
+
+
+def test_an_empty_needs_list_is_refused(client):
+    assert client.post(f"{MANDATE}/shop", json={"needs": []}).status_code == 422
 
 
 def test_an_unknown_mandate_is_a_404(client):

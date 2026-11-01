@@ -131,6 +131,34 @@ LEASH_DEMO_RECEIVER_EMAIL=your-sandbox-personal@example.com
 `LEASH_DEMO_RECEIVER_EMAIL` points every seeded payee at one address, so a
 single variable makes the demo pay into a real sandbox personal account.
 
+### Channel3
+
+```bash
+LEASH_CHANNEL3_API_KEY=...
+```
+
+Without it the agent shops a fixed catalogue that needs no network, and every
+test passes either way. With it the agent shops real products at real prices
+from real merchants, which earns its place for two reasons rather than one:
+
+- **Merchants are counterparties.** A product usually carries offers from
+  several domains, so the agent genuinely chooses who to pay. And merchants
+  really do sell under more than one hostname, so grouping `store.nike.com`
+  with `nike.com` stops being a scenario built to be caught and starts being
+  the thing the per-counterparty cap and the structuring window are actually
+  for.
+- **A refusal becomes the next search.** Told that 150 is over the cap but
+  100 would clear, the agent does not haggle over the same product. It goes
+  back to the shop with 100 as a price ceiling and buys something that fits.
+  `max_allowable` stops being a number in a log.
+
+One detail worth naming, because it cuts against this project's first rule.
+Channel3 returns prices as JSON numbers in dollars and cents, and no float is
+allowed to touch an amount here. So the response is parsed with
+`parse_float=Decimal` and reaches `Money.from_major` as a `Decimal`. A float
+of `110.99` never exists, not even for an instant. `tests/test_catalog.py`
+pins that with the awkward values.
+
 ## API
 
 | Method | Path | |
@@ -140,6 +168,8 @@ single variable makes the demo pay into a real sandbox personal account.
 | `POST` | `/mandates/{id}/payouts` | Approve held charges, one PayPal batch |
 | `POST` | `/mandates/{id}/revoke` | Pull the mandate, drop the holds |
 | `POST` | `/charges/{id}/release` | Decline one hold |
+| `GET` | `/catalog/search` | What the agent can see in the shop |
+| `POST` | `/mandates/{id}/shop` | Send the agent shopping against this mandate |
 | `GET` | `/mandates/{id}` | Balances plus the terms the authority actually grants |
 | `GET` | `/mandates/{id}/decisions` | Every decision with its full trace |
 | `GET` | `/payouts/{batch_id}` | Batch status from the processor |

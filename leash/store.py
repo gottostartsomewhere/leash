@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Iterable, Mapping
 
+from .catalog import Item, counterparty_of, payee_id_of
 from .config import Settings, settings as default_settings
 from .ledger import Ledger
 from .models import Charge, Mandate, PayeeDirectory, Velocity
@@ -77,6 +78,9 @@ class Store:
     def payees(self) -> tuple[Payee, ...]:
         return tuple(self._payees.values())
 
+    def knows_payee(self, payee_id: str) -> bool:
+        return payee_id in self._payees
+
     # -- mandates --------------------------------------------------------
 
     def open(self, mandate: Mandate, charges: Iterable[Charge] = ()) -> Ledger:
@@ -115,6 +119,36 @@ class Store:
 
     def batches(self) -> tuple[PayoutResult, ...]:
         return tuple(self._batches.values())
+
+
+def register_merchants(
+    store: Store, items: Iterable[Item], config: Settings | None = None
+) -> tuple[Payee, ...]:
+    """Make every merchant in `items` payable, and group its hostnames.
+
+    Worth being blunt about where the money goes. The merchant is the
+    counterparty the mandate reasons about, and that part is real. The
+    receiver address is a sandbox account, because a test payout cannot
+    actually land at a shop. Nothing here claims otherwise.
+    """
+    config = config or default_settings()
+    added: list[Payee] = []
+    for item in items:
+        for offer in item.offers:
+            payee_id = payee_id_of(offer.domain)
+            if store.knows_payee(payee_id):
+                continue
+            added.append(
+                store.add_payee(
+                    Payee(
+                        id=payee_id,
+                        name=item.brand or payee_id.replace("_", "."),
+                        email=_seed_email(payee_id, config),
+                        group=counterparty_of(offer.domain),
+                    )
+                )
+            )
+    return tuple(added)
 
 
 DEMO_MANDATE_ID = "mnd_demo"

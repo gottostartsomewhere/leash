@@ -71,6 +71,13 @@ class PayoutRequest(BaseModel):
     charge_ids: list[str] = Field(min_length=1)
 
 
+class ShopRequest(BaseModel):
+    """What the agent has been sent out to buy, in words."""
+
+    needs: list[str] = Field(min_length=1, max_length=10)
+    reshop: bool = True
+
+
 class PayeeOut(BaseModel):
     id: str
     name: str

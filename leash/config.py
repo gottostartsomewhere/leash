@@ -40,6 +40,14 @@ class Settings(BaseSettings):
     #: demo pay into a real sandbox personal account instead of example.com.
     demo_receiver_email: str | None = None
 
+    #: Channel3 is the real product catalog the agent shops. Without a key the
+    #: static catalog runs instead, so the demo and the tests stay offline.
+    #: A search costs one credit against 1,000 free a month, so results are
+    #: cached and nothing re-queries on a reload.
+    channel3_api_key: str | None = None
+    channel3_base_url: str = "https://api.trychannel3.com"
+    channel3_cache_seconds: float = 900.0
+
     @property
     def paypal_configured(self) -> bool:
         return bool(self.paypal_client_id and self.paypal_secret)
@@ -47,6 +55,10 @@ class Settings(BaseSettings):
     @property
     def groq_configured(self) -> bool:
         return bool(self.groq_api_key)
+
+    @property
+    def channel3_configured(self) -> bool:
+        return bool(self.channel3_api_key)
 
 
 @lru_cache(maxsize=1)

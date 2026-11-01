@@ -10,11 +10,14 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from .agent import Need, ShoppingAgent
+from .catalog import Catalog, CatalogError, build_catalog
 from .config import Settings, settings as default_settings
 from .ledger import IllegalTransition, Ledger, UnknownCharge
 from .models import Attempt, Charge, ChargeState, Mandate, Velocity
@@ -27,6 +30,7 @@ from .schemas import (
     MoneyOut,
     PayeeOut,
     PayoutRequest,
+    ShopRequest,
     terms,
 )
 from .store import (
@@ -34,6 +38,7 @@ from .store import (
     Store,
     build_demo_store,
     new_batch_id,
+    register_merchants,
     seed_demo,
     seed_summary,
 )
@@ -53,6 +58,7 @@ app.add_middleware(
 
 _store: Store | None = None
 _gateway: PayoutGateway | None = None
+_catalog: Catalog | None = None
 
 
 def get_settings() -> Settings:
@@ -73,9 +79,17 @@ def get_gateway() -> PayoutGateway:
     return _gateway
 
 
+def get_catalog() -> Catalog:
+    global _catalog
+    if _catalog is None:
+        _catalog = build_catalog()
+    return _catalog
+
+
 StoreDep = Annotated[Store, Depends(get_store)]
 GatewayDep = Annotated[PayoutGateway, Depends(get_gateway)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
+CatalogDep = Annotated[Catalog, Depends(get_catalog)]
 
 
 def _ledger(store: Store, mandate_id: str) -> Ledger:
@@ -101,11 +115,15 @@ def _charge_row(charge: Charge) -> ChargeOut:
 
 
 @app.get("/health")
-def health(settings: SettingsDep, gateway: GatewayDep) -> dict[str, Any]:
+def health(
+    settings: SettingsDep, gateway: GatewayDep, catalog: CatalogDep
+) -> dict[str, Any]:
     return {
         "status": "ok",
         "gateway": gateway.name,
+        "catalog": catalog.name,
         "paypal_configured": settings.paypal_configured,
+        "channel3_configured": settings.channel3_configured,
     }
 
 
@@ -122,6 +140,76 @@ def list_payees(store: StoreDep) -> list[PayeeOut]:
         PayeeOut(id=p.id, name=p.name, email=p.email, counterparty=p.counterparty)
         for p in store.payees()
     ]
+
+
+# -- the catalogue --------------------------------------------------------
+
+
+@app.get("/catalog/search")
+async def search_catalog(
+    q: str,
+    store: StoreDep,
+    catalog: CatalogDep,
+    settings: SettingsDep,
+    under: Decimal | None = None,
+    currency: str = "USD",
+    limit: int = 8,
+) -> dict[str, Any]:
+    """What the agent can see in the shop.
+
+    Every merchant that comes back is registered as a payee, with its
+    hostnames grouped onto one counterparty, so a spend against it can be
+    judged the moment the agent asks.
+    """
+    if not q.strip():
+        raise HTTPException(status_code=422, detail="a search needs a query")
+    ceiling = None if under is None else Money.from_major(under, currency)
+
+    try:
+        items = await catalog.search(q, under=ceiling, limit=max(1, min(limit, 24)))
+    except CatalogError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    registered = register_merchants(store, items, settings)
+    return {
+        "catalog": catalog.name,
+        "query": q,
+        "items": [item.to_dict() for item in items],
+        "new_payees": [p.id for p in registered],
+    }
+
+
+@app.post("/mandates/{mandate_id}/shop")
+async def shop(
+    mandate_id: str,
+    body: ShopRequest,
+    store: StoreDep,
+    catalog: CatalogDep,
+    settings: SettingsDep,
+) -> dict[str, Any]:
+    """Send the agent shopping against this mandate.
+
+    The interesting path is a refusal: told what would clear, the agent goes
+    back to the catalogue with that as a price ceiling and buys something
+    that fits, rather than arguing about the thing it cannot have.
+    """
+    ledger = _ledger(store, mandate_id)
+    agent = ShoppingAgent(
+        ledger,
+        catalog,
+        reshop=body.reshop,
+        # Merchants become known the moment they are seen, before anything is
+        # asked for, so the first spend is judged against a grouped
+        # counterparty rather than an unknown name.
+        on_found=lambda items: register_merchants(store, items, settings),
+    )
+
+    steps = await agent.run(Need(query=query) for query in body.needs)
+
+    return {
+        "steps": [step.to_dict() for step in steps],
+        "summary": dict(ledger.summary()),
+    }
 
 
 # -- mandates -------------------------------------------------------------
