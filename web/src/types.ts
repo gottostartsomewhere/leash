@@ -89,7 +89,9 @@ export interface Payee {
 export interface Health {
   status: string;
   gateway: string;
+  catalog: string;
   paypal_configured: boolean;
+  channel3_configured: boolean;
 }
 
 export interface PayoutItemResult {
@@ -112,6 +114,62 @@ export interface PayoutOutcome {
   batch: PayoutResultRow;
   settled_charge_ids: string[];
   failed_charge_ids: string[];
+  summary: Balances;
+}
+
+export interface CatalogOffer {
+  domain: string;
+  payee: string;
+  counterparty: string;
+  amount: number;
+  currency: string;
+  display: string;
+  availability: string;
+  in_stock: boolean;
+  url: string;
+  condition: string | null;
+}
+
+export interface CatalogItem {
+  id: string;
+  title: string;
+  brand: string;
+  category: string;
+  image_url: string;
+  offers: CatalogOffer[];
+  best: CatalogOffer | null;
+  counterparties: string[];
+}
+
+export interface CatalogResults {
+  catalog: string;
+  query: string;
+  items: CatalogItem[];
+  new_payees: string[];
+}
+
+export type ShopAction =
+  | "bought"
+  | "reshopped"
+  | "refused"
+  | "nothing_found"
+  | "unreachable";
+
+export interface ShopStep {
+  query: string;
+  note: string;
+  action: ShopAction;
+  summary: string;
+  detail: string;
+  item: CatalogItem | null;
+  offer: CatalogOffer | null;
+  first_choice: CatalogItem | null;
+  ceiling: number | null;
+  decision: DecisionRow | null;
+}
+
+export interface ShopOutcome {
+  steps: ShopStep[];
   summary: Balances;
 }
 

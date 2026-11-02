@@ -127,9 +127,24 @@ Notes on the grid, since it is doing real work:
   out during a build expires before anyone judges it, and a demo that degrades
   on a date is not a demo.
 
-The console at the bottom sends one spend by hand, and it stays usable after
+The console at the bottom has two modes.
+
+**Ask for one thing** sends a single spend by hand. It stays usable after
 revocation on purpose: asking a dead mandate for money and watching it refuse
 is the proof, and a greyed-out button is not.
+
+**Send it shopping** is the catalogue. Type what the agent should buy, and
+either look at the shelf first or send it. The panel then draws what it did,
+and the middle line is the whole argument:
+
+```
+REFUSED   Mesh task chair, adjustable arms    acme.com   150.00
+          100.00 would have cleared, so it looked again under that
+BOUGHT    Mesh task chair, fixed arms         acme.com    88.00
+```
+
+The agent never sees the mandate. It only ever learns what a refusal tells
+it, which is the position a real agent is in.
 
 ### PayPal
 

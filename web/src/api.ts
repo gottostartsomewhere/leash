@@ -1,12 +1,14 @@
 import type {
   AttemptBody,
   Balances,
+  CatalogResults,
   Charge,
   DecisionRow,
   Health,
   MandateSummary,
   Payee,
   PayoutOutcome,
+  ShopOutcome,
 } from "./types";
 
 const BASE = "/api";
@@ -76,4 +78,17 @@ export const api = {
     post<{ summary: Balances }>(`/charges/${chargeId}/release`),
 
   reset: () => post<Record<string, unknown>>("/demo/reset"),
+
+  catalogSearch: (query: string, under?: number) => {
+    const params = new URLSearchParams({ q: query });
+    // The ceiling crosses the wire in major units, the way a price is read.
+    if (under !== undefined) params.set("under", (under / 100).toFixed(2));
+    return call<CatalogResults>(`/catalog/search?${params}`);
+  },
+
+  shop: (id: string, needs: string[], reshop = true) =>
+    post<ShopOutcome>(`/mandates/${id}/shop`, { needs, reshop }),
+
+  reconcile: (batchId: string) =>
+    post<Record<string, unknown>>(`/payouts/${batchId}/reconcile`),
 };

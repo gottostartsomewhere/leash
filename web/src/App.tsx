@@ -5,6 +5,7 @@ import { DecisionGrid } from "./grid/DecisionGrid";
 import { failuresOf, worstOf } from "./grid/renderers";
 import { Authority } from "./panels/Authority";
 import { AskConsole, type AskResult } from "./panels/AskConsole";
+import { ShopPanel } from "./panels/ShopPanel";
 import { SCENARIO } from "./scenario";
 import type {
   Charge,
@@ -14,6 +15,7 @@ import type {
   LogRow,
   MandateSummary,
   Payee,
+  ShopStep,
 } from "./types";
 
 const MANDATE_ID = "mnd_demo";
@@ -47,6 +49,7 @@ export default function App() {
   const [selected, setSelected] = useState<string[]>([]);
   const [onlyRefusals, setOnlyRefusals] = useState(false);
   const [query, setQuery] = useState("");
+  const [console_, setConsole] = useState<"ask" | "shop">("ask");
 
   const [busy, setBusy] = useState(false);
   const [running, setRunning] = useState(false);
@@ -145,6 +148,29 @@ export default function App() {
         });
       }),
     [act],
+  );
+
+  /** Unlike `act`, this lets the error reach the panel, which has somewhere
+   *  sensible to put it and knows which search failed. */
+  const shop = useCallback(
+    async (needs: string[]): Promise<ShopStep[]> => {
+      setBusy(true);
+      setError(null);
+      try {
+        const outcome = await api.shop(MANDATE_ID, needs);
+        await refresh();
+        const turned = outcome.steps.filter((s) => s.action === "reshopped");
+        setNote(
+          turned.length
+            ? "Refused, told what would clear, and went back to the shop for it."
+            : outcome.steps.map((s) => s.summary).join("  ·  "),
+        );
+        return outcome.steps;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [refresh],
   );
 
   const runScenario = useCallback(async () => {
@@ -432,15 +458,44 @@ export default function App() {
             </div>
           </div>
 
-          <AskConsole
-            payees={payees}
-            terms={mandate.terms}
-            busy={working}
-            revoked={mandate.status !== "active"}
-            last={lastAsk}
-            note={note}
-            onAsk={ask}
-          />
+          <div>
+            <div className="console-tabs" role="tablist">
+              <button
+                className={`console-tab${console_ === "ask" ? " on" : ""}`}
+                onClick={() => setConsole("ask")}
+                role="tab"
+                aria-selected={console_ === "ask"}
+              >
+                Ask for one thing
+              </button>
+              <button
+                className={`console-tab${console_ === "shop" ? " on" : ""}`}
+                onClick={() => setConsole("shop")}
+                role="tab"
+                aria-selected={console_ === "shop"}
+              >
+                Send it shopping
+              </button>
+            </div>
+
+            {console_ === "ask" ? (
+              <AskConsole
+                payees={payees}
+                terms={mandate.terms}
+                busy={working}
+                revoked={mandate.status !== "active"}
+                last={lastAsk}
+                note={note}
+                onAsk={ask}
+              />
+            ) : (
+              <ShopPanel
+                catalogName={health?.catalog ?? "static"}
+                busy={working}
+                onShop={shop}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
