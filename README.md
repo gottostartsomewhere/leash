@@ -162,6 +162,14 @@ LEASH_DEMO_RECEIVER_EMAIL=your-sandbox-personal@example.com
 `LEASH_DEMO_RECEIVER_EMAIL` points every seeded payee at one address, so a
 single variable makes the demo pay into a real sandbox personal account.
 
+### Deploying it
+
+Two free Render services, defined in [`render.yaml`](render.yaml), with the
+steps in [`DEPLOY.md`](DEPLOY.md). The screen is a static site so it never
+sleeps, and the API is a web service that does, which the screen knows how to
+wait for. The API has to be a long-lived process rather than a serverless
+function, because the whole ledger lives in memory.
+
 ### Channel3
 
 ```bash

@@ -11,7 +11,13 @@ import type {
   ShopOutcome,
 } from "./types";
 
-const BASE = "/api";
+// In development Vite proxies /api, so the browser only ever sees one origin.
+// In production the API is its own service and VITE_API_BASE points at it.
+// Empty means same-origin, for anyone serving the built files from the API.
+const BASE = (
+  (import.meta.env.VITE_API_BASE as string | undefined) ??
+  (import.meta.env.DEV ? "/api" : "")
+).replace(/\/$/, "");
 
 export class ApiError extends Error {
   constructor(

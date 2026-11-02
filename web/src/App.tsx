@@ -56,6 +56,7 @@ export default function App() {
   const [note, setNote] = useState("");
   const [lastAsk, setLastAsk] = useState<AskResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [waking, setWaking] = useState(false);
 
   const seen = useRef(0);
   const cancelled = useRef(false);
@@ -98,16 +99,32 @@ export default function App() {
   useEffect(() => {
     cancelled.current = false;
     (async () => {
-      try {
-        const [nextHealth, nextPayees] = await Promise.all([
-          api.health(),
-          api.payees(),
-        ]);
-        setHealth(nextHealth);
-        setPayees(nextPayees);
-        await refresh();
-      } catch (problem) {
-        say(problem);
+      // Free hosting puts the API to sleep after fifteen minutes, and waking
+      // it takes about a minute. That is not an error, so it should not be
+      // reported as one. Keep knocking, and say what is happening.
+      const deadline = Date.now() + 120_000;
+      for (let attempt = 0; ; attempt += 1) {
+        if (cancelled.current) return;
+        try {
+          const [nextHealth, nextPayees] = await Promise.all([
+            api.health(),
+            api.payees(),
+          ]);
+          if (cancelled.current) return;
+          setHealth(nextHealth);
+          setPayees(nextPayees);
+          setWaking(false);
+          await refresh();
+          return;
+        } catch (problem) {
+          if (Date.now() > deadline) {
+            setWaking(false);
+            say(problem);
+            return;
+          }
+          setWaking(true);
+          await wait(Math.min(1500 + attempt * 500, 4000));
+        }
       }
     })();
     return () => {
@@ -318,6 +335,15 @@ export default function App() {
             <p>{error}</p>
             <p style={{ fontFamily: "var(--mono)", fontSize: 11.5 }}>
               uvicorn leash.api:app --reload
+            </p>
+          </>
+        ) : waking ? (
+          <>
+            <span className="spin" />
+            <h3>Waking the engine</h3>
+            <p>
+              The API sleeps after fifteen idle minutes on free hosting, and
+              takes about a minute to come back. Nothing is wrong.
             </p>
           </>
         ) : (

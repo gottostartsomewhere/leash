@@ -1,0 +1,55 @@
+# Two services on Render's free tier, split deliberately.
+#
+# A free web service sleeps after fifteen idle minutes and takes about a
+# minute to wake. A free static site is on a CDN and never sleeps. So the
+# screen is a static site and loads instantly, and it knows how to wait for
+# the API rather than showing a judge a dead page while the engine boots.
+#
+# Every secret is `sync: false`, which means Render asks for it once in the
+# dashboard and it never exists in this repository.
+
+services:
+  - type: web
+    name: leash-api
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install --upgrade pip && pip install .
+    startCommand: uvicorn leash.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.4"
+      - key: LEASH_PAYPAL_CLIENT_ID
+        sync: false
+      - key: LEASH_PAYPAL_SECRET
+        sync: false
+      - key: LEASH_PAYPAL_BASE_URL
+        value: https://api-m.sandbox.paypal.com
+      - key: LEASH_DEMO_RECEIVER_EMAIL
+        sync: false
+      - key: LEASH_CHANNEL3_API_KEY
+        sync: false
+      - key: LEASH_GROQ_API_KEY
+        sync: false
+
+  - type: web
+    name: leash-web
+    runtime: static
+    rootDir: web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      # The API's URL, set once in the dashboard after the first deploy.
+      - key: VITE_API_BASE
+        sync: false
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+    routes:
+      # No client-side router here, but a stray path should still land on the
+      # app rather than on Render's 404.
+      - type: rewrite
+        source: /*
+        destination: /index.html
