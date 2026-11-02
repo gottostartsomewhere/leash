@@ -53,6 +53,59 @@ def test_health_reports_which_gateway_is_live(client):
     assert body["paypal_configured"] is False
 
 
+# -- the specification is a contract --------------------------------------
+
+
+def _response_schema(operation: dict) -> dict:
+    ok = operation.get("responses", {}).get("200") or operation.get(
+        "responses", {}
+    ).get("201", {})
+    return (ok.get("content", {}).get("application/json", {}) or {}).get("schema", {})
+
+
+def test_every_endpoint_describes_what_it_returns(client):
+    # The specification gets published as an SDK and as context an AI agent
+    # reads to learn this API. An endpoint that describes no response shape
+    # becomes an untyped bag in every generated client.
+    spec = client.get("/openapi.json").json()
+
+    vague = []
+    for path, operations in spec["paths"].items():
+        for verb, operation in operations.items():
+            schema = _response_schema(operation)
+            named = schema.get("$ref") or schema.get("items", {}).get("$ref")
+            if not named:
+                vague.append(f"{verb.upper()} {path}")
+
+    assert not vague, f"endpoints with no described response: {vague}"
+
+
+def test_the_committed_definition_matches_the_api():
+    # api/openapi.json is what APIMatic builds the SDK, the portal and the
+    # Context Plugin from. A stale copy would teach an agent an API that no
+    # longer exists, which is worse than teaching it nothing.
+    from scripts.export_openapi import DEFAULT, render
+
+    assert DEFAULT.exists(), "run scripts/export_openapi.py"
+    assert DEFAULT.read_text(encoding="utf-8") == render(), (
+        "api/openapi.json is out of date, run scripts/export_openapi.py"
+    )
+
+
+def test_the_refusal_contract_is_in_the_specification(client):
+    # An agent integrating against this has to learn three things from the
+    # spec alone: it gets a verdict, it gets every rule that fired, and it
+    # gets told what would have cleared.
+    spec = client.get("/openapi.json").json()
+    decision = spec["components"]["schemas"]["AttemptOut"]["properties"]
+
+    assert {"verdict", "failed_codes", "max_allowable", "trace"} <= set(decision)
+    assert "boundary" in decision["max_allowable"]["description"]
+
+    check = spec["components"]["schemas"]["CheckOut"]["properties"]
+    assert {"code", "outcome", "severity", "detail", "evidence"} <= set(check)
+
+
 # -- the catalogue --------------------------------------------------------
 
 

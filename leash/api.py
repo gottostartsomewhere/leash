@@ -33,11 +33,24 @@ from .payouts import (
 from .reconcile import reconcile_all, reconcile_batch
 from .schemas import (
     AttemptIn,
+    AttemptOut,
+    CatalogOut,
     ChargeOut,
+    HealthOut,
     MandateIn,
+    DecisionOut,
+    MandateOut,
     MoneyOut,
     PayeeOut,
+    PayoutOut,
+    PayoutBatchOut,
     PayoutRequest,
+    ReconcileAllOut,
+    ReconcileOut,
+    ReleaseOut,
+    ResetOut,
+    RevokeOut,
+    ShopOut,
     ShopRequest,
     terms,
 )
@@ -51,10 +64,63 @@ from .store import (
     seed_summary,
 )
 
+#: Groups in the generated documentation and SDKs. Ordered the way someone
+#: integrating actually meets them, not alphabetically.
+TAGS = [
+    {
+        "name": "mandates",
+        "description": "Open an authority, read its terms, pull it.",
+    },
+    {
+        "name": "spending",
+        "description": (
+            "The one call that matters. An agent asks, and gets back a "
+            "verdict, every rule that ran, and what would have cleared."
+        ),
+    },
+    {
+        "name": "catalogue",
+        "description": "What the agent can see in the shop, and sending it shopping.",
+    },
+    {
+        "name": "money",
+        "description": (
+            "Approval and settlement over PayPal Payouts, and reconciling the "
+            "ledger against what the processor actually did."
+        ),
+    },
+    {"name": "demo", "description": "Rebuild the seeded scenario."},
+]
+
 app = FastAPI(
     title="Leash",
     version="0.1.0",
     summary="Scoped, revocable, auditable spending authority for AI agents",
+    description=(
+        "Leash gives an AI agent a budget with terms attached, and judges "
+        "every spend against them.\n\n"
+        "Three things are worth knowing before integrating.\n\n"
+        "**Amounts are integer minor units** with the currency beside them. "
+        "`1050` in `USD` is $10.50. No amount is ever a decimal number on "
+        "this wire, so nothing can be lost to floating point.\n\n"
+        "**A refusal is a boundary, not a wall.** Every blocked attempt "
+        "carries `max_allowable`: the largest amount that would have cleared "
+        "right now. An agent told 150 is too much is also told that 100 would "
+        "go through, so it can act rather than give up.\n\n"
+        "**Every rule runs on every attempt.** `trace` carries all of them, "
+        "passed and failed, with the numbers each one decided on. A refusal "
+        "names every reason rather than the first one found, so an agent "
+        "never fixes one problem only to meet the next."
+    ),
+    license_info={
+        "name": "MIT",
+        "url": "https://github.com/gottostartsomewhere/leash/blob/main/LICENSE",
+    },
+    openapi_tags=TAGS,
+    servers=[
+        {"url": "https://leash-api-sm0h.onrender.com", "description": "Live demo"},
+        {"url": "http://127.0.0.1:8000", "description": "Local"},
+    ],
 )
 
 app.add_middleware(
@@ -122,7 +188,7 @@ def _charge_row(charge: Charge) -> ChargeOut:
 # -- health and demo control ---------------------------------------------
 
 
-@app.get("/health")
+@app.get("/health", response_model=HealthOut, tags=["demo"])
 def health(
     settings: SettingsDep, gateway: GatewayDep, catalog: CatalogDep
 ) -> dict[str, Any]:
@@ -148,14 +214,14 @@ def health(
     }
 
 
-@app.post("/demo/reset")
+@app.post("/demo/reset", response_model=ResetOut, tags=["demo"])
 def reset_demo(store: StoreDep, settings: SettingsDep) -> dict[str, Any]:
     """Rebuild the seeded scenario. Lets a take be re-recorded in a second."""
     seed_demo(store, settings)
     return {"reset": True, **seed_summary(store)}
 
 
-@app.get("/payees", response_model=list[PayeeOut])
+@app.get("/payees", response_model=list[PayeeOut], tags=["demo"])
 def list_payees(store: StoreDep) -> list[PayeeOut]:
     return [
         PayeeOut(id=p.id, name=p.name, email=p.email, counterparty=p.counterparty)
@@ -166,7 +232,7 @@ def list_payees(store: StoreDep) -> list[PayeeOut]:
 # -- the catalogue --------------------------------------------------------
 
 
-@app.get("/catalog/search")
+@app.get("/catalog/search", response_model=CatalogOut, tags=["catalogue"])
 async def search_catalog(
     q: str,
     store: StoreDep,
@@ -200,7 +266,7 @@ async def search_catalog(
     }
 
 
-@app.post("/mandates/{mandate_id}/shop")
+@app.post("/mandates/{mandate_id}/shop", response_model=ShopOut, tags=["catalogue"])
 async def shop(
     mandate_id: str,
     body: ShopRequest,
@@ -241,12 +307,12 @@ def _mandate_view(ledger: Ledger) -> dict[str, Any]:
     return {**dict(ledger.summary()), "terms": terms(ledger.mandate)}
 
 
-@app.get("/mandates")
+@app.get("/mandates", response_model=list[MandateOut], tags=["mandates"])
 def list_mandates(store: StoreDep) -> list[dict[str, Any]]:
     return [_mandate_view(ledger) for ledger in store.ledgers()]
 
 
-@app.post("/mandates", status_code=201)
+@app.post("/mandates", status_code=201, response_model=MandateOut, tags=["mandates"])
 def create_mandate(body: MandateIn, store: StoreDep) -> dict[str, Any]:
     now = datetime.now(timezone.utc)
     currency = body.currency
@@ -289,12 +355,12 @@ def create_mandate(body: MandateIn, store: StoreDep) -> dict[str, Any]:
     return _mandate_view(store.open(mandate))
 
 
-@app.get("/mandates/{mandate_id}")
+@app.get("/mandates/{mandate_id}", response_model=MandateOut, tags=["mandates"])
 def get_mandate(mandate_id: str, store: StoreDep) -> dict[str, Any]:
     return _mandate_view(_ledger(store, mandate_id))
 
 
-@app.post("/mandates/{mandate_id}/revoke")
+@app.post("/mandates/{mandate_id}/revoke", response_model=RevokeOut, tags=["mandates"])
 def revoke_mandate(mandate_id: str, store: StoreDep) -> dict[str, Any]:
     """Pull the mandate. Pending holds drop; anything settled stays settled."""
     ledger = _ledger(store, mandate_id)
@@ -306,12 +372,12 @@ def revoke_mandate(mandate_id: str, store: StoreDep) -> dict[str, Any]:
     }
 
 
-@app.get("/mandates/{mandate_id}/charges", response_model=list[ChargeOut])
+@app.get("/mandates/{mandate_id}/charges", response_model=list[ChargeOut], tags=["money"])
 def list_charges(mandate_id: str, store: StoreDep) -> list[ChargeOut]:
     return [_charge_row(c) for c in _ledger(store, mandate_id).charges()]
 
 
-@app.get("/mandates/{mandate_id}/decisions")
+@app.get("/mandates/{mandate_id}/decisions", response_model=list[DecisionOut], tags=["spending"])
 def list_decisions(mandate_id: str, store: StoreDep) -> list[dict[str, Any]]:
     """Every decision with its full trace. This is the audit grid."""
     return [dict(row) for row in _ledger(store, mandate_id).rows()]
@@ -320,7 +386,7 @@ def list_decisions(mandate_id: str, store: StoreDep) -> list[dict[str, Any]]:
 # -- the core endpoint ----------------------------------------------------
 
 
-@app.post("/mandates/{mandate_id}/attempts")
+@app.post("/mandates/{mandate_id}/attempts", response_model=AttemptOut, tags=["spending"])
 def authorize(mandate_id: str, body: AttemptIn, store: StoreDep) -> dict[str, Any]:
     """The agent asks to spend. Everything else in this file is bookkeeping."""
     ledger = _ledger(store, mandate_id)
@@ -347,7 +413,7 @@ def authorize(mandate_id: str, body: AttemptIn, store: StoreDep) -> dict[str, An
 # -- approval and settlement ---------------------------------------------
 
 
-@app.post("/mandates/{mandate_id}/payouts")
+@app.post("/mandates/{mandate_id}/payouts", response_model=PayoutOut, tags=["money"])
 async def release_payouts(
     mandate_id: str,
     body: PayoutRequest,
@@ -418,7 +484,7 @@ async def release_payouts(
     }
 
 
-@app.post("/charges/{charge_id}/release")
+@app.post("/charges/{charge_id}/release", response_model=ReleaseOut, tags=["money"])
 def release_hold(charge_id: str, store: StoreDep) -> dict[str, Any]:
     """Decline a held charge and give the budget back."""
     try:
@@ -432,7 +498,7 @@ def release_hold(charge_id: str, store: StoreDep) -> dict[str, Any]:
     return {"charge": _charge_row(charge).model_dump(), "summary": dict(ledger.summary())}
 
 
-@app.get("/payouts/{batch_id}")
+@app.get("/payouts/{batch_id}", response_model=PayoutBatchOut, tags=["money"])
 async def payout_status(
     batch_id: str, store: StoreDep, gateway: GatewayDep
 ) -> dict[str, Any]:
@@ -446,7 +512,7 @@ async def payout_status(
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@app.post("/payouts/{batch_id}/reconcile")
+@app.post("/payouts/{batch_id}/reconcile", response_model=ReconcileOut, tags=["money"])
 async def reconcile_one(
     batch_id: str, store: StoreDep, gateway: GatewayDep
 ) -> dict[str, Any]:
@@ -464,7 +530,7 @@ async def reconcile_one(
     return report.to_dict()
 
 
-@app.post("/payouts/reconcile")
+@app.post("/payouts/reconcile", response_model=ReconcileAllOut, tags=["money"])
 async def reconcile_everything(
     store: StoreDep, gateway: GatewayDep
 ) -> dict[str, Any]:

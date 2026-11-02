@@ -214,6 +214,37 @@ allowed to touch an amount here. So the response is parsed with
 of `110.99` never exists, not even for an instant. `tests/test_catalog.py`
 pins that with the awkward values.
 
+### APIMatic
+
+The problem APIMatic solves is the same shape as the one this project solves.
+APIMatic exists because an AI agent asked to integrate with an API will guess,
+and guess wrong: hallucinated endpoints, stale SDK calls, auth it invented.
+Leash exists because an agent given money will guess what it is allowed to
+spend, and guess wrong. Both answers are the same: give it a machine-readable
+contract, and refuse clearly when it steps outside.
+
+So the contract had to be worth publishing, and it was not. Thirteen of
+seventeen endpoints described no response shape at all, including
+`POST /mandates/{id}/attempts`, which is the only call an agent really makes.
+A generated SDK would have handed back an untyped bag for the refusal, and the
+refusal is the product.
+
+Every endpoint now describes what it returns, declared as `response_model` so
+the definition is enforced rather than claimed: a handler that stops matching
+its own schema fails. `CheckOut` and `AttemptOut` put the three things an
+integrator has to learn into the specification itself, so an agent reading it
+knows them without being told:
+
+- it gets a `verdict`
+- it gets `trace`, every rule that ran, passed and failed, with the numbers
+- it gets `max_allowable`, the largest amount that would have cleared
+
+`api/openapi.json` is committed rather than fetched from a running server, so
+the contract is readable without starting anything. Regenerate it with
+`python scripts/export_openapi.py`, and a test fails if the committed copy
+drifts, because a stale definition would teach an agent an API that no longer
+exists.
+
 ## API
 
 | Method | Path | |

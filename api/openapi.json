@@ -1,0 +1,2334 @@
+{
+  "components": {
+    "schemas": {
+      "AttemptIn": {
+        "description": "One proposed spend, submitted by the agent.",
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "currency": {
+            "default": "USD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "payee": {
+            "title": "Payee",
+            "type": "string"
+          }
+        },
+        "required": [
+          "payee",
+          "category",
+          "amount"
+        ],
+        "title": "AttemptIn",
+        "type": "object"
+      },
+      "AttemptOut": {
+        "properties": {
+          "amount": {
+            "description": "Minor units, e.g. 1050 is 10.50.",
+            "title": "Amount",
+            "type": "integer"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "available": {
+            "title": "Available",
+            "type": "integer"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "evaluated_at": {
+            "title": "Evaluated At",
+            "type": "string"
+          },
+          "failed_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Failed Codes",
+            "type": "array"
+          },
+          "mandate_id": {
+            "title": "Mandate Id",
+            "type": "string"
+          },
+          "max_allowable": {
+            "description": "The largest amount that would have cleared every rule right now. Zero when no amount would. This is what turns a refusal into a boundary an agent can act on rather than a wall.",
+            "title": "Max Allowable",
+            "type": "integer"
+          },
+          "payee": {
+            "title": "Payee",
+            "type": "string"
+          },
+          "reason": {
+            "description": "One sentence, for a person.",
+            "title": "Reason",
+            "type": "string"
+          },
+          "remaining_after": {
+            "title": "Remaining After",
+            "type": "integer"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/BalancesOut"
+          },
+          "trace": {
+            "description": "Every rule that ran, including the ones that passed.",
+            "items": {
+              "$ref": "#/components/schemas/CheckOut"
+            },
+            "title": "Trace",
+            "type": "array"
+          },
+          "verdict": {
+            "description": "`allow` or `block`.",
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "mandate_id",
+          "verdict",
+          "evaluated_at",
+          "reason",
+          "amount",
+          "currency",
+          "payee",
+          "category",
+          "available",
+          "remaining_after",
+          "max_allowable",
+          "failed_codes",
+          "trace",
+          "summary"
+        ],
+        "title": "AttemptOut",
+        "type": "object"
+      },
+      "BalancesOut": {
+        "description": "How much of the authority is left.",
+        "properties": {
+          "agent_id": {
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "available": {
+            "title": "Available",
+            "type": "integer"
+          },
+          "blocked": {
+            "title": "Blocked",
+            "type": "integer"
+          },
+          "committed": {
+            "title": "Committed",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "held": {
+            "description": "Authorised but not yet captured.",
+            "title": "Held",
+            "type": "integer"
+          },
+          "mandate_id": {
+            "title": "Mandate Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_limit": {
+            "title": "Total Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mandate_id",
+          "agent_id",
+          "status",
+          "currency",
+          "total_limit",
+          "committed",
+          "held",
+          "available",
+          "attempts",
+          "blocked"
+        ],
+        "title": "BalancesOut",
+        "type": "object"
+      },
+      "CatalogOut": {
+        "properties": {
+          "catalog": {
+            "title": "Catalog",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "new_payees": {
+            "description": "Merchants that became payable as a result of this search.",
+            "items": {
+              "type": "string"
+            },
+            "title": "New Payees",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "catalog",
+          "query",
+          "items",
+          "new_payees"
+        ],
+        "title": "CatalogOut",
+        "type": "object"
+      },
+      "ChargeOut": {
+        "properties": {
+          "amount": {
+            "$ref": "#/components/schemas/MoneyOut"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "payee": {
+            "title": "Payee",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "payee",
+          "category",
+          "amount",
+          "state",
+          "created_at"
+        ],
+        "title": "ChargeOut",
+        "type": "object"
+      },
+      "CheckOut": {
+        "description": "One rule, what it decided, and the numbers it decided on.",
+        "properties": {
+          "code": {
+            "description": "Which rule this is, e.g. `structuring`.",
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "description": "The numbers behind the decision. Shape varies by rule.",
+            "title": "Evidence",
+            "type": "object"
+          },
+          "outcome": {
+            "description": "`pass`, `fail`, or `skip` when not configured.",
+            "title": "Outcome",
+            "type": "string"
+          },
+          "severity": {
+            "description": "`medium`, `high` or `critical`.",
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "outcome",
+          "severity",
+          "detail"
+        ],
+        "title": "CheckOut",
+        "type": "object"
+      },
+      "CorrectionOut": {
+        "properties": {
+          "charge_id": {
+            "title": "Charge Id",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "now": {
+            "title": "Now",
+            "type": "string"
+          },
+          "processor_status": {
+            "title": "Processor Status",
+            "type": "string"
+          },
+          "was": {
+            "title": "Was",
+            "type": "string"
+          }
+        },
+        "required": [
+          "charge_id",
+          "was",
+          "now",
+          "processor_status"
+        ],
+        "title": "CorrectionOut",
+        "type": "object"
+      },
+      "DecisionOut": {
+        "description": "The answer to \"may I spend this\", with its full working shown.",
+        "properties": {
+          "amount": {
+            "description": "Minor units, e.g. 1050 is 10.50.",
+            "title": "Amount",
+            "type": "integer"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "available": {
+            "title": "Available",
+            "type": "integer"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "evaluated_at": {
+            "title": "Evaluated At",
+            "type": "string"
+          },
+          "failed_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Failed Codes",
+            "type": "array"
+          },
+          "mandate_id": {
+            "title": "Mandate Id",
+            "type": "string"
+          },
+          "max_allowable": {
+            "description": "The largest amount that would have cleared every rule right now. Zero when no amount would. This is what turns a refusal into a boundary an agent can act on rather than a wall.",
+            "title": "Max Allowable",
+            "type": "integer"
+          },
+          "payee": {
+            "title": "Payee",
+            "type": "string"
+          },
+          "reason": {
+            "description": "One sentence, for a person.",
+            "title": "Reason",
+            "type": "string"
+          },
+          "remaining_after": {
+            "title": "Remaining After",
+            "type": "integer"
+          },
+          "trace": {
+            "description": "Every rule that ran, including the ones that passed.",
+            "items": {
+              "$ref": "#/components/schemas/CheckOut"
+            },
+            "title": "Trace",
+            "type": "array"
+          },
+          "verdict": {
+            "description": "`allow` or `block`.",
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "mandate_id",
+          "verdict",
+          "evaluated_at",
+          "reason",
+          "amount",
+          "currency",
+          "payee",
+          "category",
+          "available",
+          "remaining_after",
+          "max_allowable",
+          "failed_codes",
+          "trace"
+        ],
+        "title": "DecisionOut",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthOut": {
+        "properties": {
+          "catalog": {
+            "title": "Catalog",
+            "type": "string"
+          },
+          "channel3_configured": {
+            "title": "Channel3 Configured",
+            "type": "boolean"
+          },
+          "configured": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Configured",
+            "type": "array"
+          },
+          "gateway": {
+            "title": "Gateway",
+            "type": "string"
+          },
+          "groq_configured": {
+            "title": "Groq Configured",
+            "type": "boolean"
+          },
+          "paypal_configured": {
+            "title": "Paypal Configured",
+            "type": "boolean"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "gateway",
+          "catalog",
+          "paypal_configured",
+          "channel3_configured",
+          "groq_configured"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "ItemOut": {
+        "properties": {
+          "best": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OfferOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cheapest offer that is actually in stock."
+          },
+          "brand": {
+            "default": "",
+            "title": "Brand",
+            "type": "string"
+          },
+          "category": {
+            "default": "",
+            "title": "Category",
+            "type": "string"
+          },
+          "counterparties": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Counterparties",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "image_url": {
+            "default": "",
+            "title": "Image Url",
+            "type": "string"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/OfferOut"
+            },
+            "title": "Offers",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "offers",
+          "counterparties"
+        ],
+        "title": "ItemOut",
+        "type": "object"
+      },
+      "MandateIn": {
+        "description": "What the person is willing to let an agent do.",
+        "properties": {
+          "agent_id": {
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "allowed_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Categories"
+          },
+          "allowed_payees": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Payees"
+          },
+          "concentration_floor": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concentration Floor"
+          },
+          "concentration_max_share": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concentration Max Share"
+          },
+          "currency": {
+            "default": "USD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "duration_hours": {
+            "default": 720.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Duration Hours",
+            "type": "number"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "per_item_limit": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Item Limit"
+          },
+          "per_payee_limit": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Payee Limit"
+          },
+          "structuring_window_seconds": {
+            "default": 900,
+            "minimum": 0.0,
+            "title": "Structuring Window Seconds",
+            "type": "integer"
+          },
+          "total_limit": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Total Limit"
+          },
+          "velocity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VelocityIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "agent_id",
+          "total_limit"
+        ],
+        "title": "MandateIn",
+        "type": "object"
+      },
+      "MandateOut": {
+        "properties": {
+          "agent_id": {
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "available": {
+            "title": "Available",
+            "type": "integer"
+          },
+          "blocked": {
+            "title": "Blocked",
+            "type": "integer"
+          },
+          "committed": {
+            "title": "Committed",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "held": {
+            "description": "Authorised but not yet captured.",
+            "title": "Held",
+            "type": "integer"
+          },
+          "mandate_id": {
+            "title": "Mandate Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "terms": {
+            "$ref": "#/components/schemas/TermsOut"
+          },
+          "total_limit": {
+            "title": "Total Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mandate_id",
+          "agent_id",
+          "status",
+          "currency",
+          "total_limit",
+          "committed",
+          "held",
+          "available",
+          "attempts",
+          "blocked",
+          "terms"
+        ],
+        "title": "MandateOut",
+        "type": "object"
+      },
+      "MoneyOut": {
+        "properties": {
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "display": {
+            "title": "Display",
+            "type": "string"
+          },
+          "minor": {
+            "title": "Minor",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "minor",
+          "currency",
+          "display"
+        ],
+        "title": "MoneyOut",
+        "type": "object"
+      },
+      "OfferOut": {
+        "description": "One merchant's price for one product.",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "availability": {
+            "title": "Availability",
+            "type": "string"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition"
+          },
+          "counterparty": {
+            "description": "Merchant hostnames group onto one counterparty, so the per-counterparty cap measures the merchant and not the URL.",
+            "title": "Counterparty",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "display": {
+            "title": "Display",
+            "type": "string"
+          },
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "in_stock": {
+            "title": "In Stock",
+            "type": "boolean"
+          },
+          "payee": {
+            "title": "Payee",
+            "type": "string"
+          },
+          "url": {
+            "default": "",
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "domain",
+          "payee",
+          "counterparty",
+          "amount",
+          "currency",
+          "display",
+          "availability",
+          "in_stock"
+        ],
+        "title": "OfferOut",
+        "type": "object"
+      },
+      "PayeeOut": {
+        "properties": {
+          "counterparty": {
+            "title": "Counterparty",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "counterparty"
+        ],
+        "title": "PayeeOut",
+        "type": "object"
+      },
+      "PayoutBatchOut": {
+        "properties": {
+          "batch_id": {
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "gateway": {
+            "title": "Gateway",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PayoutItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "settled": {
+            "title": "Settled",
+            "type": "boolean"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "batch_id",
+          "status",
+          "gateway",
+          "settled"
+        ],
+        "title": "PayoutBatchOut",
+        "type": "object"
+      },
+      "PayoutItemOut": {
+        "properties": {
+          "charge_id": {
+            "title": "Charge Id",
+            "type": "string"
+          },
+          "payout_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payout Item Id"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "charge_id",
+          "status"
+        ],
+        "title": "PayoutItemOut",
+        "type": "object"
+      },
+      "PayoutOut": {
+        "properties": {
+          "batch": {
+            "$ref": "#/components/schemas/PayoutBatchOut"
+          },
+          "failed_charge_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Failed Charge Ids",
+            "type": "array"
+          },
+          "settled_charge_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Settled Charge Ids",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/BalancesOut"
+          }
+        },
+        "required": [
+          "batch",
+          "settled_charge_ids",
+          "failed_charge_ids",
+          "summary"
+        ],
+        "title": "PayoutOut",
+        "type": "object"
+      },
+      "PayoutRequest": {
+        "description": "The approval step: which held charges a human is releasing.",
+        "properties": {
+          "charge_ids": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Charge Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "charge_ids"
+        ],
+        "title": "PayoutRequest",
+        "type": "object"
+      },
+      "ReconcileAllOut": {
+        "properties": {
+          "batches": {
+            "items": {
+              "$ref": "#/components/schemas/ReconcileOut"
+            },
+            "title": "Batches",
+            "type": "array"
+          },
+          "clean": {
+            "title": "Clean",
+            "type": "boolean"
+          },
+          "conflicts": {
+            "title": "Conflicts",
+            "type": "integer"
+          },
+          "corrected": {
+            "title": "Corrected",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "batches",
+          "clean",
+          "corrected",
+          "conflicts"
+        ],
+        "title": "ReconcileAllOut",
+        "type": "object"
+      },
+      "ReconcileOut": {
+        "description": "What the processor said, and what the ledger had to change.",
+        "properties": {
+          "agreed": {
+            "title": "Agreed",
+            "type": "integer"
+          },
+          "batch_id": {
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "checked": {
+            "title": "Checked",
+            "type": "integer"
+          },
+          "clean": {
+            "title": "Clean",
+            "type": "boolean"
+          },
+          "conflicts": {
+            "description": "Reported, not fixed. The processor says it paid but the ledger gave the budget back, and re-committing it could push the mandate past its own limit.",
+            "items": {
+              "$ref": "#/components/schemas/CorrectionOut"
+            },
+            "title": "Conflicts",
+            "type": "array"
+          },
+          "corrected": {
+            "description": "Fixed automatically. Money that came back frees budget.",
+            "items": {
+              "$ref": "#/components/schemas/CorrectionOut"
+            },
+            "title": "Corrected",
+            "type": "array"
+          },
+          "gateway": {
+            "title": "Gateway",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "unknown": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unknown",
+            "type": "array"
+          }
+        },
+        "required": [
+          "batch_id",
+          "status",
+          "gateway",
+          "checked",
+          "agreed",
+          "clean",
+          "corrected",
+          "conflicts",
+          "unknown"
+        ],
+        "title": "ReconcileOut",
+        "type": "object"
+      },
+      "ReleaseOut": {
+        "properties": {
+          "charge": {
+            "$ref": "#/components/schemas/ChargeOut"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/BalancesOut"
+          }
+        },
+        "required": [
+          "charge",
+          "summary"
+        ],
+        "title": "ReleaseOut",
+        "type": "object"
+      },
+      "ResetOut": {
+        "properties": {
+          "mandate_id": {
+            "title": "Mandate Id",
+            "type": "string"
+          },
+          "payees": {
+            "items": {
+              "$ref": "#/components/schemas/SeededPayeeOut"
+            },
+            "title": "Payees",
+            "type": "array"
+          },
+          "reset": {
+            "title": "Reset",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reset",
+          "mandate_id",
+          "payees"
+        ],
+        "title": "ResetOut",
+        "type": "object"
+      },
+      "RevokeOut": {
+        "properties": {
+          "released_charge_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Released Charge Ids",
+            "type": "array"
+          },
+          "revoked": {
+            "title": "Revoked",
+            "type": "boolean"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/BalancesOut"
+          }
+        },
+        "required": [
+          "revoked",
+          "released_charge_ids",
+          "summary"
+        ],
+        "title": "RevokeOut",
+        "type": "object"
+      },
+      "SeededPayeeOut": {
+        "properties": {
+          "counterparty": {
+            "title": "Counterparty",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "counterparty"
+        ],
+        "title": "SeededPayeeOut",
+        "type": "object"
+      },
+      "ShopOut": {
+        "properties": {
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ShopStepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/BalancesOut"
+          }
+        },
+        "required": [
+          "steps",
+          "summary"
+        ],
+        "title": "ShopOut",
+        "type": "object"
+      },
+      "ShopRequest": {
+        "description": "What the agent has been sent out to buy, in words.",
+        "properties": {
+          "needs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Needs",
+            "type": "array"
+          },
+          "reshop": {
+            "default": true,
+            "title": "Reshop",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "needs"
+        ],
+        "title": "ShopRequest",
+        "type": "object"
+      },
+      "ShopStepOut": {
+        "properties": {
+          "action": {
+            "description": "`bought`, `reshopped` when a refusal sent it back to the shop under a price ceiling, `refused`, `nothing_found`, `unreachable`.",
+            "title": "Action",
+            "type": "string"
+          },
+          "ceiling": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The counter-offer it shopped against.",
+            "title": "Ceiling"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DecisionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "first_choice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ItemOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What it wanted before being refused."
+          },
+          "item": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ItemOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "offer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OfferOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "action",
+          "summary"
+        ],
+        "title": "ShopStepOut",
+        "type": "object"
+      },
+      "TermsOut": {
+        "description": "What the authority actually permits.",
+        "properties": {
+          "allowed_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Categories"
+          },
+          "allowed_payees": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Payees"
+          },
+          "concentration_floor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concentration Floor"
+          },
+          "concentration_max_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concentration Max Share"
+          },
+          "ends_at": {
+            "title": "Ends At",
+            "type": "string"
+          },
+          "per_item_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Item Limit"
+          },
+          "per_payee_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Payee Limit"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "starts_at": {
+            "title": "Starts At",
+            "type": "string"
+          },
+          "structuring_window_seconds": {
+            "title": "Structuring Window Seconds",
+            "type": "integer"
+          },
+          "velocity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VelocityOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "structuring_window_seconds",
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "TermsOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VelocityIn": {
+        "properties": {
+          "max_amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Amount"
+          },
+          "max_count": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Count"
+          },
+          "window_seconds": {
+            "exclusiveMinimum": 0.0,
+            "title": "Window Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "window_seconds"
+        ],
+        "title": "VelocityIn",
+        "type": "object"
+      },
+      "VelocityOut": {
+        "properties": {
+          "max_amount": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Amount"
+          },
+          "max_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Count"
+          },
+          "window_seconds": {
+            "title": "Window Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "window_seconds"
+        ],
+        "title": "VelocityOut",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Leash gives an AI agent a budget with terms attached, and judges every spend against them.\n\nThree things are worth knowing before integrating.\n\n**Amounts are integer minor units** with the currency beside them. `1050` in `USD` is $10.50. No amount is ever a decimal number on this wire, so nothing can be lost to floating point.\n\n**A refusal is a boundary, not a wall.** Every blocked attempt carries `max_allowable`: the largest amount that would have cleared right now. An agent told 150 is too much is also told that 100 would go through, so it can act rather than give up.\n\n**Every rule runs on every attempt.** `trace` carries all of them, passed and failed, with the numbers each one decided on. A refusal names every reason rather than the first one found, so an agent never fixes one problem only to meet the next.",
+    "license": {
+      "name": "MIT",
+      "url": "https://github.com/gottostartsomewhere/leash/blob/main/LICENSE"
+    },
+    "summary": "Scoped, revocable, auditable spending authority for AI agents",
+    "title": "Leash",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/catalog/search": {
+      "get": {
+        "description": "What the agent can see in the shop.\n\nEvery merchant that comes back is registered as a payee, with its\nhostnames grouped onto one counterparty, so a spend against it can be\njudged the moment the agent asks.",
+        "operationId": "search_catalog_catalog_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "under",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Under"
+            }
+          },
+          {
+            "in": "query",
+            "name": "currency",
+            "required": false,
+            "schema": {
+              "default": "USD",
+              "title": "Currency",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 8,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search Catalog",
+        "tags": [
+          "catalogue"
+        ]
+      }
+    },
+    "/charges/{charge_id}/release": {
+      "post": {
+        "description": "Decline a held charge and give the budget back.",
+        "operationId": "release_hold_charges__charge_id__release_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "charge_id",
+            "required": true,
+            "schema": {
+              "title": "Charge Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Release Hold",
+        "tags": [
+          "money"
+        ]
+      }
+    },
+    "/demo/reset": {
+      "post": {
+        "description": "Rebuild the seeded scenario. Lets a take be re-recorded in a second.",
+        "operationId": "reset_demo_demo_reset_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Reset Demo",
+        "tags": [
+          "demo"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "What this process is, and what it can see.\n\n`configured` lists the names of the LEASH_ variables present, never their\nvalues. On a deployed service you cannot look at the environment, and the\ndifference between \"the key is missing\" and \"the key is there under a\nslightly different name\" is otherwise invisible. Those names are already\npublic in .env.example, so listing them gives nothing away.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "demo"
+        ]
+      }
+    },
+    "/mandates": {
+      "get": {
+        "operationId": "list_mandates_mandates_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MandateOut"
+                  },
+                  "title": "Response List Mandates Mandates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Mandates",
+        "tags": [
+          "mandates"
+        ]
+      },
+      "post": {
+        "operationId": "create_mandate_mandates_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MandateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MandateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Mandate",
+        "tags": [
+          "mandates"
+        ]
+      }
+    },
+    "/mandates/{mandate_id}": {
+      "get": {
+        "operationId": "get_mandate_mandates__mandate_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mandate_id",
+            "required": true,
+            "schema": {
+              "title": "Mandate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MandateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Mandate",
+        "tags": [
+          "mandates"
+        ]
+      }
+    },
+    "/mandates/{mandate_id}/attempts": {
+      "post": {
+        "description": "The agent asks to spend. Everything else in this file is bookkeeping.",
+        "operationId": "authorize_mandates__mandate_id__attempts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mandate_id",
+            "required": true,
+            "schema": {
+              "title": "Mandate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttemptIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Authorize",
+        "tags": [
+          "spending"
+        ]
+      }
+    },
+    "/mandates/{mandate_id}/charges": {
+      "get": {
+        "operationId": "list_charges_mandates__mandate_id__charges_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mandate_id",
+            "required": true,
+            "schema": {
+              "title": "Mandate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChargeOut"
+                  },
+                  "title": "Response List Charges Mandates  Mandate Id  Charges Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Charges",
+        "tags": [
+          "money"
+        ]
+      }
+    },
+    "/mandates/{mandate_id}/decisions": {
+      "get": {
+        "description": "Every decision with its full trace. This is the audit grid.",
+        "operationId": "list_decisions_mandates__mandate_id__decisions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mandate_id",
+            "required": true,
+            "schema": {
+              "title": "Mandate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DecisionOut"
+                  },
+                  "title": "Response List Decisions Mandates  Mandate Id  Decisions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Decisions",
+        "tags": [
+          "spending"
+        ]
+      }
+    },
+    "/mandates/{mandate_id}/payouts": {
+      "post": {
+        "description": "Approve held charges and move the money in one batch.\n\nThe batch goes out before anything is marked settled. If the processor\nrefuses, the holds stay held and the whole thing can be retried; a partial\nresult settles what cleared and fails what did not, so the grid matches\nthe money rather than our intentions.",
+        "operationId": "release_payouts_mandates__mandate_id__payouts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mandate_id",
+            "required": true,
+            "schema": {
+              "title": "Mandate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Release Payouts",
+        "tags": [
+          "money"
+        ]
+      }
+    },
+    "/mandates/{mandate_id}/revoke": {
+      "post": {
+        "description": "Pull the mandate. Pending holds drop; anything settled stays settled.",
+        "operationId": "revoke_mandate_mandates__mandate_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mandate_id",
+            "required": true,
+            "schema": {
+              "title": "Mandate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Mandate",
+        "tags": [
+          "mandates"
+        ]
+      }
+    },
+    "/mandates/{mandate_id}/shop": {
+      "post": {
+        "description": "Send the agent shopping against this mandate.\n\nThe interesting path is a refusal: told what would clear, the agent goes\nback to the catalogue with that as a price ceiling and buys something\nthat fits, rather than arguing about the thing it cannot have.",
+        "operationId": "shop_mandates__mandate_id__shop_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mandate_id",
+            "required": true,
+            "schema": {
+              "title": "Mandate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Shop",
+        "tags": [
+          "catalogue"
+        ]
+      }
+    },
+    "/payees": {
+      "get": {
+        "operationId": "list_payees_payees_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PayeeOut"
+                  },
+                  "title": "Response List Payees Payees Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Payees",
+        "tags": [
+          "demo"
+        ]
+      }
+    },
+    "/payouts/reconcile": {
+      "post": {
+        "description": "Every batch this process has sent, re-checked against the processor.",
+        "operationId": "reconcile_everything_payouts_reconcile_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileAllOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Reconcile Everything",
+        "tags": [
+          "money"
+        ]
+      }
+    },
+    "/payouts/{batch_id}": {
+      "get": {
+        "description": "Live status from the processor, falling back to what we recorded.",
+        "operationId": "payout_status_payouts__batch_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "title": "Batch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutBatchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Payout Status",
+        "tags": [
+          "money"
+        ]
+      }
+    },
+    "/payouts/{batch_id}/reconcile": {
+      "post": {
+        "description": "Re-read a batch and move the ledger to match what the processor says.\n\nA charge settles the moment the processor accepts the instruction, which\nis before it knows whether the item will land. This is the step that goes\nback and checks, so the grid ends up describing what happened rather than\nwhat we meant to happen.",
+        "operationId": "reconcile_one_payouts__batch_id__reconcile_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "title": "Batch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconcileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reconcile One",
+        "tags": [
+          "money"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Live demo",
+      "url": "https://leash-api-sm0h.onrender.com"
+    },
+    {
+      "description": "Local",
+      "url": "http://127.0.0.1:8000"
+    }
+  ],
+  "tags": [
+    {
+      "description": "Open an authority, read its terms, pull it.",
+      "name": "mandates"
+    },
+    {
+      "description": "The one call that matters. An agent asks, and gets back a verdict, every rule that ran, and what would have cleared.",
+      "name": "spending"
+    },
+    {
+      "description": "What the agent can see in the shop, and sending it shopping.",
+      "name": "catalogue"
+    },
+    {
+      "description": "Approval and settlement over PayPal Payouts, and reconciling the ledger against what the processor actually did.",
+      "name": "money"
+    },
+    {
+      "description": "Rebuild the seeded scenario.",
+      "name": "demo"
+    }
+  ]
+}
