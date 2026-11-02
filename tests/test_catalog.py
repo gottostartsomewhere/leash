@@ -44,7 +44,7 @@ def product(**overrides) -> dict:
         "id": "p1",
         "title": "Mesh task chair",
         "brands": [{"id": "b", "name": "Acme"}],
-        "category": {"slug": "seating", "path": [{"slug": "office"}, {"slug": "seating"}]},
+        "category": {"slug": "chairs", "path": [{"slug": "furniture"}, {"slug": "chairs"}]},
         "images": [{"url": "https://img.test/a.jpg", "is_main_image": True}],
         "offers": [
             {
@@ -177,11 +177,29 @@ def test_the_offer_guide_shape_is_accepted_too():
 
 
 def test_the_broadest_category_is_the_one_a_mandate_scopes_on():
-    # A mandate says "office", not "seating".
+    # A mandate says "furniture", not "chairs".
     item = item_from(product())
 
     assert item is not None
-    assert item.category == "office"
+    assert item.category == "furniture"
+
+
+async def test_the_offline_catalogue_speaks_the_same_taxonomy_as_the_mandate():
+    # The bug this guards against: the offline fixture and the demo mandate
+    # drifting onto different category vocabularies, so every offline product
+    # reads as out of scope and the engine looks broken while working
+    # perfectly. Both sides use Channel3's roots, so both sides agree.
+    from leash.store import DEMO_CATEGORIES, OUT_OF_SCOPE_CATEGORIES
+
+    items = await StaticCatalog().search("")
+    roots = {item.category for item in items}
+
+    assert roots & DEMO_CATEGORIES, "nothing offline is in scope"
+    assert roots - DEMO_CATEGORIES, "nothing offline is out of scope"
+    assert roots <= DEMO_CATEGORIES | set(OUT_OF_SCOPE_CATEGORIES), (
+        f"offline roots the demo does not account for: "
+        f"{roots - DEMO_CATEGORIES - set(OUT_OF_SCOPE_CATEGORIES)}"
+    )
 
 
 def test_a_product_nobody_sells_is_not_a_product():

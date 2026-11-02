@@ -26,25 +26,28 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from leash.store import DEMO_MANDATE_ID  # noqa: E402
 
 #: payee, category, amount, expected verdict, expected rules, what it shows
+OFFICE = "office-supplies"
+FURNITURE = "furniture"
+
 BEATS: tuple[tuple[str, str, str, str, tuple[str, ...], str], ...] = (
-    ("northwind", "office", "40.00", "allow", (),
+    ("northwind", OFFICE, "40.00", "allow", (),
      "Inside every rule. The normal case, and it should look boring."),
-    ("globex", "hardware", "150.00", "block", ("per_item_limit",),
+    ("globex", FURNITURE, "150.00", "block", ("per_item_limit",),
      "Over the per-item cap, and it says what would clear instead."),
-    ("globex", "hardware", "100.00", "allow", (),
+    ("globex", FURNITURE, "100.00", "allow", (),
      "The agent takes the counter-offer."),
-    ("acme_us", "office", "75.00", "allow", (),
+    ("acme_us", OFFICE, "75.00", "allow", (),
      "75 to Acme. Under the cap on its own."),
-    ("acme_eu", "office", "75.00", "block", ("structuring",),
+    ("acme_eu", OFFICE, "75.00", "block", ("structuring",),
      "Same merchant, second address. Each charge passes; the cluster does not."),
     ("initech", "electronics", "60.00", "block", ("category_not_allowed",),
      "Out of scope. No amount fixes the wrong category."),
-    ("northwind", "office", "20.00", "allow", (), ""),
-    ("globex", "office", "20.00", "allow", (), ""),
-    ("initech", "office", "20.00", "allow", (), ""),
-    ("acme_us", "office", "20.00", "block", ("velocity",),
+    ("northwind", OFFICE, "20.00", "allow", (), ""),
+    ("globex", OFFICE, "20.00", "allow", (), ""),
+    ("initech", OFFICE, "20.00", "allow", (), ""),
+    ("acme_us", OFFICE, "20.00", "block", ("velocity",),
      "Seventh hold inside a minute. The pace limit, on its own."),
-    ("globex", "hardware", "500.00", "block",
+    ("globex", FURNITURE, "500.00", "block",
      ("per_item_limit", "per_payee_limit", "insufficient_budget", "velocity",
       "concentration"),
      "Every check runs, so a refusal names every reason, not the first."),

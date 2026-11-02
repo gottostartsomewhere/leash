@@ -153,6 +153,23 @@ def register_merchants(
 
 DEMO_MANDATE_ID = "mnd_demo"
 
+#: The demo mandate's scope, written in the catalogue's own taxonomy rather
+#: than in slugs I invented. Channel3 classifies against the Google Product
+#: Taxonomy, so an office chair is `furniture` and a ream of paper is
+#: `office-supplies`, whether it came from a live search or the offline
+#: fixture. A monitor is `electronics` and a desk lamp is `home-garden`, which
+#: is what makes "furniture and office supplies, nothing else" a procurement
+#: rule a person would actually write rather than a demo contrivance.
+DEMO_CATEGORIES: frozenset[str] = frozenset({"office-supplies", "furniture"})
+
+#: Roots the demo deliberately leaves out, offered in the UI so the
+#: out-of-scope refusal can be triggered on purpose.
+OUT_OF_SCOPE_CATEGORIES: tuple[str, ...] = (
+    "electronics",
+    "home-garden",
+    "apparel-accessories",
+)
+
 _DEMO_PAYEES: tuple[tuple[str, str, str | None], ...] = (
     ("acme_us", "Acme Supplies (US)", "acme"),
     ("acme_eu", "Acme Supplies (EU)", "acme"),
@@ -185,7 +202,7 @@ def demo_mandate(now: datetime | None = None) -> Mandate:
         ends_at=moment + timedelta(days=30),
         per_item_limit=Money.from_major(100, "USD"),
         per_payee_limit=Money.from_major(200, "USD"),
-        allowed_categories=frozenset({"office", "hardware"}),
+        allowed_categories=DEMO_CATEGORIES,
         velocity=Velocity(
             window_seconds=60,
             max_count=6,

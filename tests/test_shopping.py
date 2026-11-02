@@ -7,8 +7,9 @@ from leash.catalog import CatalogError, StaticCatalog
 from leash.ledger import Ledger
 from leash.models import PayeeDirectory, Velocity
 
-# The static catalogue's office-ish roots, so the mandate and the shop agree.
-OFFICE = frozenset({"office", "hardware"})
+# The real taxonomy roots the catalogue classifies against, so the mandate
+# and the shop agree whether or not a Channel3 key is set.
+OFFICE = frozenset({"office-supplies", "furniture"})
 
 
 def shopper(catalog=None, mandate=None, **kwargs):
@@ -126,13 +127,15 @@ async def test_reshopping_can_be_turned_off():
 
 
 async def test_it_gives_up_when_nothing_cheap_enough_exists():
-    # A 300 monitor against a 100 cap, and the catalogue has a 97.50 one, so
-    # narrow the mandate until nothing fits.
+    # The cheapest desk is 239.50 and the cap is 50, so the second search
+    # comes back empty and there is nothing left to try.
     agent, ledger = shopper(mandate=a_mandate(
         per_item_limit=usd(50), allowed_categories=OFFICE
     ))
 
-    steps = await agent.run([Need("monitor")], start=NOW)
+    # "desk" alone would also match the desk lamp, which is out of scope, so
+    # this asks for the one thing only the desk matches.
+    steps = await agent.run([Need("sit-stand")], start=NOW)
 
     assert steps[0].action == "refused"
     assert "nothing under" in steps[0].detail
@@ -156,13 +159,16 @@ async def test_an_out_of_scope_category_is_not_fixed_by_shopping_cheaper():
 
 
 async def test_it_will_not_buy_something_that_is_out_of_stock():
-    agent, _ = shopper()
+    # Paper has a cheaper listing at 34.00 that nobody can ship. Picking on
+    # price alone would take it.
+    agent, ledger = shopper()
 
-    steps = await agent.run([Need("lamp")], start=NOW)
+    steps = await agent.run([Need("paper")], start=NOW)
 
     assert steps[0].offer is not None
     assert steps[0].offer.in_stock
-    assert steps[0].offer.price == usd("44.00")
+    assert steps[0].offer.price == usd("38.00")
+    assert ledger.held == usd("38.00")
 
 
 # -- the catalogue failing ------------------------------------------------
@@ -208,7 +214,7 @@ async def test_it_works_a_list_and_stops_when_the_budget_is_gone():
     ))
 
     steps = await agent.run(
-        [Need("paper"), Need("chair"), Need("lamp")], start=NOW
+        [Need("paper"), Need("chair"), Need("pens")], start=NOW
     )
 
     assert bought(steps) == ledger.held.minor
@@ -223,7 +229,7 @@ async def test_the_pace_limit_is_reported_rather_than_worked_around():
         ),
     )
 
-    steps = await agent.run([Need("paper"), Need("lamp")], start=NOW)
+    steps = await agent.run([Need("paper"), Need("pens")], start=NOW)
 
     assert steps[0].action == "bought"
     assert steps[1].action == "refused"

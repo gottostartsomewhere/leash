@@ -396,14 +396,17 @@ class Channel3Catalog:
 
 # -- the offline one ------------------------------------------------------
 
-#: Shaped exactly like Channel3's own responses, including the two hostnames
-#: for one merchant, so the offline path exercises the alias grouping too.
+#: Shaped exactly like Channel3's own responses, down to the taxonomy: these
+#: are real Google Product Taxonomy roots, the same ones a live search
+#: returns, so a mandate scoped to `furniture` and `office-supplies` behaves
+#: identically whether or not a key is set. Includes two hostnames for one
+#: merchant, so the offline path exercises the alias grouping too.
 _STATIC: Final[tuple[Mapping[str, Any], ...]] = (
     {
         "id": "stat_desk_01",
         "title": "Sit-stand desk, 140cm, oak",
         "brands": [{"id": "b1", "name": "Northwind"}],
-        "category": {"slug": "furniture", "path": [{"slug": "office"}, {"slug": "furniture"}]},
+        "category": {"slug": "desks", "path": [{"slug": "furniture"}, {"slug": "desks"}]},
         "images": [{"url": "", "is_main_image": True}],
         "offers": [
             {"domain": "northwind.com", "price": {"price": Decimal("249.00"), "currency": "USD"},
@@ -416,7 +419,7 @@ _STATIC: Final[tuple[Mapping[str, Any], ...]] = (
         "id": "stat_chair_01",
         "title": "Mesh task chair, adjustable arms",
         "brands": [{"id": "b2", "name": "Acme"}],
-        "category": {"slug": "seating", "path": [{"slug": "office"}, {"slug": "seating"}]},
+        "category": {"slug": "chairs", "path": [{"slug": "furniture"}, {"slug": "chairs"}]},
         "offers": [
             {"domain": "acme.com", "price": {"price": Decimal("150.00"), "currency": "USD"},
              "availability": "InStock", "url": "https://acme.com/chair"},
@@ -428,47 +431,59 @@ _STATIC: Final[tuple[Mapping[str, Any], ...]] = (
         "id": "stat_chair_02",
         "title": "Mesh task chair, fixed arms",
         "brands": [{"id": "b2", "name": "Acme"}],
-        "category": {"slug": "seating", "path": [{"slug": "office"}, {"slug": "seating"}]},
+        "category": {"slug": "chairs", "path": [{"slug": "furniture"}, {"slug": "chairs"}]},
         "offers": [
             {"domain": "acme.com", "price": {"price": Decimal("88.00"), "currency": "USD"},
              "availability": "InStock", "url": "https://acme.com/chair-fixed"},
         ],
     },
     {
+        "id": "stat_paper_01",
+        "title": "A4 copier paper, 5 reams",
+        "brands": [{"id": "b1", "name": "Northwind"}],
+        "category": {
+            "slug": "paper", "path": [{"slug": "office-supplies"}, {"slug": "paper"}]
+        },
+        "offers": [
+            # The cheaper listing is out of stock, so picking on price alone
+            # would buy something nobody can ship.
+            {"domain": "northwind.com", "price": {"price": Decimal("34.00"), "currency": "USD"},
+             "availability": "OutOfStock", "url": "https://northwind.com/paper-bulk"},
+            {"domain": "northwind.com", "price": {"price": Decimal("38.00"), "currency": "USD"},
+             "availability": "InStock", "url": "https://northwind.com/paper"},
+        ],
+    },
+    {
+        "id": "stat_pens_01",
+        "title": "Ballpoint pens, box of 50",
+        "brands": [{"id": "b1", "name": "Northwind"}],
+        "category": {
+            "slug": "pens", "path": [{"slug": "office-supplies"}, {"slug": "pens"}]
+        },
+        "offers": [
+            {"domain": "northwind.com", "price": {"price": Decimal("12.40"), "currency": "USD"},
+             "availability": "InStock", "url": "https://northwind.com/pens"},
+        ],
+    },
+    {
         "id": "stat_monitor_01",
         "title": "27-inch 4K monitor",
         "brands": [{"id": "b3", "name": "Globex"}],
-        "category": {"slug": "monitors", "path": [{"slug": "hardware"}, {"slug": "monitors"}]},
+        "category": {
+            "slug": "monitors", "path": [{"slug": "electronics"}, {"slug": "monitors"}]
+        },
         "offers": [
             {"domain": "globex.com", "price": {"price": Decimal("319.99"), "currency": "USD"},
              "availability": "InStock", "url": "https://globex.com/monitor"},
         ],
     },
     {
-        "id": "stat_monitor_02",
-        "title": "24-inch 1080p monitor",
-        "brands": [{"id": "b3", "name": "Globex"}],
-        "category": {"slug": "monitors", "path": [{"slug": "hardware"}, {"slug": "monitors"}]},
-        "offers": [
-            {"domain": "globex.com", "price": {"price": Decimal("97.50"), "currency": "USD"},
-             "availability": "InStock", "url": "https://globex.com/monitor-24"},
-        ],
-    },
-    {
-        "id": "stat_paper_01",
-        "title": "A4 copier paper, 5 reams",
-        "brands": [{"id": "b1", "name": "Northwind"}],
-        "category": {"slug": "paper", "path": [{"slug": "office"}, {"slug": "paper"}]},
-        "offers": [
-            {"domain": "northwind.com", "price": {"price": Decimal("38.00"), "currency": "USD"},
-             "availability": "InStock", "url": "https://northwind.com/paper"},
-        ],
-    },
-    {
         "id": "stat_speaker_01",
         "title": "Bluetooth speaker, portable",
         "brands": [{"id": "b4", "name": "Initech"}],
-        "category": {"slug": "audio", "path": [{"slug": "electronics"}, {"slug": "audio"}]},
+        "category": {
+            "slug": "audio", "path": [{"slug": "electronics"}, {"slug": "audio"}]
+        },
         "offers": [
             {"domain": "initech.com", "price": {"price": Decimal("59.00"), "currency": "USD"},
              "availability": "InStock", "url": "https://initech.com/speaker"},
@@ -478,12 +493,12 @@ _STATIC: Final[tuple[Mapping[str, Any], ...]] = (
         "id": "stat_lamp_01",
         "title": "Desk lamp, warm LED",
         "brands": [{"id": "b4", "name": "Initech"}],
-        "category": {"slug": "lighting", "path": [{"slug": "office"}, {"slug": "lighting"}]},
+        "category": {
+            "slug": "lighting", "path": [{"slug": "home-garden"}, {"slug": "lighting"}]
+        },
         "offers": [
-            {"domain": "initech.com", "price": {"price": Decimal("41.00"), "currency": "USD"},
-             "availability": "OutOfStock", "url": "https://initech.com/lamp"},
             {"domain": "initech.com", "price": {"price": Decimal("44.00"), "currency": "USD"},
-             "availability": "InStock", "url": "https://initech.com/lamp-b"},
+             "availability": "InStock", "url": "https://initech.com/lamp"},
         ],
     },
 )

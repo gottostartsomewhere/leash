@@ -191,6 +191,22 @@ from real merchants, which earns its place for two reasons rather than one:
   back to the shop with 100 as a price ceiling and buys something that fits.
   `max_allowable` stops being a number in a log.
 
+The mandate is scoped in **Channel3's own taxonomy** rather than in slugs I
+invented. Channel3 classifies against the Google Product Taxonomy, so an
+office chair is `furniture`, a ream of paper is `office-supplies`, a monitor
+is `electronics` and a desk lamp is `home-garden`. Scoping the demo mandate
+to `{furniture, office-supplies}` is therefore a procurement rule someone
+would actually write, not a demo contrivance, and it behaves the same whether
+a key is set or not: the offline catalogue uses the same roots. There is a
+test that fails if those two ever drift apart, because if they did, every
+product would read as out of scope and the engine would look broken while
+working perfectly.
+
+Against the live catalogue the headline beat looks like this: asked for an
+office chair, the agent finds a Bdi Circa at 999.00 from 2modern.com, is
+refused by the 100.00 per-item cap, searches again with 100.00 as a ceiling,
+and buys an Ergonomic Mesh Office Chair at 74.99 from costway.com.
+
 One detail worth naming, because it cuts against this project's first rule.
 Channel3 returns prices as JSON numbers in dollars and cents, and no float is
 allowed to touch an amount here. So the response is parsed with

@@ -22,7 +22,7 @@ export interface Beat {
 export const SCENARIO: Beat[] = [
   {
     payee: "northwind",
-    category: "office",
+    category: "office-supplies",
     amount: "40.00",
     description: "A4 paper, 5 reams",
     note: "Inside every rule. This is the normal case and it should look boring.",
@@ -30,36 +30,36 @@ export const SCENARIO: Beat[] = [
   },
   {
     payee: "globex",
-    category: "hardware",
+    category: "furniture",
     amount: "150.00",
-    description: "27-inch monitor",
+    description: "Task chair, adjustable arms",
     note: "Over the per-item cap. Look at what it offers back: 100.00 would clear.",
     pause: 1400,
   },
   {
     payee: "globex",
-    category: "hardware",
+    category: "furniture",
     amount: "100.00",
-    description: "24-inch monitor instead",
+    description: "Task chair, fixed arms instead",
     note: "The agent takes the counter-offer. A boundary, not a wall.",
     pause: 1200,
   },
   {
     payee: "acme_us",
-    category: "office",
+    category: "furniture",
     amount: "75.00",
-    description: "Desk chair, part one",
+    description: "Desk organiser",
     note: "75 to Acme. Under the cap, so it clears.",
     pause: 1300,
   },
   {
     payee: "acme_eu",
-    category: "office",
+    category: "furniture",
     amount: "75.00",
-    description: "Desk chair, part two",
+    description: "Monitor arm",
     note:
-      "Same merchant, second receiver address, second 75. Each charge passes " +
-      "the per-item check on its own. Only the cluster does not.",
+      "Same merchant, second receiver address, another 75. Two ordinary items. " +
+      "Each clears the per-item check on its own. Only the cluster does not.",
     pause: 2600,
   },
   {
@@ -72,7 +72,7 @@ export const SCENARIO: Beat[] = [
   },
   {
     payee: "northwind",
-    category: "office",
+    category: "office-supplies",
     amount: "20.00",
     description: "Pens",
     note: "Now it starts moving fast.",
@@ -80,15 +80,15 @@ export const SCENARIO: Beat[] = [
   },
   {
     payee: "globex",
-    category: "office",
+    category: "office-supplies",
     amount: "20.00",
-    description: "Cable ties",
+    description: "Printer labels",
     note: "",
     pause: 420,
   },
   {
     payee: "initech",
-    category: "office",
+    category: "office-supplies",
     amount: "20.00",
     description: "Business cards",
     note: "",
@@ -96,7 +96,7 @@ export const SCENARIO: Beat[] = [
   },
   {
     payee: "acme_us",
-    category: "office",
+    category: "office-supplies",
     amount: "20.00",
     description: "Notebooks",
     note: "Seventh hold inside a minute. The pace limit, on its own.",
@@ -104,7 +104,7 @@ export const SCENARIO: Beat[] = [
   },
   {
     payee: "globex",
-    category: "hardware",
+    category: "furniture",
     amount: "500.00",
     description: "Standing desk",
     note:

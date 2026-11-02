@@ -90,7 +90,10 @@ class World:
         return (payee,)
 
 
-_EXTRA_CATEGORIES = ("electronics", "travel", "gifts")
+#: Roots the adversary can reach for when the objective is to get a spend
+#: through outside the mandate's scope. Real taxonomy roots, so an
+#: out-of-scope attempt looks like something a catalogue would return.
+_EXTRA_CATEGORIES = ("electronics", "home-garden", "apparel-accessories")
 
 
 def world_from(store: Any, mandate: Mandate) -> World:

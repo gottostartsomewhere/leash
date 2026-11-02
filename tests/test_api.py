@@ -36,7 +36,7 @@ def client(store, gateway, catalog):
     app.dependency_overrides.clear()
 
 
-def spend(client, amount, payee="northwind", category="office", **extra):
+def spend(client, amount, payee="northwind", category="office-supplies", **extra):
     body = {"payee": payee, "category": category, "amount": str(amount), **extra}
     return client.post(f"{MANDATE}/attempts", json=body).json()
 
@@ -255,7 +255,7 @@ def test_a_mandate_reports_its_terms_not_just_its_balance(client):
     terms = body["terms"]
     assert terms["per_item_limit"] == 10000
     assert terms["per_payee_limit"] == 20000
-    assert terms["allowed_categories"] == ["hardware", "office"]
+    assert terms["allowed_categories"] == ["furniture", "office-supplies"]
     assert terms["velocity"] == {
         "window_seconds": 60,
         "max_count": 6,

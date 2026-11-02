@@ -36,7 +36,7 @@ def main() -> int:
     app.dependency_overrides[get_gateway] = lambda: SimulatedGateway()
     client = TestClient(app)
 
-    def spend(amount: str, payee: str, category: str = "office") -> dict:
+    def spend(amount: str, payee: str, category: str = "office-supplies") -> dict:
         body = client.post(
             f"{MANDATE}/attempts",
             json={
@@ -59,14 +59,14 @@ def main() -> int:
     print(f"  budget       {money(mandate['total_limit'])}")
     print("  per item     $100.00")
     print("  per payee    $200.00")
-    print("  categories   office, hardware")
+    print("  categories   office-supplies, furniture")
     print("  pace         6 charges or $400 per minute")
     print("  one payee    at most 60% of the book, once $200 is committed")
 
     beat("1. IT WORKS. Spending inside the rules.")
     allowed = [
         spend("80.00", "northwind"),
-        spend("64.50", "globex", "hardware"),
+        spend("64.50", "globex", "furniture"),
     ]
 
     beat("2. IT GETS TOLD NO. Over the cap, and out of scope.")

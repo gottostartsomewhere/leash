@@ -2,7 +2,9 @@ import { useState } from "react";
 import { label } from "../format";
 import type { MandateTerms, Payee } from "../types";
 
-const EXTRA_CATEGORIES = ["electronics", "travel", "gifts"];
+// Roots the demo mandate leaves out, offered so the out-of-scope refusal
+// can be triggered deliberately.
+const EXTRA_CATEGORIES = ["electronics", "home-garden", "apparel-accessories"];
 
 export interface AskResult {
   reason: string;
