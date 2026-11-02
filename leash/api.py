@@ -22,7 +22,14 @@ from .config import Settings, settings as default_settings
 from .ledger import IllegalTransition, Ledger, UnknownCharge
 from .models import Attempt, Charge, ChargeState, Mandate, Velocity
 from .money import Money
-from .payouts import PayoutError, PayoutGateway, PayoutItem, build_gateway
+from .payouts import (
+    PayoutError,
+    PayoutGateway,
+    PayoutItem,
+    build_gateway,
+    holds_money,
+)
+from .reconcile import reconcile_all, reconcile_batch
 from .schemas import (
     AttemptIn,
     ChargeOut,
@@ -380,7 +387,7 @@ async def release_payouts(
     for item in items:
         status = by_charge.get(item.charge_id, result.status)
         try:
-            if status in {"SUCCESS", "PENDING", "PROCESSING", "UNCLAIMED"}:
+            if holds_money(status):
                 ledger.settle(item.charge_id)
                 settled.append(item.charge_id)
             else:
@@ -423,3 +430,38 @@ async def payout_status(
             return store.batch(batch_id).to_dict()
         except NotFound as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/payouts/{batch_id}/reconcile")
+async def reconcile_one(
+    batch_id: str, store: StoreDep, gateway: GatewayDep
+) -> dict[str, Any]:
+    """Re-read a batch and move the ledger to match what the processor says.
+
+    A charge settles the moment the processor accepts the instruction, which
+    is before it knows whether the item will land. This is the step that goes
+    back and checks, so the grid ends up describing what happened rather than
+    what we meant to happen.
+    """
+    try:
+        report = await reconcile_batch(store, gateway, batch_id)
+    except PayoutError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return report.to_dict()
+
+
+@app.post("/payouts/reconcile")
+async def reconcile_everything(
+    store: StoreDep, gateway: GatewayDep
+) -> dict[str, Any]:
+    """Every batch this process has sent, re-checked against the processor."""
+    try:
+        reports = await reconcile_all(store, gateway)
+    except PayoutError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return {
+        "batches": [report.to_dict() for report in reports],
+        "clean": all(report.clean for report in reports),
+        "corrected": sum(len(report.corrected) for report in reports),
+        "conflicts": sum(len(report.conflicts) for report in reports),
+    }

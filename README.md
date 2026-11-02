@@ -68,6 +68,22 @@ and the reason a human reads should say so.
   The difference between a wall and a boundary.
 - **Revocation** drops pending holds and leaves settled money alone. It stops
   what has not happened; it does not claw back what has.
+- **Settling is provisional, and reconciliation is how it stops being.** A
+  processor accepts a batch and answers `PENDING` long before it knows whether
+  each item will land, and we settle on that, because the instruction really
+  has gone. But an item can become `RETURNED` an hour later and nothing comes
+  back to say so. `POST /payouts/{id}/reconcile` re-reads the batch and moves
+  the ledger to match. Without it the grid would keep claiming a payment
+  succeeded while the money sat back in the sender's account, which is exactly
+  the failure this project argues against: recording what we intended rather
+  than what happened.
+
+  The two directions are not symmetric. If the processor says the money came
+  back and we think it settled, that is fixed automatically and the budget
+  returns. If the processor says the money went and we think it did not, that
+  is **reported and not fixed**, because re-committing budget that may since
+  have been spent elsewhere could push the mandate past its own limit. A
+  person has to look at that one.
 
 ## Running it
 
@@ -173,4 +189,6 @@ pins that with the awkward values.
 | `GET` | `/mandates/{id}` | Balances plus the terms the authority actually grants |
 | `GET` | `/mandates/{id}/decisions` | Every decision with its full trace |
 | `GET` | `/payouts/{batch_id}` | Batch status from the processor |
+| `POST` | `/payouts/{batch_id}/reconcile` | Re-read a batch and correct the ledger |
+| `POST` | `/payouts/reconcile` | The same, across every batch sent |
 | `POST` | `/demo/reset` | Rebuild the seeded scenario |

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Iterable, Mapping, Protocol, Sequence
+from typing import Final, Iterable, Mapping, Protocol, Sequence
 
 import httpx
 
@@ -48,6 +48,30 @@ class PayoutItemResult:
     charge_id: str
     status: str
     payout_item_id: str | None = None
+
+
+#: Item statuses where the money is with the recipient or still on its way to
+#: them. UNCLAIMED is in here on purpose: the recipient has no PayPal account
+#: yet, the money is held for them, and it only comes back if it expires.
+HOLDS_MONEY: Final[frozenset[str]] = frozenset(
+    {"SUCCESS", "PENDING", "PROCESSING", "UNCLAIMED", "ONHOLD"}
+)
+
+#: Item statuses where the money came back or never left. These are the ones
+#: that can appear *after* we have already recorded a charge as settled, which
+#: is the entire reason reconciliation exists.
+CAME_BACK: Final[frozenset[str]] = frozenset(
+    {"FAILED", "RETURNED", "REVERSED", "REFUNDED", "BLOCKED", "CANCELED", "DENIED"}
+)
+
+
+def holds_money(status: str) -> bool:
+    """Did this item end up with the recipient, or is it still heading there?
+
+    Anything unrecognised is treated as not holding money. A status we have
+    never seen is not a reason to keep claiming a payment succeeded.
+    """
+    return status.strip().upper() in HOLDS_MONEY
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,6 +155,35 @@ class SimulatedGateway:
             return self._batches[batch_id]
         except KeyError:
             raise PayoutError(f"unknown batch {batch_id}") from None
+
+    def set_item_status(self, batch_id: str, charge_id: str, status: str) -> None:
+        """Change what this gateway says about an item after the fact.
+
+        Real processors do this, which is the whole reason reconciliation
+        exists: a payout accepted as PENDING can turn into RETURNED an hour
+        later and nothing comes back to tell you. Without a way to reproduce
+        that, the recovery path could only ever be tested by waiting for a
+        genuine failure, and the demo could not show it at all.
+        """
+        batch = self._batches.get(batch_id)
+        if batch is None:
+            raise PayoutError(f"unknown batch {batch_id}")
+        items = tuple(
+            PayoutItemResult(
+                charge_id=item.charge_id,
+                status=status if item.charge_id == charge_id else item.status,
+                payout_item_id=item.payout_item_id,
+            )
+            for item in batch.items
+        )
+        every = {item.status for item in items}
+        self._batches[batch_id] = PayoutResult(
+            batch_id=batch.batch_id,
+            status="SUCCESS" if every == {"SUCCESS"} else "PARTIAL",
+            gateway=batch.gateway,
+            items=items,
+            raw=batch.raw,
+        )
 
 
 class PayPalGateway:

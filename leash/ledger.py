@@ -182,6 +182,25 @@ class Ledger:
         """The processor rejected it. Budget comes back, same as a release."""
         return self._move(charge_id, ChargeState.FAILED)
 
+    def reverse(self, charge_id: str) -> Charge:
+        """A settled payout came back. The budget returns with it.
+
+        The only transition out of SETTLED, and it exists because settling is
+        a decision made on incomplete information. A processor accepts a batch
+        before it knows whether each item will land, so a charge can be
+        truthfully settled at one moment and wrong about it an hour later.
+        The alternative is a ledger that records what we intended rather than
+        what happened, which is the thing this project is arguing against.
+        """
+        charge = self.charge(charge_id)
+        if charge.state is not ChargeState.SETTLED:
+            raise IllegalTransition(
+                f"{charge_id} is {charge.state.value}, only a settled charge can come back"
+            )
+        moved = charge.with_state(ChargeState.FAILED)
+        self._charges[charge_id] = moved
+        return moved
+
     def revoke(self, *, at: datetime | None = None) -> tuple[Charge, ...]:
         """Kill the mandate and drop every hold that has not been captured.
 

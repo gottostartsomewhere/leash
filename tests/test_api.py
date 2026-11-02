@@ -167,6 +167,71 @@ def test_an_out_of_scope_find_is_refused_with_a_reason(client):
     assert "category_not_allowed" in step["decision"]["failed_codes"]
 
 
+# -- reconciliation -------------------------------------------------------
+
+
+def test_reconciling_corrects_a_payout_that_came_back(client, gateway):
+    # Settle honestly, then have the processor change its mind, which is the
+    # one thing that cannot be noticed without asking again.
+    spend(client, "80.00")
+    held = [
+        c["id"]
+        for c in client.get(f"{MANDATE}/charges").json()
+        if c["state"] == "pending"
+    ]
+    batch_id = client.post(
+        f"{MANDATE}/payouts", json={"charge_ids": held}
+    ).json()["batch"]["batch_id"]
+    assert client.get(MANDATE).json()["committed"] == 8000
+
+    gateway.set_item_status(batch_id, held[0], "RETURNED")
+    report = client.post(f"/payouts/{batch_id}/reconcile").json()
+
+    assert report["clean"] is False
+    assert report["corrected"][0]["was"] == "settled"
+    assert report["corrected"][0]["now"] == "failed"
+    assert report["corrected"][0]["processor_status"] == "RETURNED"
+    # And the budget is free again.
+    assert client.get(MANDATE).json()["committed"] == 0
+
+
+def test_reconciling_a_healthy_batch_changes_nothing(client):
+    spend(client, "80.00")
+    held = [
+        c["id"]
+        for c in client.get(f"{MANDATE}/charges").json()
+        if c["state"] == "pending"
+    ]
+    batch_id = client.post(
+        f"{MANDATE}/payouts", json={"charge_ids": held}
+    ).json()["batch"]["batch_id"]
+
+    report = client.post(f"/payouts/{batch_id}/reconcile").json()
+
+    assert report["clean"] is True
+    assert report["agreed"] == 1
+    assert client.get(MANDATE).json()["committed"] == 8000
+
+
+def test_reconciling_everything_reports_across_batches(client):
+    spend(client, "80.00")
+    held = [
+        c["id"]
+        for c in client.get(f"{MANDATE}/charges").json()
+        if c["state"] == "pending"
+    ]
+    client.post(f"{MANDATE}/payouts", json={"charge_ids": held})
+
+    body = client.post("/payouts/reconcile").json()
+
+    assert body["clean"] is True
+    assert len(body["batches"]) == 1
+
+
+def test_reconciling_an_unknown_batch_is_a_502(client):
+    assert client.post("/payouts/nope/reconcile").status_code == 502
+
+
 def test_shopping_an_unknown_mandate_is_a_404(client):
     response = client.post("/mandates/mnd_nope/shop", json={"needs": ["paper"]})
 
