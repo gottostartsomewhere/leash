@@ -8,6 +8,7 @@ on the charge, so the grid tells the truth about what actually settled.
 
 from __future__ import annotations
 
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
@@ -125,12 +126,25 @@ def _charge_row(charge: Charge) -> ChargeOut:
 def health(
     settings: SettingsDep, gateway: GatewayDep, catalog: CatalogDep
 ) -> dict[str, Any]:
+    """What this process is, and what it can see.
+
+    `configured` lists the names of the LEASH_ variables present, never their
+    values. On a deployed service you cannot look at the environment, and the
+    difference between "the key is missing" and "the key is there under a
+    slightly different name" is otherwise invisible. Those names are already
+    public in .env.example, so listing them gives nothing away.
+    """
     return {
         "status": "ok",
         "gateway": gateway.name,
         "catalog": catalog.name,
         "paypal_configured": settings.paypal_configured,
         "channel3_configured": settings.channel3_configured,
+        "groq_configured": settings.groq_configured,
+        "configured": sorted(
+            name for name, value in os.environ.items()
+            if name.startswith("LEASH_") and value.strip()
+        ),
     }
 
 
