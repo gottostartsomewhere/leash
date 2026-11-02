@@ -3,8 +3,16 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+#: The repository root, found from this file rather than from the working
+#: directory. `env_file=".env"` alone resolves against wherever the process
+#: happened to be started, so running uvicorn from one directory up would
+#: silently ignore the credentials and fall back to the simulated gateway.
+#: Failing that way during a demo is worse than failing loudly.
+_ROOT = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
@@ -15,8 +23,10 @@ class Settings(BaseSettings):
     what makes the whole thing developable before any sandbox exists.
     """
 
+    # Both, in that order: the repository's own .env always loads, and a .env
+    # beside whoever started the process still wins if they meant to override.
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(_ROOT / ".env", ".env"),
         env_prefix="LEASH_",
         extra="ignore",
     )

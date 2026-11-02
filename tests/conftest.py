@@ -1,11 +1,32 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
+from leash.config import Settings, settings
 from leash.models import Attempt, Charge, ChargeState, Mandate
 from leash.money import Money
 
 NOW = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def hermetic_settings(monkeypatch):
+    """No test ever reads the credentials on this machine.
+
+    Several tests assert what happens with no PayPal key, and they passed for
+    weeks only because nobody had one yet. The moment a real `.env` appeared
+    they started testing the developer's laptop instead of the code. So the
+    file and the LEASH_ variables are both taken away for the duration.
+    """
+    monkeypatch.setitem(Settings.model_config, "env_file", None)
+    for name in [n for n in os.environ if n.startswith("LEASH_")]:
+        monkeypatch.delenv(name, raising=False)
+    settings.cache_clear()
+    yield
+    settings.cache_clear()
 
 
 def usd(major: str | int) -> Money:
