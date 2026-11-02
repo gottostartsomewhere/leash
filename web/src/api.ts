@@ -38,7 +38,10 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     // A dead backend is the most likely failure during a live demo, so it gets
     // a sentence a person can act on rather than a TypeError.
-    throw new ApiError("cannot reach the engine on 127.0.0.1:8000", 0);
+    throw new ApiError(
+      BASE ? `Cannot reach the engine at ${BASE}` : "Cannot reach the engine",
+      0,
+    );
   }
 
   if (!response.ok) {

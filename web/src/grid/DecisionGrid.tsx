@@ -11,7 +11,7 @@ import type {
   SelectionChangedEvent,
   ValueGetterParams,
 } from "ag-grid-community";
-import { clockTime } from "../format";
+import { clockTime, label } from "../format";
 import type { GridRow, LogRow } from "../types";
 import { leashTheme } from "./theme";
 import {
@@ -83,6 +83,11 @@ export function DecisionGrid({
       {
         headerName: "CATEGORY",
         width: 108,
+        // Capitalised by formatting the value rather than with CSS: AG Grid's
+        // cells do not honour text-transform, so the stylesheet silently did
+        // nothing here. The payee column is left alone, because those are
+        // identifiers rather than words.
+        valueFormatter: (p) => (typeof p.value === "string" ? label(p.value) : ""),
         valueGetter: (p: ValueGetterParams<GridRow>) =>
           isDecision(p.data) ? p.data.category : "",
       },

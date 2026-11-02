@@ -40,8 +40,18 @@ export function clockTime(iso: string): string {
   return at.toLocaleTimeString("en-GB", { hour12: false });
 }
 
-/** `per_item_limit` reads as `per item limit` in a header or a chip. */
-export const spaced = (code: string) => code.replace(/_/g, " ");
+/** `per_item_limit` reads as `Per item limit` in a header or a chip. */
+export function label(code: string): string {
+  const words = code.replace(/_/g, " ").trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/** Capitalise a sentence without touching the rest of it, so identifiers and
+ *  amounts inside it keep the case they are supposed to have. */
+export function sentence(text: string): string {
+  const trimmed = text.trim();
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
 
 export function duration(seconds: number): string {
   if (seconds < 60) return `${seconds}s`;

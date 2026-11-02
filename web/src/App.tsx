@@ -349,7 +349,7 @@ export default function App() {
         ) : (
           <>
             <span className="spin" />
-            <p>reading the mandate</p>
+            <p>Reading the mandate</p>
           </>
         )}
       </div>
@@ -370,7 +370,7 @@ export default function App() {
         </span>
         <div className="topbar-right">
           <span className="chip">
-            {health?.gateway === "paypal" ? "PayPal sandbox" : "simulated payouts"}
+            {health?.gateway === "paypal" ? "PayPal sandbox" : "Simulated payouts"}
           </span>
           <span className={`status ${mandate.status}`}>{mandate.status}</span>
         </div>
@@ -391,7 +391,7 @@ export default function App() {
               <div className="banner">
                 <span>{error}</span>
                 <button className="btn small" onClick={() => setError(null)}>
-                  dismiss
+                  Dismiss
                 </button>
               </div>
             ) : null}
@@ -409,7 +409,7 @@ export default function App() {
                 onClick={() => setOnlyRefusals((on) => !on)}
                 aria-pressed={onlyRefusals}
               >
-                only refusals
+                Only refusals
               </button>
               <input
                 className="field"
@@ -423,7 +423,7 @@ export default function App() {
                   fontFamily: "var(--mono)",
                   fontSize: 11.5,
                 }}
-                placeholder="search the log"
+                placeholder="Search the log"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label="search the decision log"
@@ -462,7 +462,7 @@ export default function App() {
                     {money(mandate.held, mandate.currency)} not yet moved
                   </>
                 ) : (
-                  <span style={{ color: "var(--ink-4)" }}>nothing held</span>
+                  <span style={{ color: "var(--ink-4)" }}>Nothing held</span>
                 )}
               </span>
               <span className="spacer" />

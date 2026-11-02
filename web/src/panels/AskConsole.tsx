@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { label } from "../format";
 import type { MandateTerms, Payee } from "../types";
 
 const EXTRA_CATEGORIES = ["electronics", "travel", "gifts"];
@@ -56,7 +57,7 @@ export function AskConsole({
     <div className="ask">
       <form className="ask-form" onSubmit={submit}>
         <label className="field payee">
-          <span>counterparty</span>
+          <span>Counterparty</span>
           <select value={payee} onChange={(e) => setPayee(e.target.value)}>
             {payees.map((p) => (
               <option key={p.id} value={p.id}>
@@ -68,31 +69,32 @@ export function AskConsole({
         </label>
 
         <label className="field category">
-          <span>category</span>
+          <span>Category</span>
+          {/* The label is capitalised, the value it submits is not. */}
           <select value={category} onChange={(e) => setCategory(e.target.value)}>
             {categories.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {label(c)}
               </option>
             ))}
           </select>
         </label>
 
         <label className="field amount">
-          <span>amount</span>
+          <span>Amount</span>
           <input
             value={amount}
             inputMode="decimal"
             onChange={(e) => setAmount(e.target.value)}
-            aria-label="amount in major units"
+            aria-label="Amount in major units"
           />
         </label>
 
         <label className="field" style={{ flex: 1, minWidth: 160 }}>
-          <span>what for</span>
+          <span>What for</span>
           <input
             value={description}
-            placeholder="optional"
+            placeholder="Optional"
             onChange={(e) => setDescription(e.target.value)}
           />
         </label>

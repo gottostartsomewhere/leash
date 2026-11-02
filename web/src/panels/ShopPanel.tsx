@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { ApiError, api } from "../api";
-import { money } from "../format";
+import { label, money, sentence } from "../format";
 import type { CatalogItem, CatalogOffer, ShopStep } from "../types";
 
 interface ShopPanelProps {
@@ -29,7 +29,7 @@ function Merchants({ item }: { item: CatalogItem }) {
   const best = item.best;
   return (
     <span className="merchants">
-      <span className="chip">{best ? best.domain : "nobody selling"}</span>
+      <span className="chip">{best ? best.domain : "Nobody selling"}</span>
       {extra > 0 ? (
         <span
           className="chip more"
@@ -91,7 +91,7 @@ function TraceRow({
       <span className="trace-rules">
         {codes.map((code) => (
           <span className="chip rule-chip high" key={code}>
-            {code.replace(/_/g, " ")}
+            {label(code)}
           </span>
         ))}
       </span>
@@ -120,7 +120,7 @@ function Trace({ step }: { step: ShopStep }) {
               looked again under that
             </>
           ) : (
-            "it looked again"
+            "It looked again"
           )}
         </div>
         <TraceRow item={step.item} offer={step.offer} verdict="bought" codes={[]} />
@@ -145,12 +145,14 @@ function Trace({ step }: { step: ShopStep }) {
           verdict="refused"
           codes={codes}
         />
-        {step.detail ? <div className="trace-turn">{step.detail}</div> : null}
+        {step.detail ? (
+          <div className="trace-turn">{sentence(step.detail)}</div>
+        ) : null}
       </div>
     );
   }
 
-  return <div className="trace-turn">{step.summary}</div>;
+  return <div className="trace-turn">{sentence(step.summary)}</div>;
 }
 
 export function ShopPanel({ catalogName, busy, onShop }: ShopPanelProps) {
@@ -202,12 +204,12 @@ export function ShopPanel({ catalogName, busy, onShop }: ShopPanelProps) {
         }}
       >
         <label className="field" style={{ flex: 1, minWidth: 200 }}>
-          <span>what the agent should buy</span>
+          <span>What the agent should buy</span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="task chair"
-            aria-label="what the agent should buy"
+            placeholder="Task chair"
+            aria-label="What the agent should buy"
           />
         </label>
         <button
@@ -224,7 +226,7 @@ export function ShopPanel({ catalogName, busy, onShop }: ShopPanelProps) {
           Send the agent
         </button>
         <span className="hint" style={{ marginLeft: "auto" }}>
-          {catalogName === "channel3" ? "Channel3" : "offline catalogue"}
+          {catalogName === "channel3" ? "Channel3" : "Offline catalogue"}
         </span>
       </form>
 
@@ -254,7 +256,7 @@ export function ShopPanel({ catalogName, busy, onShop }: ShopPanelProps) {
             ))}
           </div>
         ) : (
-          <div className="shop-empty">nothing in the catalogue matched that</div>
+          <div className="shop-empty">Nothing in the catalogue matched that</div>
         )
       ) : null}
 

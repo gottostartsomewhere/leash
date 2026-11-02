@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import type { CustomCellRendererProps } from "ag-grid-react";
-import { money, spaced, withCurrency } from "../format";
+import { label, money, sentence, withCurrency } from "../format";
 import type { CheckRow, EvidenceRow, GridRow, LogRow, Severity } from "../types";
 
 const RANK: Record<Severity, number> = { medium: 0, high: 1, critical: 2 };
@@ -42,7 +42,9 @@ export function StateCell({ data }: CustomCellRendererProps<GridRow>) {
   if (!data || data.kind !== "decision") return null;
   if (!data.charge_state) return <span className="headroom">&mdash;</span>;
   return (
-    <span className={`chip state-${data.charge_state}`}>{data.charge_state}</span>
+    <span className={`chip state-${data.charge_state}`}>
+      {label(data.charge_state)}
+    </span>
   );
 }
 
@@ -56,7 +58,7 @@ export function HeadroomCell({ data }: CustomCellRendererProps<GridRow>) {
     return <span className="headroom">{money(data.remaining_after, data.currency)}</span>;
   }
   if (data.max_allowable <= 0) {
-    return <span className="headroom">no amount clears</span>;
+    return <span className="headroom">No amount clears</span>;
   }
   return (
     <span className="headroom offered">
@@ -80,7 +82,7 @@ export function RulesCell(
 
   const fails = failuresOf(data);
   if (!fails.length) {
-    return <span className="headroom">inside every rule</span>;
+    return <span className="headroom">Inside every rule</span>;
   }
 
   const open = expanded.has(data.attempt_id);
@@ -104,14 +106,14 @@ export function RulesCell(
       </button>
       {shown.map((r) => (
         <span key={r.code} className={`chip rule-chip ${r.severity}`}>
-          {spaced(r.code)}
+          {label(r.code)}
         </span>
       ))}
       {hidden > 0 ? (
         <button
           className="chip more"
           onClick={() => onToggle(data.attempt_id)}
-          title={fails.map((r) => spaced(r.code)).join(", ")}
+          title={fails.map((r) => label(r.code)).join(", ")}
         >
           +{hidden}
         </button>
@@ -149,9 +151,9 @@ export function evidenceHeight(row: LogRow): number {
 }
 
 function factValue(key: string, value: unknown, currency: string): string {
-  if (value === null || value === undefined) return "none";
-  if (Array.isArray(value)) return value.length ? value.join(", ") : "none";
-  if (typeof value === "boolean") return value ? "yes" : "no";
+  if (value === null || value === undefined) return "None";
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "None";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
   if (typeof value === "number") {
     // Minor-unit money is named for it; shares and counts are not.
     if (/(limit|total|amount|spent|already|over_by|cap|committed|available|headroom|projected)/.test(key)) {
@@ -253,20 +255,20 @@ export function EvidenceBand(props: CustomCellRendererProps<GridRow>) {
         return (
           <div key={check.code} style={{ marginBottom: fails.length > 1 ? 14 : 0 }}>
             <div className="evidence-head">
-              <span className={`chip rule-chip ${check.severity}`}>{spaced(check.code)}</span>
+              <span className={`chip rule-chip ${check.severity}`}>{label(check.code)}</span>
               <span className="evidence-title" style={{ color: `var(--sev-${check.severity})` }}>
                 {check.severity}
               </span>
               {typeof group === "string" ? (
-                <span className="chip">counterparty {group}</span>
+                <span className="chip">Counterparty {group}</span>
               ) : null}
             </div>
-            <p className="evidence-detail">{check.detail}</p>
+            <p className="evidence-detail">{sentence(check.detail)}</p>
             {check.code === "structuring" ? <Cluster check={check} row={row} /> : null}
             <div className="facts" style={{ marginTop: 9 }}>
               {facts.map(([k, v]) => (
                 <span className="fact" key={k}>
-                  <span className="k">{spaced(k)}</span>
+                  <span className="k">{label(k)}</span>
                   <span className="v">{factValue(k, v, row.currency)}</span>
                 </span>
               ))}
@@ -276,21 +278,21 @@ export function EvidenceBand(props: CustomCellRendererProps<GridRow>) {
       })}
       <div className="facts" style={{ marginTop: 12, borderTop: "1px solid var(--line-soft)", paddingTop: 8 }}>
         <span className="fact">
-          <span className="k">attempt</span>
+          <span className="k">Attempt</span>
           <span className="v">{row.attempt_id}</span>
         </span>
         <span className="fact">
-          <span className="k">asked</span>
+          <span className="k">Asked</span>
           <span className="v">{withCurrency(row.amount, row.currency)}</span>
         </span>
         <span className="fact">
-          <span className="k">largest that would clear</span>
+          <span className="k">Largest that would clear</span>
           <span className="v">
-            {row.max_allowable > 0 ? withCurrency(row.max_allowable, row.currency) : "nothing"}
+            {row.max_allowable > 0 ? withCurrency(row.max_allowable, row.currency) : "Nothing"}
           </span>
         </span>
         <span className="fact">
-          <span className="k">checks run</span>
+          <span className="k">Checks run</span>
           <span className="v">
             {row.trace.length} &middot; {row.trace.filter((r) => r.outcome === "pass").length} passed
             &middot; {fails.length} failed

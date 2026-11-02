@@ -369,6 +369,14 @@ button {
   font-weight: 700;
 }
 
+/* Category slugs and search terms are data, so they are capitalised for
+ * display rather than rewritten. The value sent to the API stays as it is. */
+.scope .chip,
+.shop-tries .chip,
+.product-meta .chip {
+  text-transform: capitalize;
+}
+
 .chip.more {
   cursor: pointer;
   color: var(--ink-3);
@@ -1185,6 +1193,9 @@ button {
 .ag-header-cell-text {
   letter-spacing: 0.13em;
 }
+
+/* Note: AG Grid cells do not honour text-transform, so anything that needs
+ * capitalising in the grid is formatted in the column definition instead. */
 
 .rail-foot {
   margin-top: auto;

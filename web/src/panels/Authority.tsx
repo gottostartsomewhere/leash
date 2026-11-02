@@ -64,7 +64,7 @@ function constraintsOf(mandate: MandateSummary): Constraint[] {
   const list: Constraint[] = [
     {
       code: "insufficient_budget",
-      label: "total authority",
+      label: "Total authority",
       value: withCurrency(mandate.total_limit, currency),
     },
   ];
@@ -72,20 +72,20 @@ function constraintsOf(mandate: MandateSummary): Constraint[] {
   if (t.per_item_limit !== null) {
     list.push({
       code: "per_item_limit",
-      label: "any one purchase",
+      label: "Any one purchase",
       value: money(t.per_item_limit, currency),
     });
     list.push({
       code: "structuring",
       label: "…and any split of one",
-      value: `within ${duration(t.structuring_window_seconds)}`,
+      value: `Within ${duration(t.structuring_window_seconds)}`,
     });
   }
 
   if (t.per_payee_limit !== null) {
     list.push({
       code: "per_payee_limit",
-      label: "any one counterparty",
+      label: "Any one counterparty",
       value: money(t.per_payee_limit, currency),
     });
   }
@@ -97,15 +97,15 @@ function constraintsOf(mandate: MandateSummary): Constraint[] {
       parts.push(money(t.velocity.max_amount, currency));
     list.push({
       code: "velocity",
-      label: `pace per ${duration(t.velocity.window_seconds)}`,
-      value: parts.join(" · ") || "unlimited",
+      label: `Pace per ${duration(t.velocity.window_seconds)}`,
+      value: parts.join(" · ") || "Unlimited",
     });
   }
 
   if (t.concentration_max_share !== null) {
     list.push({
       code: "concentration",
-      label: "share to one counterparty",
+      label: "Share to one counterparty",
       value:
         percent(t.concentration_max_share) +
         (t.concentration_floor ? ` past ${money(t.concentration_floor, currency)}` : ""),
@@ -114,7 +114,7 @@ function constraintsOf(mandate: MandateSummary): Constraint[] {
 
   list.push({
     code: "outside_window",
-    label: "expires",
+    label: "Expires",
     value: new Date(t.ends_at).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
@@ -162,7 +162,7 @@ export function Authority({
                   {fired ? (
                     <span
                       className="rule-fires"
-                      title={`stopped ${fired} ${fired === 1 ? "attempt" : "attempts"}`}
+                      title={`Stopped ${fired} ${fired === 1 ? "attempt" : "attempts"}`}
                     >
                       {" "}
                       ×{fired}
@@ -193,7 +193,7 @@ export function Authority({
                   </span>
                 ))
               ) : (
-                <span className="hint">anything</span>
+                <span className="hint">Anything</span>
               )}
             </div>
           </div>
@@ -209,7 +209,7 @@ export function Authority({
                   </span>
                 ))
               ) : (
-                <span className="hint">any known payee</span>
+                <span className="hint">Any known payee</span>
               )}
             </div>
           </div>
