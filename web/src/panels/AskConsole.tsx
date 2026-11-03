@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { label } from "../format";
 import type { MandateTerms, Payee } from "../types";
 
@@ -41,12 +41,22 @@ export function AskConsole({
   note,
   onAsk,
 }: AskConsoleProps) {
+  const categories = useMemo(
+    () => [...(terms.allowed_categories ?? []), ...EXTRA_CATEGORIES],
+    [terms.allowed_categories],
+  );
+
   const [payee, setPayee] = useState("acme_eu");
-  const [category, setCategory] = useState("office");
+  const [category, setCategory] = useState(() => categories[0] ?? "");
   const [amount, setAmount] = useState("75.00");
   const [description, setDescription] = useState("");
 
-  const categories = [...(terms.allowed_categories ?? []), ...EXTRA_CATEGORIES];
+  // Derived rather than hardcoded, and corrected if the mandate's scope
+  // changes. A category the select is not even showing would still be
+  // submitted, and get refused for a reason nothing on screen explains.
+  useEffect(() => {
+    if (!categories.includes(category)) setCategory(categories[0] ?? "");
+  }, [categories, category]);
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();

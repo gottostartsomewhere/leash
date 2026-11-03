@@ -22,6 +22,10 @@ web/dist/
 *.tsbuildinfo
 *.local
 
+# Recorded frames. Hundreds of megabytes of JPEG that regenerate from
+# video/record.mjs in about a minute.
+video/frames/
+
 # Editors and tooling
 .claude/
 .vscode/

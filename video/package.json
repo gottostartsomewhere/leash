@@ -1,0 +1,9 @@
+{
+  "name": "leash-video",
+  "private": true,
+  "type": "module",
+  "description": "Records the demo shots as timestamped 1080p frames.",
+  "dependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}

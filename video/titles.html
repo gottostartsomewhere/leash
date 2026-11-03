@@ -452,6 +452,15 @@
         }
       });
 
+      // Driven by record.mjs, which jumps straight to a scene and replays it
+      // so each card is captured on its own with a clean start.
+      window.leash = {
+        play,
+        count: scenes.length,
+        labels: scenes.map((s) => s.dataset.label),
+        holds: scenes.map((s) => s.dataset.hold),
+      };
+
       play(0);
     </script>
   </body>
