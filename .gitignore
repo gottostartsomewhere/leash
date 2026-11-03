@@ -25,6 +25,7 @@ web/dist/
 # Recorded frames. Hundreds of megabytes of JPEG that regenerate from
 # video/record.mjs in about a minute.
 video/frames/
+video/reel/
 
 # Editors and tooling
 .claude/
