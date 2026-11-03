@@ -265,7 +265,10 @@ const wanted = (name) => only.length === 0 || only.includes(name);
 
 console.log(`app ${APP}  api ${API}  zoom ${ZOOM}\n`);
 
-try {
+// Only the app shots need a server. Re-recording a title card should not
+// require the whole stack to be up.
+const needsApp = Object.keys(SHOTS).some(wanted);
+if (needsApp) try {
   const health = await fetch(`${API}/health`).then((r) => r.json());
   console.log(`gateway ${health.gateway}, catalog ${health.catalog}\n`);
 } catch {

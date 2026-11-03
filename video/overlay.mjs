@@ -22,9 +22,9 @@ const FPS = 30;
 // holds, so assemble.mjs repeats the last frame rather than rendering
 // hundreds of identical PNGs.
 const SCENES = {
-  shop: { from: 3.6, to: 7.6 },
+  shop: { from: 3.6, to: 8.3 },
   structuring: { from: 4.6, to: 9.4 },
-  revoke: { from: 4.8, to: 6.2 },
+  revoke: { from: 4.8, to: 6.6 },
 };
 
 const only = process.argv.slice(2);

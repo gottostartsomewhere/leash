@@ -234,8 +234,38 @@ for (const seg of SEGMENTS) {
   console.log(`  ${seg.name.padEnd(12)} ${String(seg.seconds).padStart(3)}s  -> ${at}   ${note}${callout ? "  + callout" : ""}`);
 }
 
+// Hard cuts everywhere read as a slideshow. A short dip through the ground
+// colour gives each section a beat to land on, and costs a third of a second.
+const DIP = 0.34;
+
+function stitch(clips) {
+  const inputs = clips.flatMap((f) => ["-i", f]);
+  const steps = [];
+  let prev = "0:v";
+  for (let i = 1; i < clips.length; i += 1) {
+    const at = SEGMENTS.slice(0, i).reduce((n, s) => n + s.seconds, 0) - DIP * i;
+    const label = i === clips.length - 1 ? "v" : `x${i}`;
+    steps.push(
+      `[${prev}][${i}:v]xfade=transition=fade:duration=${DIP}:offset=${at.toFixed(3)}[${label}]`,
+    );
+    prev = label;
+  }
+  const out = p(WORK, "stitched.mp4");
+  run([
+    ...inputs,
+    "-filter_complex", steps.join(";"),
+    "-map", "[v]",
+    ...ENCODE,
+    out,
+  ]);
+  return out;
+}
+
+console.log("\nstitching with dips...");
+const stitched = stitch(made);
+
 const list = p(WORK, "all.txt");
-fs.writeFileSync(list, made.map((f) => `file '${f}'`).join("\n"));
+fs.writeFileSync(list, [`file '${stitched}'`].join("\n"));
 
 // A silent stereo track, so the file is well formed for anything that
 // expects audio when the voiceover is laid on.

@@ -88,17 +88,18 @@
       .line.dim { color: var(--ink-4); }
       .line.amber { color: var(--amber); }
 
-      .caret {
-        display: inline-block;
-        width: 0.56em;
-        height: 1.05em;
-        margin-left: 0.08em;
-        background: var(--amber);
-        vertical-align: -0.17em;
-        animation: blink 1.05s steps(1) infinite;
-      }
+      /* The punch line sits apart from the three above it. */
+      .line.punch { margin-top: 0.35em; }
 
-      @keyframes blink { 50% { opacity: 0; } }
+      /* Drawn under the punch line, left to right. */
+      .rule {
+        display: block;
+        height: 2px;
+        width: 0;
+        margin-top: 0.5em;
+        background: var(--amber);
+        opacity: 0;
+      }
 
       .statement {
         font-size: clamp(30px, 5.2vw, 104px);
@@ -109,15 +110,9 @@
         max-width: 18ch;
       }
 
-      .rise > * {
-        opacity: 0;
-        transform: translateY(16px);
-        filter: blur(6px);
-      }
+      .rise > * { opacity: 1; }
 
-      .scene.live .rise > * {
-        animation: rise 900ms cubic-bezier(0.17, 0.72, 0.21, 1) forwards;
-      }
+      .scene.live .rise > * { opacity: 1; transform: none; filter: none; }
 
       @keyframes rise {
         to { opacity: 1; transform: none; filter: none; }
@@ -194,18 +189,7 @@
       .wordmark svg { width: 1.5em; height: auto; overflow: visible; }
 
       /* The tether draws itself, then the ring lands. */
-      .scene.live .tether {
-        stroke-dasharray: 60;
-        stroke-dashoffset: 60;
-        animation: draw 1100ms cubic-bezier(0.3, 0.7, 0.2, 1) 200ms forwards;
-      }
-
       @keyframes draw { to { stroke-dashoffset: 0; } }
-
-      .scene.live .ring {
-        opacity: 0;
-        animation: pop 420ms cubic-bezier(0.2, 1.5, 0.4, 1) 1150ms forwards;
-      }
 
       @keyframes pop {
         from { opacity: 0; transform: scale(0.4); }
@@ -235,10 +219,6 @@
         width: 0;
         height: 2px;
         background: var(--amber);
-      }
-
-      .scene.live .lower .bar {
-        animation: wipe 700ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
       }
 
       @keyframes wipe { to { width: clamp(120px, 14vw, 260px); } }
@@ -295,16 +275,16 @@
       <!-- 2 · lower third -->
       <section class="scene" data-label="lower third" data-hold="4s">
         <div class="lower rise">
-          <div class="bar"></div>
-          <div class="name">Leash</div>
-          <div class="what">Spending authority for AI agents</div>
+          <div class="bar" id="lower-bar"></div>
+          <div class="name" id="lower-name">Leash</div>
+          <div class="what" id="lower-what">Spending authority for AI agents</div>
         </div>
       </section>
 
       <!-- 3 · the statement -->
       <section class="scene" data-label="structuring card" data-hold="2s">
         <div class="rise">
-          <div class="statement">Two addresses.<br />One merchant.</div>
+          <div class="statement" id="statement-text">Two addresses.<br />One merchant.</div>
         </div>
       </section>
 
@@ -316,7 +296,7 @@
             <div><span class="n" data-to="319">0</span><span class="k">Refused</span></div>
             <div><span class="n" data-to="0">0</span><span class="k">Got through</span></div>
           </div>
-          <div class="verdict">Mandate held</div>
+          <div class="verdict" id="verdict">Mandate held</div>
         </div>
       </section>
 
@@ -338,122 +318,163 @@
                       stroke="currentColor" stroke-width="1.4"
                       style="transform-origin: 23.6px 5.6px" />
             </svg>
-            <span>Leash</span>
+            <span id="end-word">Leash</span>
           </div>
-          <div class="url">leash-web.onrender.com</div>
+          <div class="url" id="end-url">leash-web.onrender.com</div>
         </div>
       </section>
     </div>
 
+    <script src="motion.js"></script>
     <script>
-      // Typed lines. Word-by-word reads as deliberate; character-by-character
-      // reads as a terminal, which is what this project is.
-      const PROBLEM = [
-        { text: "the agent books the flight", wait: 900 },
-        { text: "the agent orders the parts", wait: 900 },
-        { text: "the agent pays the invoice", wait: 1400 },
-        { text: "and if it gets it wrong", amber: true, dimRest: true, wait: 0 },
-      ];
+      const { ease, cue, kinetic, wipe, tighten, recede, roll, drawPath } =
+        window.Motion;
 
-      const CLOSING = [
-        { text: "Every other demo shows you", wait: 260 },
-        { text: "what their agent can buy.", wait: 1500 },
-        { text: "This one shows you what it can't.", amber: true, wait: 0 },
+      const PROBLEM = [
+        "the agent books the flight",
+        "the agent orders the parts",
+        "the agent pays the invoice",
       ];
+      const PUNCH = "and if it gets it wrong";
+
+      const CLOSING = ["Every other demo shows you", "what their agent can buy."];
+      const TURN = "This one shows you what it can't.";
 
       const scenes = [...document.querySelectorAll(".scene")];
       const hud = document.getElementById("hud");
       let at = 0;
-      let running = null;
+      let raf = null;
+      let t0 = 0;
 
       document.getElementById("count").textContent = scenes.length;
 
-      const sleep = (ms) => new Promise((r) => (running = setTimeout(r, ms)));
-
-      async function type(host, spec, speed = 38) {
+      function build(host, lines, punch) {
         host.innerHTML = "";
-        const rows = [];
-        for (const step of spec) {
+        const rows = lines.map((text) => {
           const row = document.createElement("div");
-          row.className = "line" + (step.amber ? " amber" : "");
+          row.className = "line";
+          row.textContent = text;
           host.appendChild(row);
-          rows.push(row);
-
-          if (step.dimRest) rows.slice(0, -1).forEach((r) => r.classList.add("dim"));
-
-          const caret = document.createElement("span");
-          caret.className = "caret";
-          row.appendChild(caret);
-
-          for (const ch of step.text) {
-            caret.insertAdjacentText("beforebegin", ch);
-            await sleep(speed + (ch === " " ? 24 : 0));
-          }
-          caret.remove();
-          if (step.wait) await sleep(step.wait);
-        }
-        const last = rows[rows.length - 1];
-        const caret = document.createElement("span");
-        caret.className = "caret";
-        last.appendChild(caret);
+          return row;
+        });
+        const hit = document.createElement("div");
+        hit.className = "line amber punch";
+        hit.textContent = punch;
+        host.appendChild(hit);
+        const rule = document.createElement("span");
+        rule.className = "rule";
+        host.appendChild(rule);
+        return { rows, hit, rule };
       }
 
-      function countUp(scene) {
-        scene.querySelectorAll("[data-to]").forEach((el) => {
-          const to = Number(el.dataset.to);
-          if (to === 0) { el.textContent = "0"; return; }
-          const started = performance.now();
-          const ms = 1100;
-          const tick = (now) => {
-            const p = Math.min(1, (now - started) / ms);
-            // Ease out, so it settles rather than stopping dead.
-            el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
-            if (p < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-        });
+      // Each scene paints itself from elapsed seconds, so the cards and the
+      // callout layer share one timing model.
+      const PAINT = {
+        0(t, parts) {
+          parts.rows.forEach((row, i) => {
+            const in_ = i * 1.05;
+            wipe(row, cue(t, in_, 0.62, ease.hard));
+            // Earlier lines are pushed back as the next arrives.
+            recede(row, cue(t, in_ + 0.95, 0.5));
+          });
+          // The punch line does not type. It arrives all at once, letter by
+          // letter, which is a different gesture entirely.
+          kinetic(parts.hit, t, 3.5, { gap: 0.022, dur: 0.44, rise: 34 });
+          const r = cue(t, 4.5, 0.7, ease.hard);
+          parts.rule.style.width = `${r * 100}%`;
+          parts.rule.style.opacity = r;
+        },
+
+        4(t, parts) {
+          parts.rows.forEach((row, i) => {
+            wipe(row, cue(t, i * 0.7, 0.55, ease.hard));
+          });
+          kinetic(parts.hit, t, 2.4, { gap: 0.02, dur: 0.46, rise: 30 });
+          const r = cue(t, 3.4, 0.7, ease.hard);
+          parts.rule.style.width = `${r * 100}%`;
+          parts.rule.style.opacity = r;
+        },
+
+        2(t) {
+          const el = document.querySelector("#statement-text");
+          tighten(el, cue(t, 0.25, 0.9, ease.hard), 0.5);
+          el.style.transform = `scale(${0.97 + 0.03 * cue(t, 0.25, 0.9)})`;
+        },
+
+        3(t) {
+          document.querySelectorAll("[data-to]").forEach((el, i) => {
+            roll(el, Number(el.dataset.to), cue(t, 0.35 + i * 0.22, 1.1), {
+              decimals: 0,
+              grouping: false,
+            });
+          });
+          const v = document.querySelector("#verdict");
+          const p = cue(t, 1.7, 0.5, ease.back);
+          v.style.opacity = p;
+          v.style.transform = `scale(${0.8 + 0.2 * p})`;
+        },
+
+        1(t) {
+          const bar = document.querySelector("#lower-bar");
+          bar.style.width = `${cue(t, 0.1, 0.65, ease.hard) * 100}%`;
+          kinetic(document.querySelector("#lower-name"), t, 0.35, { gap: 0.03 });
+          wipe(document.querySelector("#lower-what"), cue(t, 0.9, 0.6));
+        },
+
+        5(t) {
+          const path = document.querySelector(".tether");
+          drawPath(path, cue(t, 0.25, 1.0, ease.inOut));
+          const ring = document.querySelector(".ring");
+          const p = cue(t, 1.2, 0.42, ease.back);
+          ring.style.opacity = p;
+          ring.style.transform = `scale(${0.4 + 0.6 * p})`;
+          kinetic(document.querySelector("#end-word"), t, 0.6, { gap: 0.05 });
+          wipe(document.querySelector("#end-url"), cue(t, 1.8, 0.6));
+        },
+      };
+
+      let parts = null;
+
+      function frame(now) {
+        const t = (now - t0) / 1000;
+        PAINT[at]?.(t, parts);
+        raf = requestAnimationFrame(frame);
       }
 
       function play(i) {
-        clearTimeout(running);
+        cancelAnimationFrame(raf);
         at = (i + scenes.length) % scenes.length;
         scenes.forEach((s) => s.classList.remove("live"));
         const scene = scenes[at];
+        scene.classList.add("live");
 
-        // Re-trigger CSS animations by reflowing the subtree.
-        scene.querySelectorAll(".rise, .tether, .ring, .bar").forEach((el) => {
-          el.style.animation = "none";
-          void el.offsetWidth;
-          el.style.animation = "";
+        if (at === 0) parts = build(document.getElementById("problem"), PROBLEM, PUNCH);
+        if (at === 4) parts = build(document.getElementById("closing"), CLOSING, TURN);
+        // Re-split so kinetic() starts from scratch on a replay.
+        scene.querySelectorAll("[data-split]").forEach((n) => {
+          n.textContent = n.textContent;
+          delete n.dataset.split;
         });
 
-        scene.classList.add("live");
         document.getElementById("idx").textContent = at + 1;
         document.getElementById("label").textContent = scene.dataset.label;
         document.getElementById("hold").textContent = scene.dataset.hold;
 
-        if (at === 0) type(document.getElementById("problem"), PROBLEM);
-        if (at === 4) type(document.getElementById("closing"), CLOSING, 34);
-        if (at === 3) countUp(scene);
+        t0 = performance.now();
+        raf = requestAnimationFrame(frame);
       }
 
       addEventListener("keydown", (e) => {
+        const k = e.key.toLowerCase();
         if (e.key === " " || e.key === "ArrowRight" || e.key === "Enter") {
           e.preventDefault();
           play(at + 1);
-        } else if (e.key === "ArrowLeft") {
-          play(at - 1);
-        } else if (e.key.toLowerCase() === "r") {
-          play(at);
-        } else if (e.key.toLowerCase() === "h") {
-          hud.classList.toggle("on");
-        } else if (e.key.toLowerCase() === "f") {
-          document.documentElement.requestFullscreen?.();
-        }
+        } else if (e.key === "ArrowLeft") play(at - 1);
+        else if (k === "r") play(at);
+        else if (k === "h") hud.classList.toggle("on");
+        else if (k === "f") document.documentElement.requestFullscreen?.();
       });
 
-      // Driven by record.mjs, which jumps straight to a scene and replays it
-      // so each card is captured on its own with a clean start.
       window.leash = {
         play,
         count: scenes.length,
