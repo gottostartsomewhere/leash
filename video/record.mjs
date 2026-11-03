@@ -42,9 +42,11 @@ const browser = await chromium.launch({
   channel: "chrome",
   args: ["--hide-scrollbars", "--force-color-profile=srgb"],
 });
+// Captured at 2x so a push-in has real pixels to show. Zooming a 1920
+// source past about 1.2 goes soft, and the shots here push to 2.1.
 const context = await browser.newContext({
   viewport: { width: 1920, height: 1080 },
-  deviceScaleFactor: 1,
+  deviceScaleFactor: 2,
 });
 
 /** Screencast every painted frame while `fn` runs. */
@@ -93,8 +95,8 @@ async function take(name, page, fn) {
   await cdp.send("Page.startScreencast", {
     format: "jpeg",
     quality: 92,
-    maxWidth: 1920,
-    maxHeight: 1080,
+    maxWidth: 3840,
+    maxHeight: 2160,
   });
   await sleep(400);
 

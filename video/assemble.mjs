@@ -26,6 +26,10 @@ const FPS = 30;
 const W = 1920;
 const H = 1080;
 
+// App shots are captured at 2x so push-ins stay sharp.
+const SRC_W = W * 2;
+const SRC_H = H * 2;
+
 const p = (...bits) => path.join(...bits).replace(/\\/g, "/");
 
 /** A slow push, so a held frame never reads as a freeze. `to` is the zoom at
@@ -40,27 +44,90 @@ const push = (to = 1.05, fx = 0.5, fy = 0.5) => ({ to, fx, fy });
 // Lengths from script.md. Total lands just under three minutes, which is
 // where judges stop being required to watch.
 const SEGMENTS = [
-  { name: "problem", kind: "seq", seconds: 18 },
-  { name: "mandate", kind: "still", seconds: 20, push: push(1.05, 0.18, 0.42) },
-  { name: "shop", kind: "seq", seconds: 30, push: push(1.05, 0.5, 0.68) },
+  { name: "problem", kind: "seq", seconds: 11 },
+  {
+    name: "mandate",
+    kind: "still",
+    seconds: 16,
+    // Wide, then into the terms, then back out.
+    camera: [
+      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
+      { at: 4, z: 1.0, fx: 0.5, fy: 0.5 },
+      { at: 9, z: 1.9, fx: 0.11, fy: 0.42 },
+      { at: 13, z: 1.9, fx: 0.11, fy: 0.42 },
+      { at: 16, z: 1.12, fx: 0.3, fy: 0.46 },
+    ],
+  },
+  {
+    name: "shop",
+    kind: "seq",
+    callout: { after: "result", lead: 0.8 },
+    seconds: 26,
+    camera: [
+      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
+      { at: 7, z: 1.0, fx: 0.5, fy: 0.5 },
+      // Down to the trace the agent wrote.
+      { at: 10, z: 1.75, fx: 0.52, fy: 0.95 },
+      { at: 13, z: 1.75, fx: 0.52, fy: 0.95 },
+      // Back out to the callout.
+      { at: 16, z: 1.06, fx: 0.5, fy: 0.45 },
+      { at: 26, z: 1.14, fx: 0.5, fy: 0.42 },
+    ],
+  },
   { name: "statement", kind: "seq", seconds: 4 },
-  { name: "structuring", kind: "seq", seconds: 38, push: push(1.06, 0.46, 0.34) },
-  { name: "payout", kind: "seq", seconds: 12, push: push(1.04, 0.55, 0.28) },
+  {
+    name: "structuring",
+    kind: "seq",
+    callout: { after: "caught", lead: 1.4 },
+    seconds: 30,
+    camera: [
+      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
+      { at: 8, z: 1.0, fx: 0.5, fy: 0.5 },
+      // Into the cluster chart, which is the whole argument.
+      { at: 11, z: 2.1, fx: 0.42, fy: 0.3 },
+      { at: 16, z: 2.1, fx: 0.42, fy: 0.3 },
+      // Out to the arithmetic callout below it.
+      { at: 19, z: 1.08, fx: 0.5, fy: 0.55 },
+      { at: 30, z: 1.16, fx: 0.5, fy: 0.5 },
+    ],
+  },
+  {
+    name: "payout",
+    kind: "seq",
+    seconds: 12,
+    camera: [
+      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
+      { at: 5, z: 1.0, fx: 0.5, fy: 0.5 },
+      { at: 9, z: 1.7, fx: 0.72, fy: 0.22 },
+      { at: 12, z: 1.7, fx: 0.72, fy: 0.22 },
+    ],
+  },
   {
     name: "paypal",
     kind: "video",
     seconds: 12,
     src: `${DESKTOP}/Recording 2026-11-03 204231.mp4`,
-    // Two looks: the balance, then the money arriving.
     cuts: [
       { from: 3.2, length: 6 },
       { from: 14.5, length: 6 },
     ],
   },
-  { name: "revoke", kind: "seq", seconds: 16, push: push(1.05, 0.5, 0.3) },
-  { name: "tally", kind: "seq", seconds: 7 },
-  { name: "closing", kind: "seq", seconds: 8 },
-  { name: "endcard", kind: "seq", seconds: 6 },
+  {
+    name: "revoke",
+    kind: "seq",
+    callout: { after: "refused", lead: 0.9 },
+    seconds: 16,
+    camera: [
+      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
+      { at: 5, z: 1.0, fx: 0.5, fy: 0.5 },
+      { at: 8, z: 1.55, fx: 0.55, fy: 0.22 },
+      { at: 12, z: 1.55, fx: 0.55, fy: 0.22 },
+      { at: 16, z: 1.1, fx: 0.5, fy: 0.4 },
+    ],
+  },
+  { name: "tally", kind: "seq", seconds: 6 },
+  { name: "closing", kind: "seq", seconds: 6 },
+  { name: "endcard", kind: "seq", seconds: 5 },
 ];
 
 function run(args) {
@@ -79,6 +146,45 @@ const GROUND = "0x0b0a09";
 //: clipping the rail labels and the buttons along the bottom. Insetting
 //: first means the push *ends* exactly full-bleed and nothing is ever cut.
 const INSET = 0.94;
+
+/** Build a piecewise-linear ffmpeg expression over output frame number from
+ *  keyframes [{at, v}], so the camera can actually move between positions
+ *  rather than drift in one direction for the whole shot. */
+function keyed(frames, fps = FPS) {
+  if (frames.length === 1) return String(frames[0].v);
+  let expr = String(frames[frames.length - 1].v);
+  for (let i = frames.length - 2; i >= 0; i -= 1) {
+    const a = frames[i];
+    const b = frames[i + 1];
+    const fa = Math.round(a.at * fps);
+    const fb = Math.round(b.at * fps);
+    const span = Math.max(1, fb - fa);
+    // Smoothstep between the two, so a move eases in and out of its hold.
+    const u = `clip((on-${fa})/${span},0,1)`;
+    const s = `(${u}*${u}*(3-2*${u}))`;
+    expr = `if(lt(on,${fb}), ${a.v}+(${b.v}-${a.v})*${s}, ${expr})`;
+  }
+  return expr;
+}
+
+/** A shot with real moves: a list of {at, z, fx, fy} the camera travels
+ *  between. Beats the single slow drift, which on a 38 second slot is
+ *  indistinguishable from a still. */
+function cameraFilter(moves, inset = true) {
+  const fit = inset
+    ? `scale=${Math.round(SRC_W * INSET)}:${Math.round(SRC_H * INSET)},` +
+      `pad=${SRC_W}:${SRC_H}:(ow-iw)/2:(oh-ih)/2:${GROUND}`
+    : `scale=${SRC_W}:${SRC_H}`;
+  const z = keyed(moves.map((m) => ({ at: m.at, v: m.z })));
+  const x = keyed(moves.map((m) => ({ at: m.at, v: m.fx })));
+  const y = keyed(moves.map((m) => ({ at: m.at, v: m.fy })));
+  return [
+    fit,
+    `zoompan=z='${z}':x='(iw-iw/zoom)*(${x})':y='(ih-ih/zoom)*(${y})'` +
+      `:d=1:s=${W}x${H}:fps=${FPS}`,
+    "setsar=1",
+  ].join(",");
+}
 
 function pushFilter(cfg, seconds, inset = false) {
   const fit = inset
@@ -111,6 +217,14 @@ const ENCODE = [
   "-r", String(FPS),
 ];
 
+/** When a labelled beat actually happened in a capture. */
+function markTime(shot, label) {
+  const file = path.join(REEL, shot, "marks.json");
+  if (!fs.existsSync(file)) return 0;
+  const { marks } = JSON.parse(fs.readFileSync(file, "utf-8"));
+  return marks.find((m) => m.label === label)?.t ?? 0;
+}
+
 /** The callout layer for a segment, if overlay.mjs rendered one. */
 function overlayFor(name) {
   const dir = p(HERE, "overlay", name);
@@ -127,7 +241,9 @@ function sequence(seg) {
   const have = frames / FPS;
   const hold = Math.max(0, seg.seconds - have);
   const out = p(WORK, `${seg.name}.mp4`);
-  const look = pushFilter(seg.push, seg.seconds, Boolean(seg.push));
+  const look = seg.camera
+    ? cameraFilter(seg.camera)
+    : pushFilter(seg.push, seg.seconds, Boolean(seg.push));
   const appHold =
     hold > 0.05 ? `tpad=stop_mode=clone:stop_duration=${hold.toFixed(2)},` : "";
 
@@ -147,12 +263,15 @@ function sequence(seg) {
   // The callout is composited onto the raw frames *before* the push, so it
   // travels with the shot. It fades in at its own time and then holds for
   // the rest of the segment.
-  const start = (callout.first / FPS).toFixed(2);
+  const anchor = seg.callout
+    ? markTime(seg.name, seg.callout.after) + (seg.callout.lead ?? 0.6)
+    : callout.first / FPS;
+  const start = anchor.toFixed(2);
   const native = callout.count / FPS;
-  const after = Math.max(0, seg.seconds - callout.first / FPS - native);
+  const after = Math.max(0, seg.seconds - anchor - native);
 
   const chain =
-    `[1:v]format=rgba,` +
+    `[1:v]format=rgba,scale=${SRC_W}:${SRC_H},` +
     `tpad=start_mode=add:start_duration=${start}:color=black@0,` +
     (after > 0.05 ? `tpad=stop_mode=clone:stop_duration=${after.toFixed(2)},` : "") +
     `setsar=1[ov];` +
@@ -181,7 +300,7 @@ function still(seg) {
     "-loop", "1",
     "-framerate", String(FPS),
     "-i", file,
-    "-vf", pushFilter(seg.push, seg.seconds, Boolean(seg.push)),
+    "-vf", seg.camera ? cameraFilter(seg.camera) : pushFilter(seg.push, seg.seconds, Boolean(seg.push)),
     "-t", String(seg.seconds),
     ...ENCODE,
     out,

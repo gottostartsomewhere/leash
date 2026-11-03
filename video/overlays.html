@@ -235,64 +235,64 @@
 
       const SCENES = {
         shop(t) {
-          panel("shop", t, 3.9);
-          wipe($("shop", "kicker"), cue(t, 4.1, 0.45, ease.hard));
+          panel("shop", t, 0.0);
+          wipe($("shop", "kicker"), cue(t, 0.2, 0.45, ease.hard));
 
           // Rolls up rather than appearing, so the size of it registers.
-          roll($("shop", "n1"), 999, cue(t, 4.4, 0.75));
-          kinetic($("shop", "k1"), t, 4.45, { gap: 0.012, dur: 0.34, rise: 14 });
+          roll($("shop", "n1"), 999, cue(t, 0.5, 0.75));
+          kinetic($("shop", "k1"), t, 0.55, { gap: 0.012, dur: 0.34, rise: 14 });
 
-          roll($("shop", "n2"), 100, cue(t, 5.5, 0.6));
-          kinetic($("shop", "k2"), t, 5.55, { gap: 0.012, dur: 0.34, rise: 14 });
-          wipe($("shop", "n2tail"), cue(t, 6.0, 0.4, ease.hard));
+          roll($("shop", "n2"), 100, cue(t, 1.6, 0.6));
+          kinetic($("shop", "k2"), t, 1.65, { gap: 0.012, dur: 0.34, rise: 14 });
+          wipe($("shop", "n2tail"), cue(t, 2.1, 0.4, ease.hard));
 
           // The strike draws, then the refused number fades back.
-          const st = cue(t, 6.2, 0.4, ease.hard);
+          const st = cue(t, 2.3, 0.4, ease.hard);
           const strike = $("shop", "strike");
           strike.style.width = `${st * 236}px`;
           strike.style.opacity = st > 0 ? 1 : 0;
           const row1 = $("shop", "r1");
-          row1.style.opacity = 1 - 0.45 * cue(t, 6.6, 0.5);
+          row1.style.opacity = 1 - 0.45 * cue(t, 2.7, 0.5);
 
-          roll($("shop", "n3"), 90.55, cue(t, 7.0, 0.7));
-          kinetic($("shop", "k3"), t, 7.05, { gap: 0.012, dur: 0.34, rise: 14 });
-          const pop = cue(t, 7.5, 0.45, ease.back);
+          roll($("shop", "n3"), 90.55, cue(t, 3.1, 0.7));
+          kinetic($("shop", "k3"), t, 3.15, { gap: 0.012, dur: 0.34, rise: 14 });
+          const pop = cue(t, 3.6, 0.45, ease.back);
           $("shop", "n3").style.transform = `scale(${0.86 + 0.14 * pop})`;
         },
 
         structuring(t) {
-          panel("structuring", t, 4.9);
-          wipe($("structuring", "kicker"), cue(t, 5.1, 0.45, ease.hard));
+          panel("structuring", t, 0.0);
+          wipe($("structuring", "kicker"), cue(t, 0.2, 0.45, ease.hard));
 
-          roll($("structuring", "a"), 75, cue(t, 5.4, 0.5));
-          const plus = cue(t, 6.0, 0.3, ease.back);
+          roll($("structuring", "a"), 75, cue(t, 0.5, 0.5));
+          const plus = cue(t, 1.1, 0.3, ease.back);
           $("structuring", "plus").style.opacity = plus;
           $("structuring", "plus").style.transform = `scale(${0.5 + 0.5 * plus})`;
 
-          roll($("structuring", "b"), 75, cue(t, 6.3, 0.5));
-          const eq = cue(t, 7.0, 0.3, ease.back);
+          roll($("structuring", "b"), 75, cue(t, 1.4, 0.5));
+          const eq = cue(t, 2.1, 0.3, ease.back);
           $("structuring", "eq").style.opacity = eq;
           $("structuring", "eq").style.transform = `scale(${0.5 + 0.5 * eq})`;
 
           // The total resolves with a slight overshoot, then settles.
-          roll($("structuring", "total"), 150, cue(t, 7.3, 0.65));
-          const land = cue(t, 7.3, 0.6, ease.back);
+          roll($("structuring", "total"), 150, cue(t, 2.4, 0.65));
+          const land = cue(t, 2.4, 0.6, ease.back);
           const tot = $("structuring", "total");
           tot.style.opacity = land;
           tot.style.transform = `scale(${0.76 + 0.24 * land})`;
 
-          kinetic($("structuring", "note"), t, 8.3, { gap: 0.009, dur: 0.3, rise: 12 });
+          kinetic($("structuring", "note"), t, 3.4, { gap: 0.009, dur: 0.3, rise: 12 });
         },
 
         revoke(t) {
-          const p = cue(t, 5.2, 0.4, ease.back);
+          const p = cue(t, 0.0, 0.4, ease.back);
           const el = $("revoke", "stamp");
           el.style.opacity = Math.min(1, p * 1.6);
           el.style.transform =
             `translate(-50%, -50%) rotate(-11deg) scale(${1.55 - 0.55 * p})`;
           // A ring pushes out from where it landed, like an impact.
           const ring = $("revoke", "shock");
-          const s = cue(t, 5.55, 0.75, ease.out);
+          const s = cue(t, 0.35, 0.75, ease.out);
           ring.style.opacity = s > 0 && s < 1 ? (1 - s) * 0.55 : 0;
           ring.style.transform =
             `translate(-50%, -50%) rotate(-11deg) scale(${1 + s * 0.5})`;
