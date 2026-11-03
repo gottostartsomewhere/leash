@@ -27,6 +27,7 @@ web/dist/
 video/frames/
 video/reel/
 video/work/
+video/overlay/
 video/check/
 video/*.mp4
 

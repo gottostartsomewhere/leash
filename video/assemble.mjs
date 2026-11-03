@@ -111,6 +111,15 @@ const ENCODE = [
   "-r", String(FPS),
 ];
 
+/** The callout layer for a segment, if overlay.mjs rendered one. */
+function overlayFor(name) {
+  const dir = p(HERE, "overlay", name);
+  const meta = path.join(dir, "span.json");
+  if (!fs.existsSync(meta)) return null;
+  const span = JSON.parse(fs.readFileSync(meta, "utf-8"));
+  return { dir, ...span, count: span.last - span.first + 1 };
+}
+
 function sequence(seg) {
   const dir = p(REEL, seg.name);
   const frames = fs.readdirSync(dir).filter((f) => f.endsWith(".jpg")).length;
@@ -118,20 +127,51 @@ function sequence(seg) {
   const have = frames / FPS;
   const hold = Math.max(0, seg.seconds - have);
   const out = p(WORK, `${seg.name}.mp4`);
+  const look = pushFilter(seg.push, seg.seconds, Boolean(seg.push));
+  const appHold =
+    hold > 0.05 ? `tpad=stop_mode=clone:stop_duration=${hold.toFixed(2)},` : "";
 
-  const filters = [];
-  if (hold > 0.05) filters.push(`tpad=stop_mode=clone:stop_duration=${hold.toFixed(2)}`);
-  filters.push(pushFilter(seg.push, seg.seconds, Boolean(seg.push)));
+  const callout = overlayFor(seg.name);
+  if (!callout) {
+    run([
+      "-framerate", String(FPS),
+      "-i", p(dir, "%05d.jpg"),
+      "-vf", appHold + look,
+      "-t", String(seg.seconds),
+      ...ENCODE,
+      out,
+    ]);
+    return { out, have, hold, callout: false };
+  }
+
+  // The callout is composited onto the raw frames *before* the push, so it
+  // travels with the shot. It fades in at its own time and then holds for
+  // the rest of the segment.
+  const start = (callout.first / FPS).toFixed(2);
+  const native = callout.count / FPS;
+  const after = Math.max(0, seg.seconds - callout.first / FPS - native);
+
+  const chain =
+    `[1:v]format=rgba,` +
+    `tpad=start_mode=add:start_duration=${start}:color=black@0,` +
+    (after > 0.05 ? `tpad=stop_mode=clone:stop_duration=${after.toFixed(2)},` : "") +
+    `setsar=1[ov];` +
+    `[0:v]${appHold}setsar=1[app];` +
+    `[app][ov]overlay=0:0:format=auto,${look}[v]`;
 
   run([
     "-framerate", String(FPS),
     "-i", p(dir, "%05d.jpg"),
-    "-vf", filters.join(","),
+    "-framerate", String(FPS),
+    "-start_number", String(callout.first),
+    "-i", p(callout.dir, "%05d.png"),
+    "-filter_complex", chain,
+    "-map", "[v]",
     "-t", String(seg.seconds),
     ...ENCODE,
     out,
   ]);
-  return { out, have, hold };
+  return { out, have, hold, callout: true };
 }
 
 function still(seg) {
@@ -186,12 +226,12 @@ const made = [];
 let total = 0;
 for (const seg of SEGMENTS) {
   const build = seg.kind === "still" ? still : seg.kind === "video" ? clip : sequence;
-  const { out, have, hold } = build(seg);
+  const { out, have, hold, callout } = build(seg);
   made.push(out);
   total += seg.seconds;
   const note = hold > 0.05 ? `${have.toFixed(1)}s + ${hold.toFixed(1)}s held` : `${have.toFixed(1)}s`;
   const at = new Date(total * 1000).toISOString().substring(14, 19);
-  console.log(`  ${seg.name.padEnd(12)} ${String(seg.seconds).padStart(3)}s  -> ${at}   ${note}`);
+  console.log(`  ${seg.name.padEnd(12)} ${String(seg.seconds).padStart(3)}s  -> ${at}   ${note}${callout ? "  + callout" : ""}`);
 }
 
 const list = p(WORK, "all.txt");

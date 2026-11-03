@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Leash — overlays</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Transparent callout layer, composited over the app footage.
+       *
+       * Everything is driven from `render(scene, t)` rather than from CSS
+       * animations, so a frame grabbed at t is always identical. A recorder
+       * stepping frame by frame cannot rely on wall-clock animations.
+       *
+       * Positions are in the 1920x1080 frame the app was captured at, and
+       * the compositing happens before the push, so these travel with the
+       * shot instead of sliding against it. */
+
+      :root {
+        --ink: #ece7e1;
+        --ink-2: #9d958c;
+        --ink-3: #6a635c;
+        --amber: #dfa33c;
+        --red: #e2553d;
+        --green: #7fa37a;
+        --ui: "Archivo", system-ui, sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, monospace;
+      }
+
+      * { box-sizing: border-box; margin: 0; }
+
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        background: transparent;
+        overflow: hidden;
+        font-family: var(--ui);
+        color: var(--ink);
+      }
+
+      .scene { position: absolute; inset: 0; display: none; }
+      .scene.on { display: block; }
+
+      /* A panel sitting in the app's empty middle, dark enough to read on
+       * but transparent enough that it is clearly an overlay. */
+      .panel {
+        position: absolute;
+        background: rgba(11, 10, 9, 0.93);
+        border: 1px solid #2b2622;
+        padding: 34px 44px;
+      }
+
+      .kicker {
+        font-size: 13px;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-bottom: 22px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        align-items: baseline;
+        gap: 28px;
+        padding: 9px 0;
+      }
+
+      .row .k {
+        font-size: 19px;
+        letter-spacing: 0.04em;
+        color: var(--ink-2);
+      }
+
+      .row .v {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 52px;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        position: relative;
+        display: inline-block;
+      }
+
+      .row .v.amber { color: var(--amber); }
+      .row .v.green { color: var(--green); }
+      .row .v.red { color: var(--red); }
+
+      /* The strike is drawn, not faded, so the eye follows it. */
+      .strike {
+        position: absolute;
+        left: -6px;
+        top: 52%;
+        height: 3px;
+        background: var(--red);
+      }
+
+      .sum {
+        display: flex;
+        align-items: baseline;
+        gap: 26px;
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 64px;
+        letter-spacing: -0.02em;
+      }
+
+      .sum .op { color: var(--ink-3); font-size: 44px; }
+      .sum .red { color: var(--red); }
+
+      .note {
+        margin-top: 18px;
+        font-size: 20px;
+        color: var(--ink-2);
+        letter-spacing: 0.01em;
+      }
+
+      .note b { color: var(--red); font-weight: 500; }
+
+      /* Revoke stamp */
+      .stamp {
+        position: absolute;
+        left: 50%;
+        top: 46%;
+        transform-origin: center;
+        border: 4px solid var(--red);
+        color: var(--red);
+        font-size: 92px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        padding: 18px 46px 18px 68px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- shopping: what it asked for, what it was told, what it came back with -->
+    <section class="scene" id="shop">
+      <div class="panel" style="left: 470px; top: 310px; width: 980px">
+        <div class="kicker" data-el="kicker">The agent's working</div>
+        <div class="row" data-el="r1">
+          <span class="k">It asked for</span>
+          <span class="v amber">999.00<i class="strike" data-el="strike"></i></span>
+        </div>
+        <div class="row" data-el="r2">
+          <span class="k">The mandate said</span>
+          <span class="v">100.00 would clear</span>
+        </div>
+        <div class="row" data-el="r3">
+          <span class="k">So it came back with</span>
+          <span class="v green">90.55</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- structuring: the arithmetic that makes the catch obvious -->
+    <section class="scene" id="structuring">
+      <div class="panel" style="left: 470px; top: 600px; width: 1020px">
+        <div class="kicker" data-el="kicker">Two charges, one merchant</div>
+        <div class="sum">
+          <span data-el="a">75.00</span>
+          <span class="op" data-el="plus">+</span>
+          <span data-el="b">75.00</span>
+          <span class="op" data-el="eq">=</span>
+          <span class="red" data-el="total">150.00</span>
+        </div>
+        <div class="note" data-el="note">
+          Each one clears the 100.00 cap on its own.
+          <b>Together they do not.</b>
+        </div>
+      </div>
+    </section>
+
+    <!-- revoke -->
+    <section class="scene" id="revoke">
+      <div class="stamp" data-el="stamp">REVOKED</div>
+    </section>
+
+    <script>
+      const $ = (scene, el) =>
+        document.querySelector(`#${scene} [data-el="${el}"]`);
+
+      const clamp = (v) => Math.max(0, Math.min(1, v));
+      /** Eased 0..1 progress for a cue starting at `start` lasting `dur`. */
+      const cue = (t, start, dur = 0.5) => {
+        const p = clamp((t - start) / dur);
+        return 1 - Math.pow(1 - p, 3);
+      };
+
+      function rise(node, p, travel = 22) {
+        node.style.opacity = p;
+        node.style.transform = `translateY(${(1 - p) * travel}px)`;
+        node.style.filter = p < 1 ? `blur(${(1 - p) * 7}px)` : "none";
+      }
+
+      const SCENES = {
+        shop(t) {
+          rise($("shop", "kicker"), cue(t, 4.0, 0.5));
+          rise($("shop", "r1"), cue(t, 4.4, 0.5));
+          rise($("shop", "r2"), cue(t, 5.4, 0.5));
+          rise($("shop", "r3"), cue(t, 6.6, 0.5));
+          // The strike lands after the refusal has been read.
+          const s = cue(t, 6.0, 0.45);
+          const el = $("shop", "strike");
+          el.style.width = `${s * 232}px`;
+          el.style.opacity = s > 0 ? 1 : 0;
+        },
+
+        structuring(t) {
+          rise($("structuring", "kicker"), cue(t, 5.0, 0.5));
+          rise($("structuring", "a"), cue(t, 5.4, 0.45), 0);
+          rise($("structuring", "plus"), cue(t, 6.0, 0.35), 0);
+          rise($("structuring", "b"), cue(t, 6.3, 0.45), 0);
+          rise($("structuring", "eq"), cue(t, 7.1, 0.35), 0);
+          const total = cue(t, 7.4, 0.5);
+          const el = $("structuring", "total");
+          el.style.opacity = total;
+          el.style.transform = `scale(${0.82 + 0.18 * total})`;
+          rise($("structuring", "note"), cue(t, 8.4, 0.6));
+        },
+
+        revoke(t) {
+          const p = cue(t, 5.2, 0.42);
+          const el = $("revoke", "stamp");
+          el.style.opacity = p;
+          // Lands hard and settles, the way a stamp does.
+          const over = 1.5 - 0.5 * p;
+          el.style.transform = `translate(-50%, -50%) rotate(-11deg) scale(${over})`;
+        },
+      };
+
+      /** Deterministic: the same (scene, t) always paints the same frame. */
+      window.overlay = {
+        render(scene, t) {
+          for (const node of document.querySelectorAll(".scene")) {
+            node.classList.toggle("on", node.id === scene);
+          }
+          SCENES[scene]?.(t);
+        },
+        scenes: Object.keys(SCENES),
+      };
+    </script>
+  </body>
+</html>
