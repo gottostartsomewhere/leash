@@ -26,6 +26,9 @@ web/dist/
 # video/record.mjs in about a minute.
 video/frames/
 video/reel/
+video/work/
+video/check/
+video/*.mp4
 
 # Editors and tooling
 .claude/
