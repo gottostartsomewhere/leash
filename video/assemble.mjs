@@ -51,94 +51,40 @@ const cut = (at, z, fx, fy) => [
   { at, z, fx, fy },
 ];
 
+// Full bleed, given the 0.94 inset the app frames sit in (see INSET below,
+// declared later because the filter helpers own it).
+const FULL = 1.0638;
+
+// Cuts only. Every framing holds dead still between them.
+//
+// A slow zoom across a static screenshot is the Ken Burns move, and on a UI
+// it reads as a cheap commercial: the camera drifting while nothing in the
+// picture moves. Software cuts instead, and lets the interface supply the
+// motion. So there is no drift anywhere in here, only the moment of the cut.
 const SEGMENTS = [
   { name: "problem", kind: "seq", seconds: 7 },
   {
     name: "mandate",
-    kind: "still",
-    seconds: 13,
-    camera: [
-      { at: 0, z: 1.14, fx: 0.5, fy: 0.5 },
-      { at: 2.2, z: 1.06, fx: 0.5, fy: 0.5 },
-      ...cut(2.4, 2.3, 0.08, 0.2),
-      { at: 4.4, z: 2.24, fx: 0.08, fy: 0.22 },
-      ...cut(4.6, 2.1, 0.09, 0.52),
-      { at: 7.6, z: 2.0, fx: 0.09, fy: 0.6 },
-      ...cut(7.8, 2.4, 0.1, 0.86),
-      { at: 9.6, z: 2.34, fx: 0.1, fy: 0.88 },
-      ...cut(9.8, 1.04, 0.5, 0.5),
-      { at: 13, z: 1.12, fx: 0.5, fy: 0.48 },
-    ],
+    kind: "seq",
+    seconds: 14,
   },
   {
     name: "shop",
     kind: "seq",
-    seconds: 25,
-    callout: { at: 19.4 },
-    camera: [
-      { at: 0, z: 1.08, fx: 0.5, fy: 0.78 },   // typing
-      { at: 2.6, z: 1.14, fx: 0.5, fy: 0.8 },
-      ...cut(5.4, 1.75, 0.3, 0.92),            // the shelf of real products
-      { at: 7.4, z: 1.68, fx: 0.45, fy: 0.92 },
-      ...cut(7.6, 1.9, 0.72, 0.92),
-      { at: 9.4, z: 1.84, fx: 0.76, fy: 0.92 },
-      ...cut(9.6, 1.06, 0.5, 0.62),            // out while it thinks
-      { at: 12.0, z: 1.12, fx: 0.5, fy: 0.6 },
-      ...cut(12.2, 2.3, 0.5, 0.97),            // the trace
-      { at: 14.2, z: 2.22, fx: 0.52, fy: 0.97 },
-      ...cut(14.4, 2.5, 0.12, 0.96),           // REFUSED
-      { at: 15.9, z: 2.44, fx: 0.14, fy: 0.96 },
-      ...cut(16.1, 2.5, 0.12, 1.0),            // BOUGHT
-      { at: 17.5, z: 2.44, fx: 0.14, fy: 1.0 },
-      ...cut(17.7, 2.2, 0.62, 0.12),           // the grid rows
-      { at: 19.1, z: 2.12, fx: 0.62, fy: 0.12 },
-      ...cut(19.3, 1.02, 0.5, 0.5),
-      { at: 25, z: 1.1, fx: 0.5, fy: 0.46 },
-    ],
+    seconds: 32,
+    callout: { at: 26.2 },
   },
   { name: "statement", kind: "seq", seconds: 4 },
   {
     name: "structuring",
     kind: "seq",
-    seconds: 30,
-    callout: { at: 20.6 },
-    camera: [
-      { at: 0, z: 1.06, fx: 0.5, fy: 0.42 },
-      { at: 3.2, z: 1.12, fx: 0.5, fy: 0.42 },
-      ...cut(3.6, 2.35, 0.56, 0.12),           // the two rows
-      { at: 5.4, z: 2.28, fx: 0.58, fy: 0.12 },
-      ...cut(5.6, 2.2, 0.4, 0.3),              // the cluster bars
-      { at: 7.4, z: 2.1, fx: 0.42, fy: 0.31 },
-      ...cut(7.6, 2.6, 0.5, 0.36),             // the cap line
-      { at: 8.3, z: 2.54, fx: 0.52, fy: 0.36 },
-      ...cut(8.5, 1.04, 0.5, 0.4),             // out for the filter
-      { at: 11.0, z: 1.1, fx: 0.5, fy: 0.4 },
-      ...cut(11.2, 2.3, 0.35, 0.47),           // the evidence numbers
-      { at: 13.1, z: 2.22, fx: 0.37, fy: 0.47 },
-      ...cut(13.3, 1.04, 0.5, 0.35),           // out for the search
-      { at: 16.0, z: 1.1, fx: 0.5, fy: 0.35 },
-      ...cut(16.2, 2.45, 0.76, 0.47),          // checks run
-      { at: 18.0, z: 2.38, fx: 0.78, fy: 0.47 },
-      ...cut(18.2, 2.2, 0.2, 0.2),             // the held gauge
-      { at: 20.3, z: 2.12, fx: 0.2, fy: 0.22 },
-      ...cut(20.5, 1.02, 0.5, 0.5),
-      { at: 30, z: 1.12, fx: 0.5, fy: 0.54 },
-    ],
+    seconds: 28,
+    callout: { at: 22.0 },
   },
   {
     name: "payout",
     kind: "seq",
-    seconds: 12,
-    camera: [
-      { at: 0, z: 1.9, fx: 0.16, fy: 0.14 },   // ticking them off
-      { at: 3.2, z: 1.8, fx: 0.2, fy: 0.16 },
-      ...cut(3.4, 2.4, 0.88, 0.14),            // the money column flashing
-      { at: 5.6, z: 2.3, fx: 0.88, fy: 0.16 },
-      ...cut(5.8, 2.2, 0.1, 0.2),              // the gauge
-      { at: 8.0, z: 2.12, fx: 0.1, fy: 0.22 },
-      ...cut(8.2, 1.04, 0.5, 0.4),
-      { at: 12, z: 1.12, fx: 0.5, fy: 0.4 },
-    ],
+    seconds: 11,
   },
   {
     name: "paypal",
@@ -153,23 +99,8 @@ const SEGMENTS = [
   {
     name: "revoke",
     kind: "seq",
-    seconds: 16,
-    callout: { at: 11.6 },
-    camera: [
-      { at: 0, z: 1.06, fx: 0.5, fy: 0.3 },
-      ...cut(0.6, 2.4, 0.92, 0.07),            // status flips
-      { at: 2.4, z: 2.3, fx: 0.92, fy: 0.09 },
-      ...cut(2.6, 2.3, 0.86, 0.18),            // holds released
-      { at: 4.2, z: 2.22, fx: 0.86, fy: 0.2 },
-      ...cut(4.5, 2.4, 0.5, 0.26),             // Mandate inactive
-      { at: 6.4, z: 2.32, fx: 0.52, fy: 0.26 },
-      ...cut(6.6, 1.06, 0.5, 0.36),            // out
-      { at: 9.0, z: 1.12, fx: 0.5, fy: 0.36 },
-      ...cut(9.2, 2.3, 0.5, 0.3),              // refused again
-      { at: 11.4, z: 2.22, fx: 0.5, fy: 0.3 },
-      ...cut(11.5, 1.02, 0.5, 0.42),           // wide for the stamp
-      { at: 16, z: 1.1, fx: 0.5, fy: 0.42 },
-    ],
+    seconds: 17,
+    callout: { at: 13.0 },
   },
   { name: "tally", kind: "seq", seconds: 6 },
   { name: "closing", kind: "seq", seconds: 6 },

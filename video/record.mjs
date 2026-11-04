@@ -147,8 +147,50 @@ async function openApp() {
   await page.addStyleTag({ content: `html { zoom: ${ZOOM} }` });
   // The rail only renders once the mandate has loaded.
   await page.getByText("Total authority").waitFor({ timeout: 60_000 });
+
+  // Camera moves happen in the page, the way the Recon promo did them: a
+  // short CSS transform on the app root, origin set to whatever is being
+  // talked about. GPU-composited so it is subpixel smooth, fast enough to
+  // read as a cut-in rather than a drift, and the interface stays live
+  // underneath instead of being a still that gets panned across.
+  await page.addStyleTag({
+    content: `#root { transition: transform 620ms cubic-bezier(.65,0,.35,1);
+                       will-change: transform; }`,
+  });
+  await page.evaluate(() => {
+    const root = document.getElementById("root");
+    window.film = {
+      to(selector, scale = 1.45) {
+        const el = document.querySelector(selector);
+        if (!el) return false;
+        const r = root.getBoundingClientRect();
+        const e = el.getBoundingClientRect();
+        root.style.transformOrigin =
+          `${e.left + e.width / 2 - r.left}px ${e.top + e.height / 2 - r.top}px`;
+        root.style.transform = `scale(${scale})`;
+        return true;
+      },
+      out() {
+        root.style.transform = "none";
+      },
+    };
+  });
+
   await sleep(700);
   return page;
+}
+
+/** Push in on something, hold, come back. */
+async function look(page, selector, { scale = 1.45, hold = 1500 } = {}) {
+  const found = await page.evaluate(
+    ([sel, sc]) => window.film.to(sel, sc),
+    [selector, scale],
+  );
+  if (!found) return false;
+  await sleep(620 + hold);
+  await page.evaluate(() => window.film.out());
+  await sleep(700);
+  return true;
 }
 
 async function ask(page, { payee, category, amount }) {
@@ -167,10 +209,18 @@ const SHOTS = {
   async mandate() {
     await reset();
     const page = await openApp();
-    // One spend so the gauge actually moves rather than sitting at zero.
+    // One spend so the gauge is not sitting at zero.
     await ask(page, { payee: "northwind", category: "office-supplies", amount: "40.00" });
     await sleep(1600);
-    await still("mandate", page);
+    await take("mandate", page, async (mark) => {
+      mark("wide");
+      await sleep(1400);
+      await look(page, ".gauge", { scale: 1.9, hold: 1500 });
+      mark("terms");
+      await look(page, ".rules", { scale: 1.65, hold: 2200 });
+      await look(page, ".scope", { scale: 1.9, hold: 1400 });
+      await sleep(800);
+    });
     await page.close();
   },
 
@@ -192,16 +242,20 @@ const SHOTS = {
       await page.getByRole("button", { name: "Look first" }).click();
       await page.locator(".product").first().waitFor({ timeout: 90_000 });
       mark("shelf");
-      await sleep(2600);
+      await sleep(1200);
+      await look(page, ".product", { scale: 1.7, hold: 1500 });
       await page.locator(".shelf").hover();
       await page.mouse.wheel(900, 0);
-      await sleep(1600);
+      await sleep(1200);
 
       mark("send");
       await page.getByRole("button", { name: "Send the agent" }).click();
       await page.getByText("What it did").waitFor({ timeout: 90_000 });
       mark("result");
-      await sleep(5200);
+      await sleep(1400);
+      await look(page, ".trace", { scale: 1.75, hold: 2200 });
+      await look(page, ".ag-center-cols-container", { scale: 1.6, hold: 1600 });
+      await sleep(900);
     });
     await page.close();
   },
@@ -217,7 +271,9 @@ const SHOTS = {
       await ask(page, { payee: "acme_eu", category: "furniture", amount: "75.00" });
       await page.getByText("Structuring").first().waitFor({ timeout: 30_000 });
       mark("caught");
-      await sleep(5000);
+      await sleep(1300);
+      await look(page, ".cluster", { scale: 1.9, hold: 2400 });
+      await look(page, ".facts", { scale: 1.6, hold: 1600 });
 
       // The grid doing grid things, which is also the AG Grid story.
       mark("filter");
@@ -263,7 +319,9 @@ const SHOTS = {
       await page.getByRole("button", { name: "Approve and pay out" }).click();
       await page.getByText("Settled").first().waitFor({ timeout: 120_000 });
       mark("settled");
-      await sleep(5000);
+      await sleep(1200);
+      await look(page, ".ag-center-cols-container", { scale: 1.6, hold: 1700 });
+      await look(page, ".gauge", { scale: 1.8, hold: 1500 });
     });
     await page.close();
   },
@@ -286,14 +344,16 @@ const SHOTS = {
       await page.getByRole("button", { name: "Revoke", exact: true }).click();
       await page.getByText("Revoked", { exact: true }).first().waitFor({ timeout: 30_000 });
       mark("dropped");
-      await sleep(4200);
+      await sleep(1100);
+      await look(page, ".topbar-right", { scale: 1.9, hold: 1500 });
 
       // Asking a dead mandate for money, twice, is the point of the beat.
       mark("ask-again");
       await ask(page, { payee: "acme_us", category: "furniture", amount: "20.00" });
       await page.getByText("Mandate inactive").first().waitFor({ timeout: 30_000 });
       mark("refused");
-      await sleep(3200);
+      await sleep(1100);
+      await look(page, ".ag-center-cols-container", { scale: 1.7, hold: 1800 });
       await ask(page, { payee: "northwind", category: "office-supplies", amount: "5.00" });
       await sleep(4000);
     });
