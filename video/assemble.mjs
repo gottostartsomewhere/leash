@@ -43,52 +43,86 @@ const push = (to = 1.05, fx = 0.5, fy = 0.5) => ({ to, fx, fy });
 
 // Lengths from script.md. Total lands just under three minutes, which is
 // where judges stop being required to watch.
+// A cut is two keyframes a frame apart; a push is two keyframes a beat
+// apart. Each long shot is now a sequence of framings rather than one slow
+// glide, because a glide across thirty seconds reads as a still that drifts.
+const cut = (at, z, fx, fy) => [
+  { at: at - 0.034, z: "PREV", fx: "PREV", fy: "PREV" },
+  { at, z, fx, fy },
+];
+
 const SEGMENTS = [
   { name: "problem", kind: "seq", seconds: 11 },
   {
     name: "mandate",
     kind: "still",
-    seconds: 16,
-    // Wide, then into the terms, then back out.
+    seconds: 13,
     camera: [
-      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
-      { at: 4, z: 1.0, fx: 0.5, fy: 0.5 },
-      { at: 9, z: 1.9, fx: 0.11, fy: 0.42 },
-      { at: 13, z: 1.9, fx: 0.11, fy: 0.42 },
-      { at: 16, z: 1.12, fx: 0.3, fy: 0.46 },
+      { at: 0, z: 1.14, fx: 0.5, fy: 0.5 },
+      { at: 2.2, z: 1.06, fx: 0.5, fy: 0.5 },
+      ...cut(2.4, 2.3, 0.08, 0.2),
+      { at: 4.4, z: 2.24, fx: 0.08, fy: 0.22 },
+      ...cut(4.6, 2.1, 0.09, 0.52),
+      { at: 7.6, z: 2.0, fx: 0.09, fy: 0.6 },
+      ...cut(7.8, 2.4, 0.1, 0.86),
+      { at: 9.6, z: 2.34, fx: 0.1, fy: 0.88 },
+      ...cut(9.8, 1.04, 0.5, 0.5),
+      { at: 13, z: 1.12, fx: 0.5, fy: 0.48 },
     ],
   },
   {
     name: "shop",
     kind: "seq",
-    callout: { after: "result", lead: 0.8 },
-    seconds: 26,
+    seconds: 25,
+    callout: { at: 19.4 },
     camera: [
-      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
-      { at: 7, z: 1.0, fx: 0.5, fy: 0.5 },
-      // Down to the trace the agent wrote.
-      { at: 10, z: 1.75, fx: 0.52, fy: 0.95 },
-      { at: 13, z: 1.75, fx: 0.52, fy: 0.95 },
-      // Back out to the callout.
-      { at: 16, z: 1.06, fx: 0.5, fy: 0.45 },
-      { at: 26, z: 1.14, fx: 0.5, fy: 0.42 },
+      { at: 0, z: 1.08, fx: 0.5, fy: 0.78 },   // typing
+      { at: 2.6, z: 1.14, fx: 0.5, fy: 0.8 },
+      ...cut(5.4, 1.75, 0.3, 0.92),            // the shelf of real products
+      { at: 7.4, z: 1.68, fx: 0.45, fy: 0.92 },
+      ...cut(7.6, 1.9, 0.72, 0.92),
+      { at: 9.4, z: 1.84, fx: 0.76, fy: 0.92 },
+      ...cut(9.6, 1.06, 0.5, 0.62),            // out while it thinks
+      { at: 12.0, z: 1.12, fx: 0.5, fy: 0.6 },
+      ...cut(12.2, 2.3, 0.5, 0.97),            // the trace
+      { at: 14.2, z: 2.22, fx: 0.52, fy: 0.97 },
+      ...cut(14.4, 2.5, 0.12, 0.96),           // REFUSED
+      { at: 15.9, z: 2.44, fx: 0.14, fy: 0.96 },
+      ...cut(16.1, 2.5, 0.12, 1.0),            // BOUGHT
+      { at: 17.5, z: 2.44, fx: 0.14, fy: 1.0 },
+      ...cut(17.7, 2.2, 0.62, 0.12),           // the grid rows
+      { at: 19.1, z: 2.12, fx: 0.62, fy: 0.12 },
+      ...cut(19.3, 1.02, 0.5, 0.5),
+      { at: 25, z: 1.1, fx: 0.5, fy: 0.46 },
     ],
   },
   { name: "statement", kind: "seq", seconds: 4 },
   {
     name: "structuring",
     kind: "seq",
-    callout: { after: "caught", lead: 1.4 },
     seconds: 30,
+    callout: { at: 20.6 },
     camera: [
-      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
-      { at: 8, z: 1.0, fx: 0.5, fy: 0.5 },
-      // Into the cluster chart, which is the whole argument.
-      { at: 11, z: 2.1, fx: 0.42, fy: 0.3 },
-      { at: 16, z: 2.1, fx: 0.42, fy: 0.3 },
-      // Out to the arithmetic callout below it.
-      { at: 19, z: 1.08, fx: 0.5, fy: 0.55 },
-      { at: 30, z: 1.16, fx: 0.5, fy: 0.5 },
+      { at: 0, z: 1.06, fx: 0.5, fy: 0.42 },
+      { at: 3.2, z: 1.12, fx: 0.5, fy: 0.42 },
+      ...cut(3.6, 2.35, 0.56, 0.12),           // the two rows
+      { at: 5.4, z: 2.28, fx: 0.58, fy: 0.12 },
+      ...cut(5.6, 2.2, 0.4, 0.3),              // the cluster bars
+      { at: 7.4, z: 2.1, fx: 0.42, fy: 0.31 },
+      ...cut(7.6, 2.6, 0.5, 0.36),             // the cap line
+      { at: 8.3, z: 2.54, fx: 0.52, fy: 0.36 },
+      ...cut(8.5, 1.04, 0.5, 0.4),             // out for the filter
+      { at: 11.0, z: 1.1, fx: 0.5, fy: 0.4 },
+      ...cut(11.2, 2.3, 0.35, 0.47),           // the evidence numbers
+      { at: 13.1, z: 2.22, fx: 0.37, fy: 0.47 },
+      ...cut(13.3, 1.04, 0.5, 0.35),           // out for the search
+      { at: 16.0, z: 1.1, fx: 0.5, fy: 0.35 },
+      ...cut(16.2, 2.45, 0.76, 0.47),          // checks run
+      { at: 18.0, z: 2.38, fx: 0.78, fy: 0.47 },
+      ...cut(18.2, 2.2, 0.2, 0.2),             // the held gauge
+      { at: 20.3, z: 2.12, fx: 0.2, fy: 0.22 },
+      ...cut(20.5, 1.02, 0.5, 0.5),
+      { at: 30, z: 1.12, fx: 0.5, fy: 0.54 },
     ],
   },
   {
@@ -96,39 +130,62 @@ const SEGMENTS = [
     kind: "seq",
     seconds: 12,
     camera: [
-      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
-      { at: 5, z: 1.0, fx: 0.5, fy: 0.5 },
-      { at: 9, z: 1.7, fx: 0.72, fy: 0.22 },
-      { at: 12, z: 1.7, fx: 0.72, fy: 0.22 },
+      { at: 0, z: 1.9, fx: 0.16, fy: 0.14 },   // ticking them off
+      { at: 3.2, z: 1.8, fx: 0.2, fy: 0.16 },
+      ...cut(3.4, 2.4, 0.88, 0.14),            // the money column flashing
+      { at: 5.6, z: 2.3, fx: 0.88, fy: 0.16 },
+      ...cut(5.8, 2.2, 0.1, 0.2),              // the gauge
+      { at: 8.0, z: 2.12, fx: 0.1, fy: 0.22 },
+      ...cut(8.2, 1.04, 0.5, 0.4),
+      { at: 12, z: 1.12, fx: 0.5, fy: 0.4 },
     ],
   },
   {
     name: "paypal",
     kind: "video",
-    seconds: 12,
+    seconds: 11,
     src: `${DESKTOP}/Recording 2026-11-03 204231.mp4`,
     cuts: [
-      { from: 3.2, length: 6 },
-      { from: 14.5, length: 6 },
+      { from: 3.4, length: 5 },
+      { from: 14.8, length: 6 },
     ],
   },
   {
     name: "revoke",
     kind: "seq",
-    callout: { after: "refused", lead: 0.9 },
     seconds: 16,
+    callout: { at: 11.6 },
     camera: [
-      { at: 0, z: 1.0, fx: 0.5, fy: 0.5 },
-      { at: 5, z: 1.0, fx: 0.5, fy: 0.5 },
-      { at: 8, z: 1.55, fx: 0.55, fy: 0.22 },
-      { at: 12, z: 1.55, fx: 0.55, fy: 0.22 },
-      { at: 16, z: 1.1, fx: 0.5, fy: 0.4 },
+      { at: 0, z: 1.06, fx: 0.5, fy: 0.3 },
+      ...cut(0.6, 2.4, 0.92, 0.07),            // status flips
+      { at: 2.4, z: 2.3, fx: 0.92, fy: 0.09 },
+      ...cut(2.6, 2.3, 0.86, 0.18),            // holds released
+      { at: 4.2, z: 2.22, fx: 0.86, fy: 0.2 },
+      ...cut(4.5, 2.4, 0.5, 0.26),             // Mandate inactive
+      { at: 6.4, z: 2.32, fx: 0.52, fy: 0.26 },
+      ...cut(6.6, 1.06, 0.5, 0.36),            // out
+      { at: 9.0, z: 1.12, fx: 0.5, fy: 0.36 },
+      ...cut(9.2, 2.3, 0.5, 0.3),              // refused again
+      { at: 11.4, z: 2.22, fx: 0.5, fy: 0.3 },
+      ...cut(11.5, 1.02, 0.5, 0.42),           // wide for the stamp
+      { at: 16, z: 1.1, fx: 0.5, fy: 0.42 },
     ],
   },
   { name: "tally", kind: "seq", seconds: 6 },
   { name: "closing", kind: "seq", seconds: 6 },
   { name: "endcard", kind: "seq", seconds: 5 },
 ];
+
+// `cut` leaves PREV markers so a framing holds right up to the cut; resolve
+// them against whatever the previous keyframe actually was.
+for (const seg of SEGMENTS) {
+  if (!seg.camera) continue;
+  seg.camera.forEach((k, i) => {
+    for (const key of ["z", "fx", "fy"]) {
+      if (k[key] === "PREV") k[key] = seg.camera[i - 1][key];
+    }
+  });
+}
 
 function run(args) {
   execFileSync(ffmpeg, ["-hide_banner", "-loglevel", "error", "-y", ...args], {
@@ -263,20 +320,24 @@ function sequence(seg) {
   // The callout is composited onto the raw frames *before* the push, so it
   // travels with the shot. It fades in at its own time and then holds for
   // the rest of the segment.
-  const anchor = seg.callout
-    ? markTime(seg.name, seg.callout.after) + (seg.callout.lead ?? 0.6)
-    : callout.first / FPS;
+  // An absolute time when the camera tours first, otherwise anchored to the
+  // beat the recorder marked.
+  const anchor = seg.callout?.at
+    ? seg.callout.at
+    : seg.callout
+      ? markTime(seg.name, seg.callout.after) + (seg.callout.lead ?? 0.6)
+      : callout.first / FPS;
   const start = anchor.toFixed(2);
   const native = callout.count / FPS;
   const after = Math.max(0, seg.seconds - anchor - native);
 
   const chain =
-    `[1:v]format=rgba,scale=${SRC_W}:${SRC_H},` +
+    `[1:v]format=rgba,` +
     `tpad=start_mode=add:start_duration=${start}:color=black@0,` +
     (after > 0.05 ? `tpad=stop_mode=clone:stop_duration=${after.toFixed(2)},` : "") +
     `setsar=1[ov];` +
-    `[0:v]${appHold}setsar=1[app];` +
-    `[app][ov]overlay=0:0:format=auto,${look}[v]`;
+    `[0:v]${appHold}${look}[app];` +
+    `[app][ov]overlay=0:0:format=auto[v]`;
 
   run([
     "-framerate", String(FPS),

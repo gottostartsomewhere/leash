@@ -156,16 +156,15 @@ async function ask(page, { payee, category, amount }) {
 }
 
 const SHOTS = {
-  // The eight app beats, in the order the script uses them.
+  // Longer, busier takes. Camera moves can cover a short shot, but real
+  // motion underneath is what stops a segment reading as a still.
 
   async mandate() {
-    const page = await openApp();
     await reset();
-    await page.reload();
-    await page.addStyleTag({ content: `html { zoom: ${ZOOM} }` });
-    await page.getByText("Total authority").waitFor();
-    // Nothing moves here. The push-in over the rail happens in the edit, so
-    // one lossless still beats a screencast of a page that is not painting.
+    const page = await openApp();
+    // One spend so the gauge actually moves rather than sitting at zero.
+    await ask(page, { payee: "northwind", category: "office-supplies", amount: "40.00" });
+    await sleep(1600);
     await still("mandate", page);
     await page.close();
   },
@@ -179,13 +178,25 @@ const SHOTS = {
       const box = page.getByLabel("What the agent should buy");
       await box.fill("");
       mark("typing");
-      await box.pressSequentially("office chair", { delay: 85 });
-      await sleep(700);
+      await box.pressSequentially("office chair", { delay: 90 });
+      await sleep(600);
+
+      // Show the shelf first: real products sliding in is the best motion
+      // in the whole app and it was going unused.
+      mark("look");
+      await page.getByRole("button", { name: "Look first" }).click();
+      await page.locator(".product").first().waitFor({ timeout: 90_000 });
+      mark("shelf");
+      await sleep(2600);
+      await page.locator(".shelf").hover();
+      await page.mouse.wheel(900, 0);
+      await sleep(1600);
+
       mark("send");
       await page.getByRole("button", { name: "Send the agent" }).click();
       await page.getByText("What it did").waitFor({ timeout: 90_000 });
       mark("result");
-      await sleep(4500);
+      await sleep(5200);
     });
     await page.close();
   },
@@ -196,13 +207,26 @@ const SHOTS = {
     await take("structuring", page, async (mark) => {
       mark("first");
       await ask(page, { payee: "acme_us", category: "furniture", amount: "75.00" });
-      await sleep(2600);
+      await sleep(3000);
       mark("second");
       await ask(page, { payee: "acme_eu", category: "furniture", amount: "75.00" });
-      // The structuring row opens itself, which is the shot.
       await page.getByText("Structuring").first().waitFor({ timeout: 30_000 });
       mark("caught");
-      await sleep(6000);
+      await sleep(5000);
+
+      // The grid doing grid things, which is also the AG Grid story.
+      mark("filter");
+      await page.getByRole("button", { name: "Only refusals" }).click();
+      await sleep(2800);
+      await page.getByRole("button", { name: "Only refusals" }).click();
+      await sleep(2000);
+
+      mark("search");
+      const find = page.getByLabel("Search the decision log");
+      await find.pressSequentially("acme", { delay: 110 });
+      await sleep(2400);
+      await find.fill("");
+      await sleep(2200);
     });
     await page.close();
   },
@@ -210,21 +234,31 @@ const SHOTS = {
   async payout() {
     await reset();
     const page = await openApp();
-    // Two holds worth paying, placed before the camera rolls.
-    await ask(page, { payee: "northwind", category: "office-supplies", amount: "40.00" });
+    for (const spend of [
+      { payee: "northwind", category: "office-supplies", amount: "40.00" },
+      { payee: "globex", category: "furniture", amount: "60.00" },
+      { payee: "initech", category: "office-supplies", amount: "25.00" },
+    ]) {
+      await ask(page, spend);
+      await sleep(900);
+    }
     await sleep(1200);
-    await ask(page, { payee: "globex", category: "furniture", amount: "60.00" });
-    await sleep(1500);
 
     await take("payout", page, async (mark) => {
+      // Selected one at a time, so the count and the total climb on camera.
+      const boxes = page.locator('.ag-row input[type="checkbox"]');
+      const n = await boxes.count();
       mark("select");
-      await page.locator('input[type="checkbox"]').first().click();
-      await sleep(1100);
+      for (let i = 0; i < n; i += 1) {
+        await boxes.nth(i).click({ timeout: 5000 }).catch(() => {});
+        await sleep(700);
+      }
+      await sleep(1200);
       mark("approve");
       await page.getByRole("button", { name: "Approve and pay out" }).click();
       await page.getByText("Settled").first().waitFor({ timeout: 120_000 });
       mark("settled");
-      await sleep(4500);
+      await sleep(5000);
     });
     await page.close();
   },
@@ -232,22 +266,30 @@ const SHOTS = {
   async revoke() {
     await reset();
     const page = await openApp();
-    await ask(page, { payee: "northwind", category: "office-supplies", amount: "40.00" });
-    await sleep(1200);
-    await ask(page, { payee: "globex", category: "furniture", amount: "60.00" });
-    await sleep(1500);
+    for (const spend of [
+      { payee: "northwind", category: "office-supplies", amount: "40.00" },
+      { payee: "globex", category: "furniture", amount: "60.00" },
+      { payee: "initech", category: "office-supplies", amount: "25.00" },
+    ]) {
+      await ask(page, spend);
+      await sleep(900);
+    }
+    await sleep(1400);
 
     await take("revoke", page, async (mark) => {
       mark("revoke");
       await page.getByRole("button", { name: "Revoke", exact: true }).click();
       await page.getByText("Revoked", { exact: true }).first().waitFor({ timeout: 30_000 });
       mark("dropped");
-      await sleep(3200);
-      // Asking a dead mandate for money is the point of the beat.
+      await sleep(4200);
+
+      // Asking a dead mandate for money, twice, is the point of the beat.
       mark("ask-again");
       await ask(page, { payee: "acme_us", category: "furniture", amount: "20.00" });
       await page.getByText("Mandate inactive").first().waitFor({ timeout: 30_000 });
       mark("refused");
+      await sleep(3200);
+      await ask(page, { payee: "northwind", category: "office-supplies", amount: "5.00" });
       await sleep(4000);
     });
     await page.close();
