@@ -70,13 +70,30 @@
       /* -- shared bits ---------------------------------------------------- */
 
       .lines {
-        display: flex;
-        flex-direction: column;
-        gap: 1.1em;
+        display: grid;
+        place-items: center;
         font-family: var(--mono);
         font-size: clamp(20px, 2.9vw, 54px);
         line-height: 1.25;
         letter-spacing: -0.01em;
+      }
+
+      /* One line at a time, in the same place, each wiped away before the
+       * next arrives. Stacking them small was a weak way to open. */
+      .lines.swap { font-size: clamp(30px, 5.4vw, 104px); }
+      .lines.swap > * { grid-area: 1 / 1; }
+      .lines.swap .line { white-space: nowrap; }
+
+      .lines.stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1.1em;
+      }
+
+      .punch-group {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
       }
 
       .line {
@@ -348,8 +365,9 @@
 
       document.getElementById("count").textContent = scenes.length;
 
-      function build(host, lines, punch) {
+      function build(host, lines, punch, swap) {
         host.innerHTML = "";
+        host.className = `lines ${swap ? "swap" : "stack"}`;
         const rows = lines.map((text) => {
           const row = document.createElement("div");
           row.className = "line";
@@ -357,30 +375,38 @@
           host.appendChild(row);
           return row;
         });
+        const group = document.createElement("div");
+        group.className = "punch-group";
         const hit = document.createElement("div");
         hit.className = "line amber punch";
         hit.textContent = punch;
-        host.appendChild(hit);
         const rule = document.createElement("span");
         rule.className = "rule";
-        host.appendChild(rule);
-        return { rows, hit, rule };
+        group.append(hit, rule);
+        host.appendChild(group);
+        return { rows, hit, rule, group };
       }
 
       // Each scene paints itself from elapsed seconds, so the cards and the
       // callout layer share one timing model.
       const PAINT = {
         0(t, parts) {
+          // One line, held, wiped away, then the next. No stacking, nothing
+          // left on screen to read while the next one arrives.
+          // Tight enough that a line arrives as the one before it finishes
+          // wiping, so the screen is never empty between them.
+          const BEAT = 1.25;
           parts.rows.forEach((row, i) => {
-            const in_ = i * 1.05;
-            wipe(row, cue(t, in_, 0.62, ease.hard));
-            // Earlier lines are pushed back as the next arrives.
-            recede(row, cue(t, in_ + 0.95, 0.5));
+            const show = cue(t, i * BEAT, 0.26, ease.hard);
+            const gone = cue(t, i * BEAT + 0.93, 0.22, ease.hard);
+            if (gone > 0) wipe(row, 1 - gone, "right");
+            else wipe(row, show, "left");
           });
-          // The punch line does not type. It arrives all at once, letter by
-          // letter, which is a different gesture entirely.
-          kinetic(parts.hit, t, 3.5, { gap: 0.022, dur: 0.44, rise: 34 });
-          const r = cue(t, 4.5, 0.7, ease.hard);
+          // Overlaps the last erase, so the screen is never empty.
+          const punchAt = parts.rows.length * BEAT - 0.45;
+          parts.group.style.opacity = t >= punchAt - 0.05 ? 1 : 0;
+          kinetic(parts.hit, t, punchAt, { gap: 0.022, dur: 0.4, rise: 44 });
+          const r = cue(t, punchAt + 0.95, 0.55, ease.hard);
           parts.rule.style.width = `${r * 100}%`;
           parts.rule.style.opacity = r;
         },
@@ -448,8 +474,8 @@
         const scene = scenes[at];
         scene.classList.add("live");
 
-        if (at === 0) parts = build(document.getElementById("problem"), PROBLEM, PUNCH);
-        if (at === 4) parts = build(document.getElementById("closing"), CLOSING, TURN);
+        if (at === 0) parts = build(document.getElementById("problem"), PROBLEM, PUNCH, true);
+        if (at === 4) parts = build(document.getElementById("closing"), CLOSING, TURN, false);
         // Re-split so kinetic() starts from scratch on a replay.
         scene.querySelectorAll("[data-split]").forEach((n) => {
           n.textContent = n.textContent;

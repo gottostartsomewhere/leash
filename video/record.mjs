@@ -100,6 +100,11 @@ async function take(name, page, fn) {
   });
   await sleep(400);
 
+  // The screencast settles before the action starts, so the first frames
+  // are pre-roll. Remember where the action actually begins, otherwise
+  // every shot is resampled a few hundred milliseconds early and the marks
+  // no longer line up with the picture.
+  const startIndex = frames.length;
   const t0 = Date.now() / 1000;
   const mark = (label) => marks.push({ label, t: Date.now() / 1000 - t0 });
   await fn(mark);
@@ -109,7 +114,7 @@ async function take(name, page, fn) {
   await sleep(250);
   fs.writeFileSync(
     path.join(dir, "manifest.json"),
-    JSON.stringify({ shot: name, t0, t1, frames, marks }, null, 1),
+    JSON.stringify({ shot: name, t0, t1, startIndex, frames, marks }, null, 1),
   );
   console.log(
     `  ${name.padEnd(14)} ${(t1 - t0).toFixed(1)}s  ${String(frames.length).padStart(4)} frames` +
@@ -297,7 +302,7 @@ const SHOTS = {
 };
 
 const CARDS = [
-  [0, "problem", 19],
+  [0, "problem", 7],
   [1, "lower", 5],
   [2, "statement", 4],
   [3, "tally", 7],

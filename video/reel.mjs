@@ -65,13 +65,14 @@ for (const shot of shots) {
   fs.rmSync(out, { recursive: true, force: true });
   fs.mkdirSync(out, { recursive: true });
 
-  // Screencast timestamps are seconds on the browser's own clock, so offset
-  // from the first frame rather than from the wall clock the manifest holds.
-  const zero = frames[0].ts;
+  // Zero on the frame where the action started, not on the first frame
+  // captured: everything before that is screencast pre-roll.
+  const begin = Math.min(manifest.startIndex ?? 0, frames.length - 1);
+  const zero = frames[begin].ts;
   const span = manifest.t1 - manifest.t0;
   const total = Math.max(1, Math.round(span * FPS));
 
-  let cursor = 0;
+  let cursor = begin;
   let copied = 0;
   for (let n = 0; n < total; n += 1) {
     const at = n / FPS;

@@ -52,7 +52,7 @@ const cut = (at, z, fx, fy) => [
 ];
 
 const SEGMENTS = [
-  { name: "problem", kind: "seq", seconds: 11 },
+  { name: "problem", kind: "seq", seconds: 7 },
   {
     name: "mandate",
     kind: "still",
