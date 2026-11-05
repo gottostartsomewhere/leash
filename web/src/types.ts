@@ -166,6 +166,10 @@ export interface ShopStep {
   first_choice: CatalogItem | null;
   ceiling: number | null;
   decision: DecisionRow | null;
+  /** "ranking" for the catalogue's own order, otherwise the model's name. */
+  chose_by: string;
+  /** The reason the model gave, in its words. Empty when nothing chose. */
+  why: string;
 }
 
 export interface ShopOutcome {

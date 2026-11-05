@@ -1093,6 +1093,31 @@ button {
   font-weight: 500;
 }
 
+/* Who picked the product, and why. Set apart from the verdict above it,
+   because the model chose the thing and the mandate chose the outcome. */
+.chose {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 5px 9px 3px 86px;
+  font-size: 11.5px;
+}
+
+.chose-who {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--sev-high);
+  border: 1px solid color-mix(in srgb, var(--sev-high) 34%, transparent);
+  border-radius: 3px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.chose-why {
+  color: var(--ink-2);
+}
+
 /* -- banner ------------------------------------------------------------ */
 
 .banner {

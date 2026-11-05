@@ -101,6 +101,22 @@ function TraceRow({
 
 /** The whole point of the catalogue, drawn: refused, told what would clear,
  *  went back to the shop with that as a ceiling, bought something else. */
+/** Who picked, and the reason they gave.
+ *
+ *  Worth showing. The model chooses the product and nothing else: it cannot
+ *  set a price, reach a merchant outside the shortlist, or decide what it is
+ *  allowed to spend. Seeing its reasoning next to a verdict it did not make
+ *  is the clearest way to show where the judgement actually sits. */
+function Chose({ step }: { step: ShopStep }) {
+  if (!step.chose_by || step.chose_by === "ranking") return null;
+  return (
+    <div className="chose">
+      <span className="chose-who">{step.chose_by}</span>
+      {step.why ? <span className="chose-why">{step.why}</span> : null}
+    </div>
+  );
+}
+
 function Trace({ step }: { step: ShopStep }) {
   const codes = step.decision?.failed_codes ?? [];
 
@@ -124,6 +140,7 @@ function Trace({ step }: { step: ShopStep }) {
           )}
         </div>
         <TraceRow item={step.item} offer={step.offer} verdict="bought" codes={[]} />
+        <Chose step={step} />
       </div>
     );
   }
@@ -132,6 +149,7 @@ function Trace({ step }: { step: ShopStep }) {
     return (
       <div className="trace">
         <TraceRow item={step.item} offer={step.offer} verdict="bought" codes={[]} />
+        <Chose step={step} />
       </div>
     );
   }
