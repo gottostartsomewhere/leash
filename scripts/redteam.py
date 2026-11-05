@@ -35,19 +35,35 @@ async def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--attempts", type=int, default=120)
     parser.add_argument("--out", default="artifacts/redteam.json")
     parser.add_argument("--llm", action="store_true", help="also run the LLM adversary")
+    parser.add_argument(
+        "--adversary",
+        choices=("both", "strategy", "llm"),
+        default="both",
+        help=(
+            "Which attacker to run. The two have very different costs: the "
+            "strategy search is free and exhaustive, the model is neither, "
+            "so they are usually worth recording separately."
+        ),
+    )
     args = parser.parse_args(argv)
 
     store = build_demo_store()
     mandate = demo_mandate()
     world = world_from(store, mandate)
 
-    adversaries = [StrategyAdversary()]
-    if args.llm:
+    adversaries = []
+    if args.adversary in ("both", "strategy"):
+        adversaries.append(StrategyAdversary())
+    if args.llm or args.adversary == "llm":
         brain = build_brain(settings())
         if brain is None:
             print("no LEASH_GROQ_API_KEY set, running the offline adversary only\n")
         else:
             adversaries.append(LLMAdversary(brain))
+
+    if not adversaries:
+        print("nothing to run: --adversary llm needs LEASH_GROQ_API_KEY")
+        return 1
 
     reports = []
     for adversary in adversaries:

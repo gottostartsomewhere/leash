@@ -21,6 +21,7 @@ from .agent import Need, ShoppingAgent
 from .catalog import Catalog, CatalogError, build_catalog
 from .config import Settings, settings as default_settings
 from .ledger import IllegalTransition, Ledger, UnknownCharge
+from .llm import build_brain
 from .models import Attempt, Charge, ChargeState, Mandate, Velocity
 from .money import Money
 from .payouts import (
@@ -285,6 +286,11 @@ async def shop(
         ledger,
         catalog,
         reshop=body.reshop,
+        # A model picks the product when one is configured, and the
+        # catalogue's own ranking picks when it is not. Either way the same
+        # eleven checks decide whether the pick is allowed, which is the
+        # point: the agent proposes, the mandate disposes.
+        brain=build_brain(settings),
         # Merchants become known the moment they are seen, before anything is
         # asked for, so the first spend is judged against a grouped
         # counterparty rather than an unknown name.

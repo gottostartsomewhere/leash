@@ -5,6 +5,7 @@ from conftest import NOW, a_mandate, usd
 from leash.agent import Need, ShoppingAgent, bought
 from leash.catalog import CatalogError, StaticCatalog
 from leash.ledger import Ledger
+from leash.llm import BrainError
 from leash.models import PayeeDirectory, Velocity
 
 # The real taxonomy roots the catalogue classifies against, so the mandate
@@ -235,3 +236,124 @@ async def test_the_pace_limit_is_reported_rather_than_worked_around():
     assert steps[1].action == "refused"
     assert steps[1].decision is not None
     assert "velocity" in codes(steps[1].decision)
+
+
+# -- with a model choosing ------------------------------------------------
+#
+# The model picks which product to propose. It never sees the mandate, it
+# cannot name a price, and the engine decides whether its pick is allowed.
+# Everything below is about holding that line when the model misbehaves.
+
+
+class ScriptedBrain:
+    """A brain that answers from a script and keeps what it was asked."""
+
+    name = "scripted"
+
+    def __init__(self, *replies):
+        self._replies = list(replies)
+        self.prompts: list[tuple[str, str]] = []
+
+    async def think(self, *, system, user):
+        self.prompts.append((system, user))
+        reply = self._replies.pop(0) if self._replies else {"pick": 1, "why": ""}
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
+
+
+async def test_the_model_picks_and_its_reason_is_kept():
+    # Second on the shortlist is the 88.00 chair, which clears the cap, so
+    # choosing it means there is nothing to reshop.
+    brain = ScriptedBrain({"pick": 2, "why": "cheaper and still a task chair"})
+    agent, ledger = shopper(brain=brain)
+
+    step = (await agent.run([Need("chair")], start=NOW))[0]
+
+    assert step.action == "bought"
+    assert step.offer is not None and step.offer.price == usd("88.00")
+    assert step.chose_by == "scripted"
+    assert step.why == "cheaper and still a task chair"
+    assert ledger.held == usd("88.00")
+
+
+async def test_a_model_that_picks_off_the_list_is_ignored():
+    brain = ScriptedBrain({"pick": 99, "why": "the one that is not there"})
+    agent, _ = shopper(brain=brain, reshop=False)
+
+    step = (await agent.run([Need("chair")], start=NOW))[0]
+
+    assert step.chose_by == "ranking"
+    assert step.why == "the model chose outside the list"
+
+
+async def test_a_model_that_is_down_does_not_stop_the_agent():
+    brain = ScriptedBrain(BrainError("rate limited by the free tier"))
+    agent, ledger = shopper(brain=brain)
+
+    step = (await agent.run([Need("chair")], start=NOW))[0]
+
+    # Falls back to the ranking, which takes the 150 chair, is refused, and
+    # reshops exactly as it would with no model at all.
+    assert step.action == "reshopped"
+    assert ledger.held == usd("88.00")
+
+
+async def test_a_model_that_answers_with_nonsense_does_not_stop_the_agent():
+    brain = ScriptedBrain({"pick": "the blue one"})
+    agent, ledger = shopper(brain=brain)
+
+    step = (await agent.run([Need("chair")], start=NOW))[0]
+
+    assert step.action == "reshopped"
+    assert ledger.held == usd("88.00")
+
+
+async def test_the_model_is_told_what_was_refused():
+    brain = ScriptedBrain(
+        {"pick": 1, "why": "best match"},  # the 150 chair, which is refused
+        {"pick": 1, "why": "fits the ceiling"},
+    )
+    agent, _ = shopper(brain=brain)
+
+    await agent.run([Need("chair")], start=NOW)
+
+    assert len(brain.prompts) == 2
+    _, reshop_prompt = brain.prompts[1]
+    assert "150.00 USD" in reshop_prompt
+    assert "100.00 USD" in reshop_prompt
+    assert "refused" in reshop_prompt
+
+
+async def test_the_model_never_sees_the_mandate():
+    # It is told what a refusal said, because that is what a real agent gets
+    # back and the whole design is that it learns only from refusals. What it
+    # never gets is the mandate itself: no id, no total, no remaining
+    # balance, and no list of rules it could reason around in advance.
+    brain = ScriptedBrain({"pick": 1, "why": ""}, {"pick": 1, "why": ""})
+    agent, ledger = shopper(brain=brain)
+
+    await agent.run([Need("chair")], start=NOW)
+
+    everything = "\n".join(system + user for system, user in brain.prompts)
+    assert ledger.mandate.id not in everything
+    assert str(ledger.mandate.total_limit.minor) not in everything
+    assert str(ledger.available.minor) not in everything
+    assert "500.00" not in everything
+    for rule in ("structuring_window", "velocity", "concentration", "allowed_categories"):
+        assert rule not in everything
+
+
+async def test_the_model_cannot_pick_above_the_ceiling_on_a_reshop():
+    # The shortlist it is shown is already filtered to what would clear, so
+    # even a model that always answers "1" cannot propose the 150 chair
+    # again. The filter is the control, not the prompt.
+    brain = ScriptedBrain({"pick": 1, "why": ""}, {"pick": 1, "why": ""})
+    agent, ledger = shopper(brain=brain)
+
+    step = (await agent.run([Need("chair")], start=NOW))[0]
+
+    _, reshop_prompt = brain.prompts[1]
+    assert "150.00 USD" not in reshop_prompt.split("Shortlist:")[1]
+    assert step.offer is not None and step.offer.price == usd("88.00")
+    assert ledger.held == usd("88.00")

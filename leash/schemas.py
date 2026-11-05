@@ -330,6 +330,18 @@ class ShopStepOut(BaseModel):
         default=None, description="The counter-offer it shopped against."
     )
     decision: DecisionOut | None = None
+    chose_by: str = Field(
+        default="ranking",
+        description=(
+            "Who picked this product: `ranking` for the catalogue's own "
+            "order, otherwise the model that chose, such as "
+            "`groq:openai/gpt-oss-20b`."
+        ),
+    )
+    why: str = Field(
+        default="",
+        description="The reason the model gave for picking it, in its words.",
+    )
 
 
 class ShopOut(BaseModel):

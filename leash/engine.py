@@ -74,10 +74,16 @@ class Context:
         return tuple(c for c in self.live if c.created_at > cutoff)
 
     def cluster(self) -> tuple[Charge, ...]:
-        """Recent charges to the same counterparty, under the per-item cap.
+        """Recent charges to the same counterparty, at or under the per-item cap.
 
         These are the charges that, read together, may be one purchase that was
         taken apart.
+
+        At or under, not under. A charge of exactly the cap is as much a piece
+        of a split as one a penny below it, and excluding it was half of a
+        hole that let any amount reach one merchant a cap-sized piece at a
+        time. Only charges *over* the cap are somebody else's problem, and
+        the per-item check has already refused those.
         """
         limit = self.mandate.per_item_limit
         if limit is None:
@@ -87,7 +93,7 @@ class Context:
         return tuple(
             c
             for c in self.within(window)
-            if self.directory.group(c.payee) == group and c.amount < limit
+            if self.directory.group(c.payee) == group and c.amount <= limit
         )
 
 
@@ -218,9 +224,17 @@ def check_structuring(ctx: Context) -> CheckResult:
         return _skip(CheckCode.STRUCTURING, "no per-item cap to evade")
 
     amount = ctx.attempt.amount
-    if amount >= limit:
+    if amount > limit:
         # Over the cap outright. That is the per-item check's business, not a split.
-        return _skip(CheckCode.STRUCTURING, "attempt is not below the cap")
+        return _skip(CheckCode.STRUCTURING, "attempt is over the cap on its own")
+
+    # A charge of exactly the cap used to be skipped here, and the per-item
+    # check passes it because it is not *over* the cap. Both checks assumed
+    # the other one owned the boundary, so the boundary was owned by nobody:
+    # repeat a cap-sized charge and any amount at all reaches one merchant,
+    # one cap-sized piece at a time. The LLM adversary found this and the
+    # strategy search never did, because every strategy it had picked
+    # amounts strictly under the cap.
 
     prior = ctx.cluster()
     if not prior:

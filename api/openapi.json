@@ -1278,6 +1278,12 @@
             "description": "The counter-offer it shopped against.",
             "title": "Ceiling"
           },
+          "chose_by": {
+            "default": "ranking",
+            "description": "Who picked this product: `ranking` for the catalogue's own order, otherwise the model that chose, such as `groq:openai/gpt-oss-20b`.",
+            "title": "Chose By",
+            "type": "string"
+          },
           "decision": {
             "anyOf": [
               {
@@ -1335,6 +1341,12 @@
           },
           "summary": {
             "title": "Summary",
+            "type": "string"
+          },
+          "why": {
+            "default": "",
+            "description": "The reason the model gave for picking it, in its words.",
+            "title": "Why",
             "type": "string"
           }
         },

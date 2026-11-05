@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     #: Groq's free tier carries the agents. No key means the deterministic
     #: adversary runs instead, which is the one the report is built on anyway.
     groq_api_key: str | None = None
-    groq_model: str = "llama-3.1-8b-instant"
+    groq_model: str = "openai/gpt-oss-20b"
     groq_base_url: str = "https://api.groq.com/openai/v1"
 
     #: Point every seeded payee at one address, so a single env var makes the

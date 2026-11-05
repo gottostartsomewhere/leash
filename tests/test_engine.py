@@ -143,6 +143,33 @@ def test_two_charges_under_the_cap_that_sum_over_it_are_structuring():
     assert failure.evidence["over_by"] == 2000
 
 
+def test_repeating_a_charge_of_exactly_the_cap_is_structuring():
+    # Found by the LLM adversary, missed by the strategy search.
+    #
+    # The per-item check refuses what is *over* the cap, so a charge of
+    # exactly the cap passes it. Structuring used to skip anything that was
+    # not *below* the cap, so a charge of exactly the cap skipped that too.
+    # Each check assumed the other owned the boundary. Repeat a cap-sized
+    # charge and any amount at all reaches one merchant, 100 at a time.
+    history = [a_charge(usd(100), created_at=ago(60))]
+    decision = evaluate(a_mandate(), an_attempt(usd(100)), history)
+
+    assert decision.verdict is Verdict.BLOCK
+    failure = result_for(decision, CheckCode.STRUCTURING)
+    assert failure.failed
+    assert failure.evidence["cluster_total"] == 20000
+    assert failure.evidence["over_by"] == 10000
+
+
+def test_a_single_charge_of_exactly_the_cap_is_still_fine():
+    # The fix must not turn the boundary into a refusal. One charge at the
+    # cap is exactly what the cap permits.
+    decision = evaluate(a_mandate(), an_attempt(usd(100)))
+
+    assert decision.verdict is Verdict.ALLOW
+    assert result_for(decision, CheckCode.STRUCTURING).outcome is not Outcome.FAIL
+
+
 def test_structuring_outranks_the_cap_it_evades():
     # Both the per-payee cap and structuring fail. A human should be told
     # about the evasion, not about the arithmetic.

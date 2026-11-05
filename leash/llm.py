@@ -55,19 +55,27 @@ class GroqBrain:
 
     async def think(self, *, system: str, user: str) -> Mapping[str, Any]:
         http = await self._http()
-        response = await http.post(
-            "/chat/completions",
-            headers={"Authorization": f"Bearer {self._config.groq_api_key}"},
-            json={
-                "model": self._config.groq_model,
-                "temperature": 0.7,
-                "response_format": {"type": "json_object"},
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
-            },
-        )
+        try:
+            response = await http.post(
+                "/chat/completions",
+                headers={"Authorization": f"Bearer {self._config.groq_api_key}"},
+                json={
+                    "model": self._config.groq_model,
+                    "temperature": 0.7,
+                    "response_format": {"type": "json_object"},
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                },
+            )
+        except httpx.HTTPError as exc:
+            # A timeout or a dropped connection is the model being
+            # unavailable, which every caller already knows how to survive.
+            # Letting it out as a transport error instead would take the
+            # shop endpoint down with it, and an agent that cannot reach its
+            # model should fall back to shopping, not return a 500.
+            raise BrainError(f"could not reach the model: {type(exc).__name__}") from exc
         if response.status_code == 429:
             raise BrainError("rate limited by the free tier")
         if response.status_code != 200:
