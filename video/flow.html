@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Leash flow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* The flow, drawn.
+       *
+       * A charge is a token that travels one line towards money, and the
+       * mandate is a row of gates across that line. The whole product is a
+       * thing that moves and gets stopped, so the animation is literally
+       * that: no metaphor laid on top, and the sponsors get real stations on
+       * the track rather than a wall of logos at the end.
+       *
+       * Every value here is keyed to the app's own palette, because this
+       * cuts straight into footage of the app and the two must not look like
+       * different films. */
+      :root {
+        --ground: #0b0a09;
+        --panel: #121010;
+        --raise: #191615;
+        --line: #2b2622;
+        --line-soft: #1e1a18;
+
+        --ink: #ece7e1;
+        --ink-2: #9d958c;
+        --ink-3: #6a635c;
+        --ink-4: #4a443e;
+
+        --amber: #dfa33c;
+        --red: #e2553d;
+        --green: #7fa37a;
+
+        --ui: "Archivo", "Segoe UI", system-ui, sans-serif;
+        --mono: "JetBrains Mono", "Cascadia Mono", ui-monospace, monospace;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+        color: var(--ink);
+        font-family: var(--ui);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #stage {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+      }
+
+      #wires {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        pointer-events: none;
+      }
+
+      /* -- nodes ----------------------------------------------------------
+       * A station is a labelled point on the track. Square, hairline, mono
+       * caption: an instrument panel rather than a flowchart. */
+      .node {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: 3px;
+        opacity: 0;
+      }
+
+      .node .mark {
+        font-family: var(--mono);
+        font-size: 19px;
+        letter-spacing: 0.06em;
+        color: var(--ink-2);
+      }
+
+      .cap {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        font-family: var(--mono);
+        font-size: 17px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+
+      .cap.below {
+        top: calc(100% + 16px);
+      }
+
+      .cap.above {
+        bottom: calc(100% + 16px);
+      }
+
+      /* The goal, in the words a person would actually use. */
+      #goal {
+        position: absolute;
+        padding: 13px 22px;
+        border: 1px solid color-mix(in srgb, var(--amber) 42%, transparent);
+        border-radius: 3px;
+        background: color-mix(in srgb, var(--amber) 9%, var(--panel));
+        font-family: var(--mono);
+        font-size: 26px;
+        color: var(--ink);
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      /* -- the shelf ------------------------------------------------------ */
+      .card {
+        position: absolute;
+        width: 206px;
+        padding: 15px 16px 14px;
+        border: 1px solid var(--line-soft);
+        border-radius: 3px;
+        background: var(--panel);
+        opacity: 0;
+      }
+
+      .card .t {
+        font-size: 17px;
+        font-weight: 500;
+        color: var(--ink-2);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .card .p {
+        margin-top: 10px;
+        font-family: var(--mono);
+        font-size: 25px;
+        color: var(--ink);
+      }
+
+      .card .d {
+        margin-top: 5px;
+        font-family: var(--mono);
+        font-size: 14px;
+        color: var(--ink-4);
+      }
+
+      .card.on {
+        border-color: color-mix(in srgb, var(--amber) 62%, transparent);
+        background: color-mix(in srgb, var(--amber) 7%, var(--panel));
+      }
+
+      /* -- gates ---------------------------------------------------------- */
+      .gate {
+        position: absolute;
+        width: 2px;
+        background: var(--line);
+        border-radius: 1px;
+      }
+
+      .gate i {
+        position: absolute;
+        inset: 0;
+        background: var(--green);
+        border-radius: 1px;
+        opacity: 0;
+      }
+
+      /* The one that stops it. Rises out of the track rather than appearing
+         next to it, so the track itself is what refuses. */
+      #wall {
+        position: absolute;
+        width: 5px;
+        background: var(--red);
+        border-radius: 2px;
+        transform-origin: 50% 100%;
+        opacity: 0;
+      }
+
+      #ring {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--red);
+        border-radius: 50%;
+        opacity: 0;
+      }
+
+      /* -- tokens --------------------------------------------------------- */
+      .token {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 22px 14px 18px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--amber);
+        border-radius: 3px;
+        background: var(--raise);
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      .token .amt {
+        position: relative;
+        font-family: var(--mono);
+        font-size: 34px;
+        font-weight: 500;
+        color: var(--ink);
+      }
+
+      .token .strike {
+        position: absolute;
+        left: -3px;
+        top: 52%;
+        height: 2px;
+        width: 0;
+        background: var(--red);
+      }
+
+      .token .to {
+        font-family: var(--mono);
+        font-size: 17px;
+        color: var(--ink-3);
+      }
+
+      .token.ok {
+        border-left-color: var(--green);
+      }
+
+      .token.bad {
+        border-left-color: var(--red);
+      }
+
+      /* -- labels --------------------------------------------------------- */
+      .flag {
+        position: absolute;
+        padding: 9px 15px;
+        border: 1px solid color-mix(in srgb, var(--red) 52%, transparent);
+        border-radius: 3px;
+        background: color-mix(in srgb, var(--red) 13%, var(--panel));
+        font-family: var(--mono);
+        font-size: 20px;
+        letter-spacing: 0.02em;
+        color: #f0a493;
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      #counter {
+        position: absolute;
+        padding: 11px 18px;
+        border: 1px solid color-mix(in srgb, var(--amber) 50%, transparent);
+        border-radius: 3px;
+        background: color-mix(in srgb, var(--amber) 10%, var(--panel));
+        font-family: var(--mono);
+        font-size: 23px;
+        color: var(--amber);
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      /* -- the settled row ------------------------------------------------ */
+      #row {
+        position: absolute;
+        display: grid;
+        grid-template-columns: 112px 148px 196px 150px 1fr;
+        align-items: center;
+        gap: 0;
+        height: 60px;
+        padding: 0 22px;
+        border: 1px solid var(--line-soft);
+        border-left: 3px solid var(--green);
+        border-radius: 3px;
+        background: var(--panel);
+        opacity: 0;
+      }
+
+      #row span {
+        font-family: var(--mono);
+        font-size: 21px;
+        color: var(--ink-2);
+      }
+
+      #row .v {
+        color: var(--green);
+        letter-spacing: 0.06em;
+      }
+
+      #row .n {
+        color: var(--ink);
+      }
+
+      /* -- act four -------------------------------------------------------- */
+      #sum {
+        position: absolute;
+        font-family: var(--mono);
+        font-size: 40px;
+        color: var(--ink);
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      #sum b {
+        color: var(--red);
+        font-weight: 500;
+      }
+
+      #stamp {
+        position: absolute;
+        padding: 16px 34px;
+        border: 2px solid var(--red);
+        border-radius: 3px;
+        font-family: var(--mono);
+        font-size: 40px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--red);
+        background: color-mix(in srgb, var(--red) 12%, var(--ground));
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      #credits {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 66px;
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 19px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ink-4);
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <svg id="wires" viewBox="0 0 1920 1080">
+        <path id="track" d="M 300 560 L 1680 560" fill="none"
+              stroke="#2b2622" stroke-width="2" />
+        <path id="feed" fill="none" stroke="#2b2622" stroke-width="2"
+              stroke-dasharray="5 7" />
+        <path id="bracket" fill="none" stroke="#e2553d" stroke-width="2" />
+      </svg>
+
+      <div id="goal">office chair</div>
+
+      <div class="node" id="agent" style="left: 196px; top: 500px; width: 120px; height: 120px">
+        <span class="mark">AGENT</span>
+        <span class="cap below" id="agent-cap">the model</span>
+      </div>
+
+      <div class="node" id="cat" style="left: 1540px; top: 92px; width: 150px; height: 92px">
+        <span class="mark">SHOP</span>
+        <span class="cap above" id="cat-cap">catalogue</span>
+      </div>
+
+      <div class="node" id="pay" style="left: 1712px; top: 500px; width: 150px; height: 120px">
+        <span class="mark">PAY</span>
+        <span class="cap below" id="pay-cap">payouts</span>
+      </div>
+
+      <div id="shelf"></div>
+      <div id="gates"></div>
+      <div id="wall"></div>
+      <div id="ring"></div>
+
+      <div class="flag" id="glabel">Per item limit</div>
+      <div id="counter">100.00 would clear</div>
+
+      <div id="row">
+        <span class="v">ALLOW</span>
+        <span>acme</span>
+        <span>furniture</span>
+        <span class="n" id="row-amt">88.00</span>
+        <span>Inside every rule</span>
+      </div>
+
+      <div id="sum"><span id="sum-a">75</span> + <span id="sum-b">75</span> = <b id="sum-t">150</b></div>
+      <div id="stamp">Structuring</div>
+      <div id="credits">Channel3 · Groq · PayPal Payouts · AG Grid · Render</div>
+    </div>
+
+    <script src="motion.js"></script>
+    <script src="flow.js"></script>
+  </body>
+</html>
