@@ -165,8 +165,22 @@ async function openApp() {
         if (!el) return false;
         const r = root.getBoundingClientRect();
         const e = el.getBoundingClientRect();
-        root.style.transformOrigin =
-          `${e.left + e.width / 2 - r.left}px ${e.top + e.height / 2 - r.top}px`;
+
+        // Scaling about the target's own centre looks right until the
+        // target sits near an edge: the page then slides out of frame on
+        // that side and the shot reads as a broken crop. So work out which
+        // window of the page survives the scale, clamp that window inside
+        // the page, and derive the origin from it. The target ends up
+        // centred wherever it can be, and the frame is never off the page.
+        const vw = r.width / scale;
+        const vh = r.height / scale;
+        const cx = e.left + e.width / 2 - r.left;
+        const cy = e.top + e.height / 2 - r.top;
+        const left = Math.min(Math.max(cx - vw / 2, 0), r.width - vw);
+        const top = Math.min(Math.max(cy - vh / 2, 0), r.height - vh);
+
+        const k = 1 - 1 / scale;
+        root.style.transformOrigin = `${left / k}px ${top / k}px`;
         root.style.transform = `scale(${scale})`;
         return true;
       },
@@ -180,14 +194,22 @@ async function openApp() {
   return page;
 }
 
-/** Push in on something, hold, come back. */
-async function look(page, selector, { scale = 1.45, hold = 1500 } = {}) {
+/** Push in on something, hold, come back.
+ *
+ *  Marks the window where the camera is settled on the target, as
+ *  `<label>` and `<label>/out`. The caption layer anchors to those, so a
+ *  re-record with a different network wait still lands its text on the
+ *  right frames instead of needing the times counted out by hand. */
+async function look(page, mark, selector, label, { scale = 1.45, hold = 1500 } = {}) {
   const found = await page.evaluate(
     ([sel, sc]) => window.film.to(sel, sc),
     [selector, scale],
   );
   if (!found) return false;
-  await sleep(620 + hold);
+  await sleep(620);
+  mark(label);
+  await sleep(hold);
+  mark(`${label}/out`);
   await page.evaluate(() => window.film.out());
   await sleep(700);
   return true;
@@ -215,10 +237,10 @@ const SHOTS = {
     await take("mandate", page, async (mark) => {
       mark("wide");
       await sleep(1400);
-      await look(page, ".gauge", { scale: 1.9, hold: 1500 });
+      await look(page, mark, ".gauge", "gauge", { scale: 1.9, hold: 1500 });
       mark("terms");
-      await look(page, ".rules", { scale: 1.65, hold: 2200 });
-      await look(page, ".scope", { scale: 1.9, hold: 1400 });
+      await look(page, mark, ".rules", "rules", { scale: 1.65, hold: 2200 });
+      await look(page, mark, ".scope", "scope", { scale: 1.9, hold: 1400 });
       await sleep(800);
     });
     await page.close();
@@ -243,7 +265,7 @@ const SHOTS = {
       await page.locator(".product").first().waitFor({ timeout: 90_000 });
       mark("shelf");
       await sleep(1200);
-      await look(page, ".product", { scale: 1.7, hold: 1500 });
+      await look(page, mark, ".product", "product", { scale: 1.7, hold: 1500 });
       await page.locator(".shelf").hover();
       await page.mouse.wheel(900, 0);
       await sleep(1200);
@@ -253,8 +275,8 @@ const SHOTS = {
       await page.getByText("What it did").waitFor({ timeout: 90_000 });
       mark("result");
       await sleep(1400);
-      await look(page, ".trace", { scale: 1.75, hold: 2200 });
-      await look(page, ".ag-center-cols-container", { scale: 1.6, hold: 1600 });
+      await look(page, mark, ".trace", "trace", { scale: 1.75, hold: 2200 });
+      await look(page, mark, ".ag-center-cols-container", "grid", { scale: 1.6, hold: 1600 });
       await sleep(900);
     });
     await page.close();
@@ -272,8 +294,8 @@ const SHOTS = {
       await page.getByText("Structuring").first().waitFor({ timeout: 30_000 });
       mark("caught");
       await sleep(1300);
-      await look(page, ".cluster", { scale: 1.9, hold: 2400 });
-      await look(page, ".facts", { scale: 1.6, hold: 1600 });
+      await look(page, mark, ".cluster", "cluster", { scale: 1.9, hold: 2400 });
+      await look(page, mark, ".facts", "facts", { scale: 1.6, hold: 1600 });
 
       // The grid doing grid things, which is also the AG Grid story.
       mark("filter");
@@ -317,11 +339,15 @@ const SHOTS = {
       await sleep(1200);
       mark("approve");
       await page.getByRole("button", { name: "Approve and pay out" }).click();
-      await page.getByText("Settled").first().waitFor({ timeout: 120_000 });
+      // The rail has a "Settled" stat label, so match the grid cell
+      // instead: otherwise this resolves on the click and the shot runs
+      // on before PayPal has answered.
+      await page.locator(".ag-row").getByText("Settled").first()
+        .waitFor({ timeout: 120_000 });
       mark("settled");
       await sleep(1200);
-      await look(page, ".ag-center-cols-container", { scale: 1.6, hold: 1700 });
-      await look(page, ".gauge", { scale: 1.8, hold: 1500 });
+      await look(page, mark, ".ag-center-cols-container", "grid", { scale: 1.6, hold: 1700 });
+      await look(page, mark, ".gauge", "gauge", { scale: 1.8, hold: 1500 });
     });
     await page.close();
   },
@@ -345,7 +371,7 @@ const SHOTS = {
       await page.getByText("Revoked", { exact: true }).first().waitFor({ timeout: 30_000 });
       mark("dropped");
       await sleep(1100);
-      await look(page, ".topbar-right", { scale: 1.9, hold: 1500 });
+      await look(page, mark, ".topbar-right", "topbar", { scale: 1.9, hold: 1500 });
 
       // Asking a dead mandate for money, twice, is the point of the beat.
       mark("ask-again");
@@ -353,7 +379,7 @@ const SHOTS = {
       await page.getByText("Mandate inactive").first().waitFor({ timeout: 30_000 });
       mark("refused");
       await sleep(1100);
-      await look(page, ".ag-center-cols-container", { scale: 1.7, hold: 1800 });
+      await look(page, mark, ".ag-center-cols-container", "grid", { scale: 1.7, hold: 1800 });
       await ask(page, { payee: "northwind", category: "office-supplies", amount: "5.00" });
       await sleep(4000);
     });
@@ -364,6 +390,7 @@ const SHOTS = {
 const CARDS = [
   [0, "problem", 7],
   [1, "lower", 5],
+  [6, "premise", 8],
   [2, "statement", 4],
   [3, "tally", 7],
   [4, "closing", 8],

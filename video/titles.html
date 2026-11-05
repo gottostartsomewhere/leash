@@ -186,6 +186,57 @@
 
       /* -- scene: end card ------------------------------------------------ */
 
+      /* How it works: three steps down a spine.
+       *
+       * A grid rather than absolute positioning, so the number column and
+       * the text column line up on their own instead of depending on which
+       * ancestor happens to be the containing block. */
+      .premise {
+        position: relative;
+        display: grid;
+        gap: 58px;
+        padding-left: 44px;
+      }
+
+      .spine {
+        position: absolute;
+        left: 0;
+        top: 10px;
+        width: 2px;
+        height: 0;
+        background: linear-gradient(
+          var(--amber),
+          rgba(224, 143, 58, 0.22)
+        );
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 76px 1fr;
+        align-items: baseline;
+      }
+
+      .step-n {
+        font-family: var(--mono);
+        font-size: 25px;
+        font-style: normal;
+        letter-spacing: 0.04em;
+        color: var(--amber);
+      }
+
+      .step-t {
+        font-size: 60px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+
+      .step-d {
+        margin-top: 15px;
+        font-size: 30px;
+        color: var(--ink-2);
+      }
+
       .end {
         display: flex;
         flex-direction: column;
@@ -340,6 +391,34 @@
           <div class="url" id="end-url">leash-web.onrender.com</div>
         </div>
       </section>
+
+      <!-- 7 · how it works -->
+      <section class="scene" data-label="the premise" data-hold="6s">
+        <div class="premise">
+          <div class="step">
+            <i class="step-n">01</i>
+            <div>
+              <div class="step-t">The mandate</div>
+              <div class="step-d">What it may spend, where, and for how long</div>
+            </div>
+          </div>
+          <div class="step">
+            <i class="step-n">02</i>
+            <div>
+              <div class="step-t">The check</div>
+              <div class="step-d">Every purchase judged before any money moves</div>
+            </div>
+          </div>
+          <div class="step">
+            <i class="step-n">03</i>
+            <div>
+              <div class="step-t">The record</div>
+              <div class="step-d">Allowed and paid, or refused with the reason kept</div>
+            </div>
+          </div>
+          <i class="spine" id="premise-spine"></i>
+        </div>
+      </section>
     </div>
 
     <script src="motion.js"></script>
@@ -445,6 +524,23 @@
           bar.style.width = `${cue(t, 0.1, 0.65, ease.hard) * 100}%`;
           kinetic(document.querySelector("#lower-name"), t, 0.35, { gap: 0.03 });
           wipe(document.querySelector("#lower-what"), cue(t, 0.9, 0.6));
+        },
+
+        6(t) {
+          // Each step arrives on its own beat, with the spine drawing down
+          // through them so the three read as one sequence.
+          const steps = [...document.querySelectorAll(".premise .step")];
+          steps.forEach((step, i) => {
+            const at = 0.3 + i * 0.78;
+            const p = cue(t, at, 0.44, ease.hard);
+            step.style.opacity = p;
+            step.style.transform = `translateY(${(1 - p) * 26}px)`;
+            wipe(step.querySelector(".step-t"), cue(t, at + 0.06, 0.4, ease.hard));
+            wipe(step.querySelector(".step-d"), cue(t, at + 0.2, 0.46, ease.hard));
+            step.querySelector(".step-n").style.opacity = cue(t, at, 0.5);
+          });
+          const spine = document.querySelector("#premise-spine");
+          spine.style.height = `${cue(t, 0.3, 2.2, ease.inOut) * 100}%`;
         },
 
         5(t) {

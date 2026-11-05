@@ -62,30 +62,21 @@ const FULL = 1.0638;
 // picture moves. Software cuts instead, and lets the interface supply the
 // motion. So there is no drift anywhere in here, only the moment of the cut.
 const SEGMENTS = [
+  // Open on the problem, then say what this is before showing any of it.
+  // Cutting from a title card straight into a dense grid asks the viewer to
+  // work out what they are looking at while it is already moving.
   { name: "problem", kind: "seq", seconds: 7 },
-  {
-    name: "mandate",
-    kind: "seq",
-    seconds: 14,
-  },
-  {
-    name: "shop",
-    kind: "seq",
-    seconds: 32,
-    callout: { at: 26.2 },
-  },
+  { name: "lower", kind: "seq", seconds: 5 },
+  { name: "premise", kind: "seq", seconds: 8 },
+
+  // Slots now sit about two seconds past the footage, no more. A long held
+  // tail is a freeze with a caption on it, and six seconds of that reads as
+  // the video having stalled.
+  { name: "mandate", kind: "seq", seconds: 13 },
+  { name: "shop", kind: "seq", seconds: 28, callout: { at: 22.8 } },
   { name: "statement", kind: "seq", seconds: 4 },
-  {
-    name: "structuring",
-    kind: "seq",
-    seconds: 28,
-    callout: { at: 22.0 },
-  },
-  {
-    name: "payout",
-    kind: "seq",
-    seconds: 11,
-  },
+  { name: "structuring", kind: "seq", seconds: 26, callout: { at: 21.0 } },
+  { name: "payout", kind: "seq", seconds: 14 },
   {
     name: "paypal",
     kind: "video",
@@ -96,12 +87,7 @@ const SEGMENTS = [
       { from: 14.8, length: 6 },
     ],
   },
-  {
-    name: "revoke",
-    kind: "seq",
-    seconds: 17,
-    callout: { at: 13.0 },
-  },
+  { name: "revoke", kind: "seq", seconds: 16, callout: { at: 13.4 } },
   { name: "tally", kind: "seq", seconds: 6 },
   { name: "closing", kind: "seq", seconds: 6 },
   { name: "endcard", kind: "seq", seconds: 5 },
@@ -213,13 +199,38 @@ function markTime(shot, label) {
   return marks.find((m) => m.label === label)?.t ?? 0;
 }
 
-/** The callout layer for a segment, if overlay.mjs rendered one. */
-function overlayFor(name) {
+/** One rendered overlay directory, if there is one. */
+function layerDir(name) {
   const dir = p(HERE, "overlay", name);
   const meta = path.join(dir, "span.json");
   if (!fs.existsSync(meta)) return null;
   const span = JSON.parse(fs.readFileSync(meta, "utf-8"));
   return { dir, ...span, count: span.last - span.first + 1 };
+}
+
+/** Every overlay this segment carries, bottom to top.
+ *
+ *  Two kinds. A callout is a graphic that explains one moment, so it is
+ *  anchored to that moment and holds to the end. A caption track names
+ *  whatever the camera is looking at and runs the length of the segment, so
+ *  it starts at zero. Both composite after the frames are scaled down,
+ *  because they are authored at 1920x1080 and the source is 2x that. */
+function layersFor(seg) {
+  const out = [];
+
+  const caption = layerDir(`caption-${seg.name}`);
+  if (caption) out.push({ ...caption, start: 0 });
+
+  const callout = layerDir(seg.name);
+  if (callout) {
+    const anchor = seg.callout?.at
+      ? seg.callout.at
+      : seg.callout
+        ? markTime(seg.name, seg.callout.after) + (seg.callout.lead ?? 0.6)
+        : callout.first / FPS;
+    out.push({ ...callout, start: anchor });
+  }
+  return out;
 }
 
 function sequence(seg) {
@@ -235,8 +246,8 @@ function sequence(seg) {
   const appHold =
     hold > 0.05 ? `tpad=stop_mode=clone:stop_duration=${hold.toFixed(2)},` : "";
 
-  const callout = overlayFor(seg.name);
-  if (!callout) {
+  const layers = layersFor(seg);
+  if (!layers.length) {
     run([
       "-framerate", String(FPS),
       "-i", p(dir, "%05d.jpg"),
@@ -245,44 +256,51 @@ function sequence(seg) {
       ...ENCODE,
       out,
     ]);
-    return { out, have, hold, callout: false };
+    return { out, have, hold, layers: 0 };
   }
 
-  // The callout is composited onto the raw frames *before* the push, so it
-  // travels with the shot. It fades in at its own time and then holds for
-  // the rest of the segment.
-  // An absolute time when the camera tours first, otherwise anchored to the
-  // beat the recorder marked.
-  const anchor = seg.callout?.at
-    ? seg.callout.at
-    : seg.callout
-      ? markTime(seg.name, seg.callout.after) + (seg.callout.lead ?? 0.6)
-      : callout.first / FPS;
-  const start = anchor.toFixed(2);
-  const native = callout.count / FPS;
-  const after = Math.max(0, seg.seconds - anchor - native);
+  const inputs = ["-framerate", String(FPS), "-i", p(dir, "%05d.jpg")];
+  const steps = [];
 
-  const chain =
-    `[1:v]format=rgba,` +
-    `tpad=start_mode=add:start_duration=${start}:color=black@0,` +
-    (after > 0.05 ? `tpad=stop_mode=clone:stop_duration=${after.toFixed(2)},` : "") +
-    `setsar=1[ov];` +
-    `[0:v]${appHold}${look}[app];` +
-    `[app][ov]overlay=0:0:format=auto[v]`;
+  layers.forEach((layer, i) => {
+    inputs.push(
+      "-framerate", String(FPS),
+      "-start_number", String(layer.first),
+      "-i", p(layer.dir, "%05d.png"),
+    );
+    // Delay it to its own start, then clone the last frame so it holds
+    // instead of vanishing once its own frames run out.
+    const native = layer.count / FPS;
+    const after = Math.max(0, seg.seconds - layer.start - native);
+    steps.push(
+      `[${i + 1}:v]format=rgba,` +
+        (layer.start > 0.01
+          ? `tpad=start_mode=add:start_duration=${layer.start.toFixed(2)}:color=black@0,`
+          : "") +
+        (after > 0.05
+          ? `tpad=stop_mode=clone:stop_duration=${after.toFixed(2)},`
+          : "") +
+        `setsar=1[ov${i}]`,
+    );
+  });
+
+  steps.push(`[0:v]${appHold}${look}[app]`);
+  let prev = "app";
+  layers.forEach((_, i) => {
+    const label = i === layers.length - 1 ? "v" : `c${i}`;
+    steps.push(`[${prev}][ov${i}]overlay=0:0:format=auto[${label}]`);
+    prev = label;
+  });
 
   run([
-    "-framerate", String(FPS),
-    "-i", p(dir, "%05d.jpg"),
-    "-framerate", String(FPS),
-    "-start_number", String(callout.first),
-    "-i", p(callout.dir, "%05d.png"),
-    "-filter_complex", chain,
+    ...inputs,
+    "-filter_complex", steps.join(";"),
     "-map", "[v]",
     "-t", String(seg.seconds),
     ...ENCODE,
     out,
   ]);
-  return { out, have, hold, callout: true };
+  return { out, have, hold, layers: layers.length };
 }
 
 function still(seg) {
@@ -337,12 +355,12 @@ const made = [];
 let total = 0;
 for (const seg of SEGMENTS) {
   const build = seg.kind === "still" ? still : seg.kind === "video" ? clip : sequence;
-  const { out, have, hold, callout } = build(seg);
+  const { out, have, hold, layers } = build(seg);
   made.push(out);
   total += seg.seconds;
   const note = hold > 0.05 ? `${have.toFixed(1)}s + ${hold.toFixed(1)}s held` : `${have.toFixed(1)}s`;
   const at = new Date(total * 1000).toISOString().substring(14, 19);
-  console.log(`  ${seg.name.padEnd(12)} ${String(seg.seconds).padStart(3)}s  -> ${at}   ${note}${callout ? "  + callout" : ""}`);
+  console.log(`  ${seg.name.padEnd(12)} ${String(seg.seconds).padStart(3)}s  -> ${at}   ${note}${layers ? `  + ${layers} overlay${layers > 1 ? "s" : ""}` : ""}`);
 }
 
 // Hard cuts everywhere read as a slideshow. A short dip through the ground

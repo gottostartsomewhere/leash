@@ -152,6 +152,61 @@
         opacity: 0;
       }
 
+      /* Lower third. Sits clear of the console strip at the bottom of the
+       * app, and is composited above the camera so it never scales with a
+       * push-in. */
+      /* A local pool of shade under the lower third. The app's own content
+       * runs right through this corner (the product shelf, the rail
+       * labels), and a text shadow alone is not enough to read against a
+       * row of product photos. An ellipse keeps the dimming on the words
+       * instead of putting a black bar across the demo. */
+      .cap-scrim {
+        position: absolute;
+        left: -220px;
+        bottom: 52px;
+        width: 1560px;
+        height: 440px;
+        background: radial-gradient(
+          ellipse 60% 56% at 33% 54%,
+          rgba(11, 10, 9, 0.95) 0%,
+          rgba(11, 10, 9, 0.86) 36%,
+          rgba(11, 10, 9, 0.44) 62%,
+          rgba(11, 10, 9, 0) 78%
+        );
+        opacity: 0;
+      }
+
+      .cap {
+        position: absolute;
+        left: 92px;
+        bottom: 232px;
+        max-width: 1100px;
+      }
+
+      .cap-rule {
+        display: block;
+        width: 0;
+        height: 3px;
+        background: var(--amber);
+        margin-bottom: 18px;
+      }
+
+      .cap-title {
+        font-size: 50px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        line-height: 1.1;
+        text-shadow: 0 2px 24px rgba(11, 10, 9, 0.9);
+      }
+
+      .cap-note {
+        margin-top: 10px;
+        font-family: var(--mono);
+        font-size: 23px;
+        color: var(--ink-2);
+        text-shadow: 0 2px 20px rgba(11, 10, 9, 0.9);
+      }
+
       /* Revoke stamp */
       .stamp {
         position: absolute;
@@ -206,6 +261,16 @@
           <span class="red" data-el="total">0</span>
         </div>
         <div class="note" data-el="note">Each one clears the 100.00 cap on its own. Together they do not.</div>
+      </div>
+    </section>
+
+    <!-- caption: names what the camera is looking at -->
+    <section class="scene" id="caption">
+      <i class="cap-scrim" data-el="scrim"></i>
+      <div class="cap">
+        <i class="cap-rule" data-el="rule"></i>
+        <div class="cap-title" data-el="title"></div>
+        <div class="cap-note" data-el="note"></div>
       </div>
     </section>
 
@@ -299,7 +364,42 @@
         },
       };
 
+      /** One caption from a track: in, hold, out. */
+      function caption(track, t) {
+        for (const node of document.querySelectorAll(".scene")) {
+          node.classList.toggle("on", node.id === "caption");
+        }
+        const rule = $("caption", "rule");
+        const title = $("caption", "title");
+        const note = $("caption", "note");
+        const scrim = $("caption", "scrim");
+        const cue_ = track.find((c) => t >= c.from - 0.5 && t < c.to + 0.5);
+        if (!cue_) {
+          rule.style.width = "0px";
+          title.style.opacity = 0;
+          note.style.opacity = 0;
+          scrim.style.opacity = 0;
+          return;
+        }
+        if (title.textContent !== cue_.title) {
+          title.textContent = cue_.title;
+          note.textContent = cue_.note ?? "";
+          delete title.dataset.split;
+        }
+        const inP = cue(t, cue_.from, 0.42, ease.hard);
+        const outP = cue(t, cue_.to, 0.3, ease.hard);
+        const live = inP * (1 - outP);
+        // The shade leads the text in and trails it out, so the words never
+        // arrive on an undimmed background.
+        scrim.style.opacity =
+          cue(t, cue_.from - 0.18, 0.4) * (1 - cue(t, cue_.to + 0.08, 0.36));
+        rule.style.width = `${inP * 132 * (1 - outP)}px`;
+        wipe(title, live);
+        wipe(note, cue(t, cue_.from + 0.16, 0.42, ease.hard) * (1 - outP));
+      }
+
       window.overlay = {
+        caption,
         render(scene, t) {
           for (const node of document.querySelectorAll(".scene")) {
             node.classList.toggle("on", node.id === scene);
