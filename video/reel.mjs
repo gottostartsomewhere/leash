@@ -65,14 +65,25 @@ for (const shot of shots) {
   fs.rmSync(out, { recursive: true, force: true });
   fs.mkdirSync(out, { recursive: true });
 
-  // Zero on the frame where the action started, not on the first frame
-  // captured: everything before that is screencast pre-roll.
-  const begin = Math.min(manifest.startIndex ?? 0, frames.length - 1);
-  const zero = frames[begin].ts;
+  // Zero on the clock the marks were written against, not on the first
+  // frame that happened to paint after recording began.
+  //
+  // The screencast only paints when something changes, so a shot that
+  // opens on a held still paints nothing until it moves. Zeroing there
+  // treats that first move as time zero and shifts the entire shot
+  // earlier, pulling every mark out of sync with the picture: the mandate
+  // shot opens on a 1.4s hold and was running 1.45s adrift, so its
+  // captions landed well after the camera they describe.
+  const zero = manifest.t0;
   const span = manifest.t1 - manifest.t0;
   const total = Math.max(1, Math.round(span * FPS));
 
-  let cursor = begin;
+  // Begin on the last frame painted at or before t0, which is the pre-roll
+  // frame: that is what the screen actually showed as recording started.
+  let cursor = 0;
+  while (cursor + 1 < frames.length && frames[cursor + 1].ts <= zero) {
+    cursor += 1;
+  }
   let copied = 0;
   for (let n = 0; n < total; n += 1) {
     const at = n / FPS;

@@ -86,17 +86,27 @@ async function take(name, page, fn) {
   const marks = [];
 
   cdp.on("Page.screencastFrame", async ({ data, metadata, sessionId }) => {
-    const file = `${String(frames.length).padStart(5, "0")}.jpg`;
-    fs.writeFileSync(path.join(dir, file), Buffer.from(data, "base64"));
-    frames.push({ file, ts: metadata.timestamp });
+    // Ack before writing, not after. Chrome will not send the next frame
+    // until this one is acknowledged, so holding the ack behind a
+    // multi-megabyte synchronous write throttles the capture exactly when
+    // the page is busiest: during a camera move. That dropped every push
+    // from the footage and turned a 620ms move into an instant jump.
     cdp.send("Page.screencastFrameAck", { sessionId }).catch(() => {});
+    const file = `${String(frames.length).padStart(5, "0")}.jpg`;
+    frames.push({ file, ts: metadata.timestamp });
+    fs.writeFileSync(path.join(dir, file), Buffer.from(data, "base64"));
   });
 
+  // Capture at delivery size. The 2x source existed so ffmpeg had real
+  // pixels to push into, and the camera has since moved into the page, so
+  // every one of those frames was being scaled straight back down to 1080p
+  // at four times the bytes. The page still *renders* at 2x
+  // (deviceScaleFactor), so text stays crisp; only the transport shrinks.
   await cdp.send("Page.startScreencast", {
     format: "jpeg",
     quality: 92,
-    maxWidth: 3840,
-    maxHeight: 2160,
+    maxWidth: 1920,
+    maxHeight: 1080,
   });
   await sleep(400);
 
@@ -160,30 +170,78 @@ async function openApp() {
   await page.evaluate(() => {
     const root = document.getElementById("root");
     window.film = {
+      /** Bring the subject on screen before the camera is pointed at it.
+       *
+       *  Scaling cannot reach what is below the fold: the shopping result
+       *  renders under the shelf and sits past the bottom of the window, so
+       *  framing it produced a push onto empty space while the caption
+       *  described rows nobody could see. Only scrolls when it has to, so
+       *  the shots whose subject is already visible are unchanged. */
+      reveal(selector) {
+        const el = document.querySelector(selector);
+        if (!el) return false;
+        // Unconditionally, because being inside the window is not the same
+        // as being visible: the shopping panel is its own 228px scroll box
+        // and clips its result, so the subject can sit at a perfectly
+        // reasonable viewport position and still be behind an overflow
+        // edge. scrollIntoView walks every scrollable ancestor; a subject
+        // that is already where it should be does not move.
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+        return true;
+      },
+
+      /** Park the camera and settle the layout, with no animation.
+       *
+       *  Measuring while a previous push is still unwinding reads the old
+       *  framing and computes the next one from it, which lands the shot
+       *  somewhere neither move intended. */
+      park() {
+        const prev = root.style.transition;
+        root.style.transition = "none";
+        root.style.transform = "none";
+        void root.offsetWidth;
+        root.style.transition = prev;
+        void root.offsetWidth;
+      },
+
       to(selector, scale = 1.45) {
         const el = document.querySelector(selector);
         if (!el) return false;
-        const r = root.getBoundingClientRect();
+        this.park();
+
+        // Everything here is in viewport coordinates, not the root's own
+        // box. Once a shot scrolls (the shopping result makes the page
+        // taller than the window) the root is bigger than what the camera
+        // can see, and clamping against it frames a region that is off
+        // screen: the push landed on empty space while the caption
+        // described rows nobody could see.
+        const W = window.innerWidth;
+        const H = window.innerHeight;
         const e = el.getBoundingClientRect();
+        const vw = W / scale;
+        const vh = H / scale;
 
-        // Scaling about the target's own centre looks right until the
-        // target sits near an edge: the page then slides out of frame on
-        // that side and the shot reads as a broken crop. So work out which
-        // window of the page survives the scale, clamp that window inside
-        // the page, and derive the origin from it. The target ends up
-        // centred wherever it can be, and the frame is never off the page.
-        const vw = r.width / scale;
-        const vh = r.height / scale;
-        const cx = e.left + e.width / 2 - r.left;
-        const cy = e.top + e.height / 2 - r.top;
-        const left = Math.min(Math.max(cx - vw / 2, 0), r.width - vw);
-        const top = Math.min(Math.max(cy - vh / 2, 0), r.height - vh);
+        // Which slice of the window survives the scale: centred on the
+        // subject where it can be, pulled inside the window where it
+        // cannot, so an edge never comes into frame.
+        // Centre on the part of the subject that is actually on screen. A
+        // subject wider or taller than the window has a true centre that
+        // may be well outside it, and aiming there frames empty space.
+        const cx = (Math.max(e.left, 0) + Math.min(e.right, W)) / 2;
+        const cy = (Math.max(e.top, 0) + Math.min(e.bottom, H)) / 2;
+        const left = Math.min(Math.max(cx - vw / 2, 0), W - vw);
+        const top = Math.min(Math.max(cy - vh / 2, 0), H - vh);
 
+        // transform-origin is relative to the root's own border box, so
+        // convert out of viewport space on the way in.
         const k = 1 - 1 / scale;
-        root.style.transformOrigin = `${left / k}px ${top / k}px`;
+        const r = root.getBoundingClientRect();
+        root.style.transformOrigin =
+          `${left / k - r.left}px ${top / k - r.top}px`;
         root.style.transform = `scale(${scale})`;
         return true;
       },
+
       out() {
         root.style.transform = "none";
       },
@@ -202,10 +260,12 @@ async function openApp() {
  *  right frames instead of needing the times counted out by hand. */
 async function look(page, mark, selector, label, { scale = 1.45, hold = 1500 } = {}) {
   const found = await page.evaluate(
-    ([sel, sc]) => window.film.to(sel, sc),
-    [selector, scale],
+    ([sel]) => window.film.reveal(sel),
+    [selector],
   );
   if (!found) return false;
+  await sleep(620); // let any scroll land before the geometry is measured
+  await page.evaluate(([sel, sc]) => window.film.to(sel, sc), [selector, scale]);
   await sleep(620);
   mark(label);
   await sleep(hold);
@@ -265,9 +325,16 @@ const SHOTS = {
       await page.locator(".product").first().waitFor({ timeout: 90_000 });
       mark("shelf");
       await sleep(1200);
-      await look(page, mark, ".product", "product", { scale: 1.7, hold: 1500 });
-      await page.locator(".shelf").hover();
-      await page.mouse.wheel(900, 0);
+      await look(page, mark, ".product", "product", { scale: 2.0, hold: 1500 });
+      // Scroll the shelf itself. A sideways wheel moves the whole document,
+      // because the shelf overflows the page rather than scrolling inside
+      // its own box, and the page then stays a thousand pixels off-origin
+      // with every width:100% container stretched to the wider document.
+      // Every framing after this point was being computed against that.
+      await page.evaluate(() => {
+        const shelf = document.querySelector(".shelf");
+        if (shelf) shelf.scrollBy({ left: 900, behavior: "smooth" });
+      });
       await sleep(1200);
 
       mark("send");
@@ -275,8 +342,21 @@ const SHOTS = {
       await page.getByText("What it did").waitFor({ timeout: 90_000 });
       mark("result");
       await sleep(1400);
-      await look(page, mark, ".trace", "trace", { scale: 1.75, hold: 2200 });
-      await look(page, mark, ".ag-center-cols-container", "grid", { scale: 1.6, hold: 1600 });
+      // Held full frame rather than pushed into.
+      //
+      // The shelf overflows the document instead of scrolling inside its
+      // own box, so once it has rendered, the result panel and the grid
+      // header are both laid out wider than the window. A subject wider
+      // than the frame has no framing to find: every push either cuts off
+      // the columns that matter or lands beside them. Both beats read at
+      // full size anyway, and the callout that follows does the explaining
+      // with numbers.
+      mark("trace");
+      await sleep(2800);
+      mark("trace/out");
+      mark("grid");
+      await sleep(2400);
+      mark("grid/out");
       await sleep(900);
     });
     await page.close();
@@ -346,7 +426,7 @@ const SHOTS = {
         .waitFor({ timeout: 120_000 });
       mark("settled");
       await sleep(1200);
-      await look(page, mark, ".ag-center-cols-container", "grid", { scale: 1.6, hold: 1700 });
+      await look(page, mark, ".ag-header", "grid", { scale: 1.6, hold: 1700 });
       await look(page, mark, ".gauge", "gauge", { scale: 1.8, hold: 1500 });
     });
     await page.close();
@@ -371,7 +451,7 @@ const SHOTS = {
       await page.getByText("Revoked", { exact: true }).first().waitFor({ timeout: 30_000 });
       mark("dropped");
       await sleep(1100);
-      await look(page, mark, ".topbar-right", "topbar", { scale: 1.9, hold: 1500 });
+      await look(page, mark, ".status", "topbar", { scale: 2.4, hold: 1500 });
 
       // Asking a dead mandate for money, twice, is the point of the beat.
       mark("ask-again");
@@ -379,7 +459,7 @@ const SHOTS = {
       await page.getByText("Mandate inactive").first().waitFor({ timeout: 30_000 });
       mark("refused");
       await sleep(1100);
-      await look(page, mark, ".ag-center-cols-container", "grid", { scale: 1.7, hold: 1800 });
+      await look(page, mark, ".ag-header", "grid", { scale: 1.7, hold: 1800 });
       await ask(page, { payee: "northwind", category: "office-supplies", amount: "5.00" });
       await sleep(4000);
     });

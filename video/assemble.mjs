@@ -73,10 +73,10 @@ const SEGMENTS = [
   // tail is a freeze with a caption on it, and six seconds of that reads as
   // the video having stalled.
   { name: "mandate", kind: "seq", seconds: 13 },
-  { name: "shop", kind: "seq", seconds: 28, callout: { at: 22.8 } },
+  { name: "shop", kind: "seq", seconds: 21.5, callout: { at: 16.6 } },
   { name: "statement", kind: "seq", seconds: 4 },
-  { name: "structuring", kind: "seq", seconds: 26, callout: { at: 21.0 } },
-  { name: "payout", kind: "seq", seconds: 14 },
+  { name: "structuring", kind: "seq", seconds: 24, callout: { at: 19.0 } },
+  { name: "payout", kind: "seq", seconds: 15 },
   {
     name: "paypal",
     kind: "video",
@@ -87,7 +87,7 @@ const SEGMENTS = [
       { from: 14.8, length: 6 },
     ],
   },
-  { name: "revoke", kind: "seq", seconds: 16, callout: { at: 13.4 } },
+  { name: "revoke", kind: "seq", seconds: 16, callout: { at: 12.0 } },
   { name: "tally", kind: "seq", seconds: 9 },
   { name: "closing", kind: "seq", seconds: 6 },
   { name: "endcard", kind: "seq", seconds: 5 },

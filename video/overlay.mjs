@@ -37,34 +37,34 @@ const SCENES = {
 // hand-counted times would put the text on the wrong frames.
 const CAPTIONS = {
   mandate: [
-    { from: 0.2, to: 1.7, title: "One mandate", note: "What this agent is allowed to spend" },
+    { from: 0.2, to: "gauge-0.5", title: "One mandate", note: "What this agent is allowed to spend" },
     { at: "gauge", title: "The budget", note: "$500 in total, and what is left of it" },
     { at: "rules", title: "The terms", note: "$100 a purchase, and a pace it cannot beat" },
     { at: "scope", title: "The scope", note: "Named merchants, named categories" },
-    { from: 10.1, to: 12.8, title: "Nothing outside this is spendable" },
+    { from: "scope/out+0.3", to: "END", title: "Nothing outside this is spendable" },
   ],
   shop: [
-    { from: 0.4, to: 2.5, title: "Send it shopping", note: "The agent gets a goal, not a budget" },
-    { from: 3.0, to: 6.6, title: "It searches a real catalogue", note: "Live products and real merchants, through Channel3" },
+    { from: 0.4, to: "look-0.4", title: "Send it shopping", note: "The agent gets a goal, not a budget" },
+    { from: "shelf+0.2", to: "product-0.5", title: "It searches a real catalogue", note: "Live products and real merchants, through Channel3" },
     { at: "product", title: "Real listings, real merchants", note: "A live catalogue, not a fixture dressed up as one" },
-    { from: 10.8, to: 14.0, title: "Now let it spend", note: "Every item checked before any money moves" },
+    { from: "result+0.4", to: "trace-0.5", title: "Now let it spend", note: "Every item checked before any money moves" },
     { at: "trace", title: "What it tried, in order", note: "The $999 chair refused at the $100 ceiling" },
-    { at: "grid", title: "What it bought instead", note: "$90.55 from walmart.com, inside every term" },
+    { at: "grid", title: "What it bought instead", note: "Inside every term, and recorded with its reason" },
   ],
   structuring: [
-    { from: 0.3, to: 2.9, title: "$75 to Acme US", note: "Under the $100 ceiling, so it clears" },
-    { from: 3.4, to: 4.6, title: "$75 to Acme EU", note: "Also under the ceiling" },
+    { from: 0.3, to: "second-0.3", title: "$75 to Acme US", note: "Under the $100 ceiling, so it clears" },
+    { from: "second+0.4", to: "cluster-0.5", title: "$75 to Acme EU", note: "Also under the ceiling" },
     { at: "cluster", title: "Same merchant, two addresses", note: "75 + 75 = 150, over the limit" },
     { at: "facts", title: "Refused as structuring", note: "The reason is kept, not just the verdict" },
-    { from: 11.5, to: 15.7, title: "Every decision is queryable", note: "Filtered down to the refusals" },
-    { from: 16.4, to: 20.6, title: "And searchable", note: "AG Grid over the live decision log" },
+    { from: "filter+0.2", to: "search-0.6", title: "Every decision is queryable", note: "Filtered down to the refusals" },
+    { from: "search+0.3", to: "END", title: "And searchable", note: "AG Grid over the live decision log" },
   ],
   payout: [
-    { from: 0.3, to: 3.2, title: "Approved, and waiting", note: "Nothing settles without a person saying so" },
-    { from: 3.6, to: 5.2, title: "One batch", note: "Sent through PayPal Payouts" },
+    { from: 0.3, to: "approve-0.3", title: "Approved, and waiting", note: "Nothing settles without a person saying so" },
+    { from: "approve+0.3", to: "grid-0.5", title: "One batch", note: "Sent through PayPal Payouts" },
     { at: "grid", title: "Settled", note: "Each charge carries the PayPal item id that paid it" },
     { at: "gauge", title: "Held becomes settled", note: "$125 moved, $375 still available" },
-    { from: 12.1, to: 13.8, title: "Real payouts, in the PayPal sandbox" },
+    { from: "gauge/out+0.3", to: "END", title: "Real payouts, in the PayPal sandbox" },
   ],
   // The one segment cut from a screen recording. Eleven seconds of a
   // different product's UI with nothing saying why it is on screen.
@@ -73,11 +73,11 @@ const CAPTIONS = {
     { from: 5.3, to: 10.6, plate: true, title: "Every payout the agent made", note: "Same amounts, in PayPal's own ledger" },
   ],
   revoke: [
-    { from: 0.2, to: 1.3, title: "Revoke", note: "One click, mid-session" },
+    { from: 0.2, to: "topbar-0.5", title: "Revoke", note: "One click, mid-session" },
     { at: "topbar", title: "The authority is gone", note: "Not paused, not queued. Gone." },
-    { from: 4.2, to: 5.5, title: "The agent asks again", note: "It does not know anything changed" },
+    { from: "ask-again+0.3", to: "grid-0.5", title: "The agent asks again", note: "It does not know anything changed" },
     { at: "grid", title: "Refused, mandate inactive", note: "There is no budget left to argue with" },
-    { from: 8.3, to: 13.1, title: "It keeps asking. It keeps getting nothing." },
+    { from: "grid/out+0.3", to: "END", title: "It keeps asking. It keeps getting nothing." },
   ],
 };
 
@@ -88,10 +88,33 @@ function resolve(shot, track) {
     ? JSON.parse(fs.readFileSync(file, "utf-8")).marks
     : [];
   const when = (label) => marks.find((m) => m.label === label)?.t;
+  const last = marks.length ? Math.max(...marks.map((m) => m.t)) : 0;
+
+  /** A caption edge: a number of seconds, or a mark with an offset.
+   *
+   *  Every beat in a shot moves when the network does. A warm catalogue
+   *  cache took four seconds off the shopping take, and times written as
+   *  plain numbers then describe moments that have already gone past. */
+  const time = (v) => {
+    if (typeof v === "number") return v;
+    if (v === "END") return last + 2.5;
+    const m = /^(.+?)([+-][\d.]+)$/.exec(v);
+    const base = when(m ? m[1] : v);
+    if (base === undefined) return undefined;
+    return base + (m ? Number(m[2]) : 0);
+  };
 
   return track
     .map((c) => {
-      if (!c.at) return c;
+      if (!c.at) {
+        const from = time(c.from);
+        const to = time(c.to);
+        if (from === undefined || to === undefined) {
+          console.warn(`  ! ${shot}: cannot place "${c.title}", dropped`);
+          return null;
+        }
+        return { ...c, from, to };
+      }
       const from = when(c.at);
       const to = when(`${c.at}/out`);
       if (from === undefined || to === undefined) {
