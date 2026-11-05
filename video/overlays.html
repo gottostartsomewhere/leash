@@ -49,7 +49,7 @@
        * but transparent enough that it is clearly an overlay. */
       .panel {
         position: absolute;
-        background: rgba(11, 10, 9, 0.93);
+        background: rgba(11, 10, 9, 0.975);
         border: 1px solid #2b2622;
         padding: 34px 44px;
       }
@@ -180,7 +180,21 @@
         position: absolute;
         left: 92px;
         bottom: 232px;
+        width: max-content;
         max-width: 1100px;
+      }
+
+      /* A soft pool of shade disappears into a dark interface, which is what
+       * it is for. Over a light page it is just a grey smudge, so a caption
+       * sitting on one gets a defined plate instead. */
+      .cap-plate {
+        position: absolute;
+        inset: -30px -46px -34px -40px;
+        background: rgba(11, 10, 9, 0.975);
+        border-left: 3px solid var(--amber);
+        border-radius: 3px;
+        opacity: 0;
+        z-index: -1;
       }
 
       .cap-rule {
@@ -268,6 +282,7 @@
     <section class="scene" id="caption">
       <i class="cap-scrim" data-el="scrim"></i>
       <div class="cap">
+        <i class="cap-plate" data-el="plate"></i>
         <i class="cap-rule" data-el="rule"></i>
         <div class="cap-title" data-el="title"></div>
         <div class="cap-note" data-el="note"></div>
@@ -373,6 +388,7 @@
         const title = $("caption", "title");
         const note = $("caption", "note");
         const scrim = $("caption", "scrim");
+        const plate = $("caption", "plate");
         // The last one that has started, not the first that still matches:
         // windows carry a tolerance either side, so two can be live at
         // once and the newer one is the one to show.
@@ -384,6 +400,7 @@
           title.style.opacity = 0;
           note.style.opacity = 0;
           scrim.style.opacity = 0;
+          plate.style.opacity = 0;
           return;
         }
         if (title.textContent !== cue_.title) {
@@ -396,8 +413,10 @@
         const live = inP * (1 - outP);
         // The shade leads the text in and trails it out, so the words never
         // arrive on an undimmed background.
-        scrim.style.opacity =
+        const shade =
           cue(t, cue_.from - 0.18, 0.4) * (1 - cue(t, cue_.to + 0.08, 0.36));
+        scrim.style.opacity = cue_.plate ? 0 : shade;
+        plate.style.opacity = cue_.plate ? shade : 0;
         rule.style.width = `${inP * 132 * (1 - outP)}px`;
         wipe(title, live);
         wipe(note, cue(t, cue_.from + 0.16, 0.42, ease.hard) * (1 - outP));

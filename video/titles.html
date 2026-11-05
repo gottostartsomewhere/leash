@@ -237,6 +237,34 @@
         color: var(--ink-2);
       }
 
+      /* Red team card: who was attacking, and what they were after. The
+       * numbers alone read as trivia. */
+      .rt-kicker {
+        font-family: var(--mono);
+        font-size: 27px;
+        letter-spacing: 0.02em;
+        color: var(--ink-2);
+        margin-bottom: 54px;
+      }
+
+      .rt-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 14px 18px;
+        margin-top: 50px;
+        max-width: 1180px;
+      }
+
+      .rt-list span {
+        font-family: var(--mono);
+        font-size: 23px;
+        color: var(--ink-2);
+        border: 1px solid rgba(224, 143, 58, 0.3);
+        border-radius: 3px;
+        padding: 9px 16px;
+      }
+
       .end {
         display: flex;
         flex-direction: column;
@@ -357,12 +385,20 @@
       </section>
 
       <!-- 4 · the evidence -->
-      <section class="scene" data-label="red team" data-hold="6s">
+      <section class="scene" data-label="red team" data-hold="8s">
         <div class="evidence rise">
+          <div class="rt-kicker" id="rt-kicker">So we pointed a red team at it</div>
           <div class="tally">
+            <div><span class="n" data-to="5">0</span><span class="k">Objectives</span></div>
             <div><span class="n" data-to="338">0</span><span class="k">Attempts</span></div>
-            <div><span class="n" data-to="319">0</span><span class="k">Refused</span></div>
-            <div><span class="n" data-to="0">0</span><span class="k">Got through</span></div>
+            <div><span class="n" data-to="0">0</span><span class="k">Breaches</span></div>
+          </div>
+          <div class="rt-list" id="rt-list">
+            <span>Beat the per-purchase cap</span>
+            <span>Beat the per-merchant cap</span>
+            <span>Spend past the total</span>
+            <span>Buy outside the categories</span>
+            <span>Spend after revocation</span>
           </div>
           <div class="verdict" id="verdict">Mandate held</div>
         </div>
@@ -507,14 +543,22 @@
         },
 
         3(t) {
+          wipe(document.querySelector("#rt-kicker"), cue(t, 0.15, 0.5, ease.hard));
           document.querySelectorAll("[data-to]").forEach((el, i) => {
-            roll(el, Number(el.dataset.to), cue(t, 0.35 + i * 0.22, 1.1), {
+            roll(el, Number(el.dataset.to), cue(t, 0.9 + i * 0.24, 1.1), {
               decimals: 0,
               grouping: false,
             });
           });
+          // The five things it was actually trying to do, one at a time, so
+          // the attempt count reads as a search rather than a number.
+          document.querySelectorAll("#rt-list span").forEach((el, i) => {
+            const p = cue(t, 2.6 + i * 0.26, 0.42, ease.hard);
+            el.style.opacity = p;
+            el.style.transform = `translateY(${(1 - p) * 14}px)`;
+          });
           const v = document.querySelector("#verdict");
-          const p = cue(t, 1.7, 0.5, ease.back);
+          const p = cue(t, 4.5, 0.5, ease.back);
           v.style.opacity = p;
           v.style.transform = `scale(${0.8 + 0.2 * p})`;
         },

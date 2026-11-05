@@ -88,7 +88,7 @@ const SEGMENTS = [
     ],
   },
   { name: "revoke", kind: "seq", seconds: 16, callout: { at: 13.4 } },
-  { name: "tally", kind: "seq", seconds: 6 },
+  { name: "tally", kind: "seq", seconds: 9 },
   { name: "closing", kind: "seq", seconds: 6 },
   { name: "endcard", kind: "seq", seconds: 5 },
 ];
@@ -233,6 +233,56 @@ function layersFor(seg) {
   return out;
 }
 
+/** Composite a segment's overlay layers onto an already-built clip.
+ *
+ *  The sequence path folds this into its own filter graph, but a segment
+ *  cut from a screen recording arrives as finished video, so it gets the
+ *  same treatment in a second pass. */
+function withLayers(file, seg) {
+  const layers = layersFor(seg);
+  if (!layers.length) return { file, layers: 0 };
+
+  const inputs = ["-i", file];
+  const steps = [];
+  layers.forEach((layer, i) => {
+    inputs.push(
+      "-framerate", String(FPS),
+      "-start_number", String(layer.first),
+      "-i", p(layer.dir, "%05d.png"),
+    );
+    const native = layer.count / FPS;
+    const after = Math.max(0, seg.seconds - layer.start - native);
+    steps.push(
+      `[${i + 1}:v]format=rgba,` +
+        (layer.start > 0.01
+          ? `tpad=start_mode=add:start_duration=${layer.start.toFixed(2)}:color=black@0,`
+          : "") +
+        (after > 0.05
+          ? `tpad=stop_mode=clone:stop_duration=${after.toFixed(2)},`
+          : "") +
+        `setsar=1[ov${i}]`,
+    );
+  });
+
+  let prev = "0:v";
+  layers.forEach((_, i) => {
+    const label = i === layers.length - 1 ? "v" : `c${i}`;
+    steps.push(`[${prev}][ov${i}]overlay=0:0:format=auto[${label}]`);
+    prev = label;
+  });
+
+  const out = p(WORK, `${seg.name}-capped.mp4`);
+  run([
+    ...inputs,
+    "-filter_complex", steps.join(";"),
+    "-map", "[v]",
+    "-t", String(seg.seconds),
+    ...ENCODE,
+    out,
+  ]);
+  return { file: out, layers: layers.length };
+}
+
 function sequence(seg) {
   const dir = p(REEL, seg.name);
   const frames = fs.readdirSync(dir).filter((f) => f.endsWith(".jpg")).length;
@@ -341,7 +391,8 @@ function clip(seg) {
   const list = p(WORK, `${seg.name}.txt`);
   fs.writeFileSync(list, parts.map((f) => `file '${f}'`).join("\n"));
   run(["-f", "concat", "-safe", "0", "-i", list, "-c", "copy", out]);
-  return { out, have: seg.seconds, hold: 0 };
+  const capped = withLayers(out, seg);
+  return { out: capped.file, have: seg.seconds, hold: 0, layers: capped.layers };
 }
 
 /* -- go ----------------------------------------------------------------- */

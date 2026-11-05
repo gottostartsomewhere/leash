@@ -392,7 +392,7 @@ const CARDS = [
   [1, "lower", 5],
   [6, "premise", 8],
   [2, "statement", 4],
-  [3, "tally", 7],
+  [3, "tally", 10],
   [4, "closing", 8],
   [5, "endcard", 6],
 ];

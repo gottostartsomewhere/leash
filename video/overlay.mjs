@@ -66,6 +66,12 @@ const CAPTIONS = {
     { at: "gauge", title: "Held becomes settled", note: "$125 moved, $375 still available" },
     { from: 12.1, to: 13.8, title: "Real payouts, in the PayPal sandbox" },
   ],
+  // The one segment cut from a screen recording. Eleven seconds of a
+  // different product's UI with nothing saying why it is on screen.
+  paypal: [
+    { from: 0.3, to: 4.4, plate: true, title: "The other side of it", note: "A PayPal sandbox account, receiving" },
+    { from: 5.3, to: 10.6, plate: true, title: "Every payout the agent made", note: "Same amounts, in PayPal's own ledger" },
+  ],
   revoke: [
     { from: 0.2, to: 1.3, title: "Revoke", note: "One click, mid-session" },
     { at: "topbar", title: "The authority is gone", note: "Not paused, not queued. Gone." },
