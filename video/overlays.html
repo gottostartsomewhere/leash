@@ -373,7 +373,12 @@
         const title = $("caption", "title");
         const note = $("caption", "note");
         const scrim = $("caption", "scrim");
-        const cue_ = track.find((c) => t >= c.from - 0.5 && t < c.to + 0.5);
+        // The last one that has started, not the first that still matches:
+        // windows carry a tolerance either side, so two can be live at
+        // once and the newer one is the one to show.
+        const cue_ = track
+          .filter((c) => t >= c.from - 0.5 && t < c.to + 0.5)
+          .pop();
         if (!cue_) {
           rule.style.width = "0px";
           title.style.opacity = 0;

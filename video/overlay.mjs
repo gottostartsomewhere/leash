@@ -92,11 +92,26 @@ function resolve(shot, track) {
         console.warn(`  ! ${shot}: no mark "${c.at}", caption dropped`);
         return null;
       }
-      // Out a beat early, so the text has cleared before the camera moves.
-      return { ...c, from, to: to - 0.15 };
+      // The mark is written when the push has already settled, and the
+      // caption's own fade runs another 0.42s on top of that, so starting
+      // it at the mark puts the words on screen well after the camera has
+      // stopped. Lead it instead: the fade begins partway through the push
+      // and finishes as the camera lands, so the text arrives with it.
+      // Out a beat early, so it has cleared before the camera moves again.
+      return { ...c, from: Math.max(0, from - 0.45), to: to - 0.15 };
     })
     .filter(Boolean)
-    .sort((a, b) => a.from - b.from);
+    .sort((a, b) => a.from - b.from)
+    // Leading a caption into its push can push its start back behind the
+    // previous caption's end. One element draws them all, so an overlap
+    // means the earlier one wins and the new one is simply never shown
+    // until the old window has fully lapsed. Give the outgoing caption
+    // just enough room to finish wiping out before the next begins.
+    .map((c, i, all) => {
+      const next = all[i + 1];
+      return next ? { ...c, to: Math.min(c.to, next.from - 0.32) } : c;
+    })
+    .filter((c) => c.to > c.from);
 }
 
 const only = process.argv.slice(2);
