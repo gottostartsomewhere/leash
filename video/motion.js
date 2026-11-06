@@ -38,6 +38,12 @@
       const i = document.createElement("i");
       i.textContent = ch === " " ? " " : ch;
       i.style.display = "inline-block";
+      // <i> is italic in the browser's own stylesheet, so every piece of
+      // text that arrived through kinetic() has been rendering oblique:
+      // the wordmark, the end card, both punch lines. Nothing asked for
+      // that. Inherit rather than force upright, so a parent that really
+      // is italic still gets its way.
+      i.style.fontStyle = "inherit";
       i.style.willChange = "transform, opacity, filter";
       node.appendChild(i);
     }

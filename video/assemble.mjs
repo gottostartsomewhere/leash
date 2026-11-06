@@ -467,8 +467,17 @@ run([
 ]);
 
 const mb = (fs.statSync(OUT).size / 1024 / 1024).toFixed(1);
+// Slots can be fractional now, so format rather than concatenate: this
+// used to print the total as 2:43.19999999999999. The dips make the file
+// shorter than the slots add up to, so report both.
 const mins = Math.floor(total / 60);
+const rest = total % 60;
+const secs = Number.isInteger(rest)
+  ? String(rest).padStart(2, "0")
+  : rest.toFixed(1).padStart(4, "0");
+const real = total - DIP * (SEGMENTS.length - 1);
 console.log(
-  `\n${path.basename(OUT)}  ${mins}:${String(total % 60).padStart(2, "0")}  ${mb}MB`,
+  `\n${path.basename(OUT)}  ${mins}:${secs} of slots, ` +
+    `${Math.floor(real / 60)}:${(real % 60).toFixed(0).padStart(2, "0")} after dips  ${mb}MB`,
 );
 console.log(OUT);

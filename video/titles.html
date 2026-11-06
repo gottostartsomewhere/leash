@@ -302,32 +302,32 @@
       /* -- lower third ----------------------------------------------------- */
 
       .lower {
-        position: absolute;
-        left: clamp(28px, 5vw, 96px);
-        bottom: clamp(28px, 7vh, 110px);
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
-        place-self: start;
+        align-items: center;
+        gap: 0.9rem;
+        text-align: center;
       }
 
       .lower .bar {
         width: 0;
-        height: 2px;
+        height: 3px;
         background: var(--amber);
       }
 
       @keyframes wipe { to { width: clamp(120px, 14vw, 260px); } }
 
       .lower .name {
-        font-size: clamp(22px, 2.8vw, 52px);
+        font-size: clamp(46px, 7.6vw, 146px);
         font-weight: 700;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.005em;
+        line-height: 1;
       }
 
       .lower .what {
         font-family: var(--mono);
-        font-size: clamp(11px, 1.2vw, 21px);
+        font-size: clamp(14px, 1.75vw, 33px);
+        letter-spacing: 0.03em;
         color: var(--ink-2);
       }
 
@@ -506,22 +506,30 @@
       // callout layer share one timing model.
       const PAINT = {
         0(t, parts) {
-          // One line, held, wiped away, then the next. No stacking, nothing
-          // left on screen to read while the next one arrives.
-          // Tight enough that a line arrives as the one before it finishes
-          // wiping, so the screen is never empty between them.
-          const BEAT = 1.25;
+          // One line at a time, in the same place.
+          //
+          // This used to wipe in over 0.26s and reverse-wipe out over 0.22s,
+          // with the group snapped on by a ternary. Three hard edges in a
+          // row, which is why it read as chopped. A line is uncovered from
+          // the left now, holds, then drifts up and dissolves: it leaves by
+          // a different motion than it arrived by, because running the same
+          // wipe backwards is what makes an exit look like a cut.
+          const BEAT = 1.5;
+          const LIVE = 1.05;
           parts.rows.forEach((row, i) => {
-            const show = cue(t, i * BEAT, 0.26, ease.hard);
-            const gone = cue(t, i * BEAT + 0.93, 0.22, ease.hard);
-            if (gone > 0) wipe(row, 1 - gone, "right");
-            else wipe(row, show, "left");
+            const at = i * BEAT;
+            const inP = cue(t, at, 0.55, ease.hard);
+            const outP = cue(t, at + LIVE, 0.45, ease.inOut);
+            row.style.clipPath = `inset(0 ${(1 - inP) * 100}% 0 0)`;
+            row.style.opacity = inP * (1 - outP);
+            row.style.transform = `translateY(${(1 - inP) * 22 - outP * 20}px)`;
+            row.style.filter = outP > 0 ? `blur(${outP * 8}px)` : "none";
           });
-          // Overlaps the last erase, so the screen is never empty.
-          const punchAt = parts.rows.length * BEAT - 0.45;
-          parts.group.style.opacity = t >= punchAt - 0.05 ? 1 : 0;
-          kinetic(parts.hit, t, punchAt, { gap: 0.022, dur: 0.4, rise: 44 });
-          const r = cue(t, punchAt + 0.95, 0.55, ease.hard);
+
+          const punchAt = parts.rows.length * BEAT - 0.2;
+          parts.group.style.opacity = cue(t, punchAt - 0.12, 0.34);
+          kinetic(parts.hit, t, punchAt, { gap: 0.026, dur: 0.46, rise: 40 });
+          const r = cue(t, punchAt + 1.0, 0.62, ease.hard);
           parts.rule.style.width = `${r * 100}%`;
           parts.rule.style.opacity = r;
         },
@@ -565,7 +573,7 @@
 
         1(t) {
           const bar = document.querySelector("#lower-bar");
-          bar.style.width = `${cue(t, 0.1, 0.65, ease.hard) * 100}%`;
+          bar.style.width = `${cue(t, 0.1, 0.7, ease.hard) * 190}px`;
           kinetic(document.querySelector("#lower-name"), t, 0.35, { gap: 0.03 });
           wipe(document.querySelector("#lower-what"), cue(t, 0.9, 0.6));
         },
