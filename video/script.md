@@ -1,272 +1,219 @@
-# Leash — demo video script
+# Leash — voiceover script
 
-**Target 2:58.** Judges are not required to watch past three minutes, so
-nothing after 2:58 exists. Every second before it has to earn its place.
+Written against the cut that exists: **`video/leash-trailer.mp4`, 2:39.**
 
-**The one idea the video has to land:** everyone is building agents that can
-spend. Nobody is building the part that says no. That sentence is the whole
-pitch and the structuring catch is the proof.
+**Do not change a segment length after recording.** Everything below is
+timed to the picture, and moving a slot by two seconds slides every cue
+after it.
 
-**Principle for the graphics.** The app is already designed. Motion graphics
-frame and emphasise it, they do not compete with it. No separate animated
-scenes that look like a different product. The only pure-graphics moment is
-the opening, because there is nothing to show yet.
+## How to read this
 
-Match the app exactly:
+- Times are where you **start** the line, not where it ends.
+- Word counts are there so you know whether you are rushing. Roughly
+  **150 words a minute** is a normal speaking pace; this script runs at
+  about **110**, which leaves room to breathe and to stop.
+- **The silences are written in and they are not padding.** The picture is
+  doing the work in those gaps.
 
-| | |
-| --- | --- |
-| Ground | `#0b0a09` |
-| Ink | `#ece7e1` |
-| Amber, a rule fired | `#dfa33c` |
-| Red, critical | `#e2553d` |
-| Green, settled | `#7fa37a` |
-| UI type | Archivo |
-| Numbers and rule names | JetBrains Mono, tabular |
+## The one rule
 
-No music with a licence you cannot prove. The rules say so explicitly, and a
-silent cut is better than a disqualified one.
+**Never read what is already on screen.** The cards and the animation
+captions carry the *mechanics*. Your job is the *argument*. There is one
+deliberate exception, the last two lines, where saying it with the card is
+the point.
 
 ---
 
-## 0:00 – 0:18 · The problem
+## 0:00 — the problem card · 7s
 
-**Visual.** Black. Nothing on screen yet.
+The card writes itself: *the agent books the flight, orders the parts, pays
+the invoice, and if it gets it wrong.* Reading that aloud would be reading
+the screen.
 
-Type-on, one line at a time, JetBrains Mono, centred, ink on ground. Each
-line lands on a beat with the voice. Previous lines dim to `#6a635c` as the
-next arrives.
-
-```
-    the agent books the flight
-    the agent orders the parts
-    the agent pays the invoice
-```
-
-Then all three dim at once and a fourth line types in amber:
-
-```
-    and if it gets it wrong
-```
-
-Hold one beat. Cut.
-
-**Voice.**
-
-> Every agent demo this year ends the same way. The agent buys something, and
-> everyone claps.
->
-> Nobody shows you the other half. What happens when it shouldn't have.
+> *(silent — let it land)*
 
 ---
 
-## 0:18 – 0:38 · What it is
+## 0:08 — title, into the animation · ~10s · 24 words
 
-**Visual.** Hard cut to the live app, already loaded, log empty. Let the
-screen sit for a second before anything moves. It should look like an
-instrument, not a website.
+Start just as the Leash wordmark settles. Flat delivery. This is the whole
+pitch and it should sound like an observation, not a slogan.
 
-Slow push in on the **Terms** panel in the left rail. As the voice names each
-one, draw a thin amber underline under that row, left to right, 200ms:
-
-- Total authority 500.00
-- Any one purchase 100.00
-- Any one counterparty 200.00
-- Pace per 1m
-
-Lower third, bottom left, Archivo: **Leash — spending authority for AI agents**
-
-**Voice.**
-
-> This is Leash. You give an agent a budget with real terms attached. Five
-> hundred total. Nothing over a hundred in one purchase. Two hundred maximum
-> to any one merchant. Six purchases a minute.
->
-> Then it goes shopping, and every single thing it tries gets judged against
-> those terms before any money moves.
+> Every agent demo ends the same way. The agent buys the thing, everyone
+> claps, and nobody asks what happens when it buys the wrong thing.
 
 ---
 
-## 0:38 – 1:12 · It gets told no, and does something about it
+## 0:20 — the animation, act one · ~9s · 23 words
 
-**Visual.** Switch to **Send it shopping**. Type `office chair`. Click **Send
-the agent**.
+The track and the eleven checks are on screen now.
 
-Let the real result land. Then freeze and overlay.
-
-Three callouts, appearing in sequence, each a hairline box in the app's own
-border colour with a mono label:
-
-1. Ring the refused row. Label, amber: `999.00 — over the 100 cap`
-2. Ring the turn line. Label, ink: `100.00 would have cleared`
-3. Ring the bought row. Label, green: `74.99 — bought instead`
-
-Then a connecting line animates 1 → 2 → 3, so the eye follows the decision.
-
-**Voice.**
-
-> Here it is shopping a real catalogue. It finds a chair it likes, nine
-> hundred and ninety nine dollars, from a real merchant.
->
-> That is over the cap, so it gets refused. But look at what the refusal
-> tells it. Not just no. A hundred dollars would have gone through.
->
-> So the agent searches again under a hundred, and buys a different chair for
-> seventy four ninety nine. A refusal it can actually act on, instead of a
-> wall.
+> Leash is the part that says no. You write a mandate. A total, a ceiling
+> per purchase, which merchants, which categories, how fast.
 
 ---
 
-## 1:12 – 1:58 · The one that matters
+## 0:31 — the animation, act two · ~10s · 25 words
 
-**Visual.** Switch to **Ask for one thing**. This has to be slow and
-deliberate. It is the centre of the video.
+The token is running at the wall.
 
-Send `75.00` to `acme_us`. It clears. Ring it green, label `75.00 — fine`.
-
-Send `75.00` to `acme_eu`. The row lands red and opens itself.
-
-Now hold on the evidence band and let the cluster chart breathe. Push in
-slowly. As the voice gets to the cap line, animate a red dashed vertical line
-drawing downward through all three bars, then pulse once.
-
-Label the two prior bars in mono: `under the cap` / `under the cap`
-Label the total bar in red: `150.00 — over`
-
-Full-width card, held for two seconds, Archivo, ink on ground:
-
-```
-      Two addresses. One merchant.
-```
-
-**Voice.**
-
-> Now watch this. Seventy five dollars to Acme. Fine, it clears.
->
-> Another seventy five to Acme, but to their second receiver address. Each
-> charge is under the hundred dollar cap. Checked on its own, each one
-> passes.
->
-> Leash blocks it anyway.
->
-> Because it is not checking charges, it is checking the merchant behind
-> them. Two addresses, one counterparty, a hundred and fifty dollars inside
-> fifteen minutes. That is a purchase that was split to get under a limit.
->
-> It is called structuring, it is a real pattern in financial crime, and an
-> agent told nothing over a hundred will work it out on its own.
+> The agent gets a goal, not a budget. It never touches a payment
+> credential. Every purchase it tries runs eleven checks before any money
+> moves.
 
 ---
 
-## 1:58 – 2:22 · The money is real
+## 0:42 — the counter-offer · ~5s · 14 words
 
-**Visual.** Select the held rows. Click **Approve and pay out**.
+> And when it is refused, it is not just blocked. It is told what would
+> have cleared.
 
-As rows flash to `Settled`, a counter in the corner rolls up in mono.
-
-Then cut to **sandbox.paypal.com**, logged in, Activity list visible. Push in
-on the incoming payments. Overlay in green: `PayPal Payouts · sandbox`
-
-Do not linger. Four seconds on the balance is enough to prove it.
-
-**Voice.**
-
-> Nothing has actually moved yet. Everything so far is a hold, which is why
-> two purchases a millisecond apart can't both spend the same budget.
->
-> A human approves, and it goes out as one PayPal Payouts batch. That is a
-> real sandbox account receiving real payouts.
->
-> And if an item comes back later, reconciliation corrects the ledger, so it
-> records what happened rather than what we intended.
+> *(then stop — let acts three and four play out on their own)*
 
 ---
 
-## 2:22 – 2:38 · The leash comes off
+## 0:49 — the live app · ~4s · 11 words
 
-**Visual.** Click **Revoke**. Status flips to red across the top bar and the
-rail. Held rows drop to `Released`.
+Hard cut from animation to the real thing. Mark the change in your voice.
 
-Then ask for one more spend. The row lands critical red.
-
-Zoom the rule chip: `Mandate inactive`
-
-**Voice.**
-
-> And you can take it all back. Revoking drops every hold that hasn't
-> settled. Money that already moved stays moved, because that is the truth.
->
-> Ask it for anything after that, and it just says no.
+> That is the idea. This is it running, for real.
 
 ---
 
-## 2:38 – 2:58 · The evidence, and the line
+## 0:54 — the mandate · ~5s · 13 words
 
-**Visual.** Cut to terminal, the red team output. Let the real numbers sit on
-screen. Highlight the last line.
-
-```
-5 objectives, 338 attempts, 319 refused. Mandate HELD.
-```
-
-Then to black. The closing line types on in ink, one clause at a time:
-
-```
-    Every other demo shows you
-    what their agent can buy.
-```
-
-Beat. Then in amber:
-
-```
-    This one shows you what it can't.
-```
-
-Hold two seconds. End card: **leash-web.onrender.com**
-
-**Voice.**
-
-> I pointed an adversary at it. Three hundred and thirty eight attempts to
-> get around the rules, across five different objectives. Splitting
-> purchases, hopping addresses, waiting out windows. It never got through
-> once.
->
-> Every other demo shows you what their agent can buy. This one shows you
-> what it can't.
+> One mandate. Five hundred dollars. A hundred a purchase. Named merchants,
+> named categories.
 
 ---
 
-## Capture checklist
+## 1:01 — shopping · ~7s · 18 words
 
-Record these before you edit anything. Clean takes, no cursor wandering.
-
-- [ ] App loaded, log empty, mandate at 500.00
-- [ ] Shop: `office chair`, full re-shop result
-- [ ] Ask: `75.00` acme_us, then `75.00` acme_eu, band open
-- [ ] Evidence band, close, cluster chart filling frame
-- [ ] Select holds, approve, rows flashing to Settled
-- [ ] sandbox.paypal.com Activity with payments visible
-- [ ] Revoke, then one refused attempt after it
-- [ ] Terminal: `python scripts/redteam.py`
-
-**Reset between takes.** The Reset button in the rail, or
-`POST /demo/reset`. A dirty ledger will give you different numbers than this
-script says.
-
-**One trap.** Run the scenario at human speed and the pace limit never fires,
-because it needs six holds inside sixty seconds. If you want that beat, click
-fast or cut the pause out.
+> A model picks what to buy from a live catalogue. It picks a nine hundred
+> and ninety nine dollar chair.
 
 ---
 
-## If you need to cut for time
+## 1:10 — the refusal · ~8s · 20 words
 
-In this order:
+> Refused at the hundred dollar ceiling, told what would clear, and it comes
+> back with one it is allowed to buy.
 
-1. The reconciliation sentence at 2:15. It is the most sophisticated thing in
-   the project and the least visual.
-2. The pace limit, if you added it.
-3. Tighten the opening to two lines instead of three.
+---
 
-**Never cut** the structuring beat or the closing line. Without those it is
-just another agent demo, and there will be four hundred of those.
+## 1:20 — structuring · ~3s · 7 words
+
+Slow down here. This is the beat the whole submission rests on.
+
+> Now the part I actually care about.
+
+---
+
+## 1:25 — the split · ~7s · 18 words
+
+> Tell an agent nothing over a hundred, and a competent one does not give
+> up. It splits the purchase.
+
+---
+
+## 1:33 — two addresses · ~8s · 21 words
+
+> Seventy five to Acme US. Seventy five to Acme EU. Two addresses, one
+> merchant. Each charge clears the cap on its own.
+
+---
+
+## 1:42 — the catch · ~5s · 11 words
+
+Land this one hard, then nothing.
+
+> Only the cluster does not. Refused as structuring, with the arithmetic
+> attached.
+
+---
+
+## 1:49 — the money · ~7s · 17 words
+
+> Approved spend settles through PayPal Payouts. Real batches, real money,
+> a sandbox account on the other side.
+
+---
+
+## 1:59 — PayPal's own ledger · ~3s · 6 words
+
+> Same amounts, in PayPal's own books.
+
+---
+
+## 2:07 — revoke · ~6s · 14 words
+
+> And it comes off. One click, mid session. Every hold that has not settled
+> is dropped.
+
+---
+
+## 2:14 — what revocation actually means · ~8s · 23 words
+
+> Money that already moved stays moved, because that is the truth. The agent
+> does not know anything changed. It keeps asking. It keeps getting nothing.
+
+---
+
+## 2:22 — the red team · ~5s · 12 words
+
+> We pointed two red teams at it. One of them was a model.
+
+---
+
+## 2:27 — the numbers · ~4s · 10 words
+
+The card is showing 5 / 322 / 0 while you say this. You are naming them,
+not reading them.
+
+> Three hundred and twenty two attempts, five objectives, zero breaches.
+
+---
+
+## 2:30 — the close · ~4s · 10 words
+
+**The exception to the rule.** The card says these words and so do you.
+Say them with it, not over it.
+
+> Every other demo shows you what their agent can buy.
+
+---
+
+## 2:34 — the turn · ~3s · 8 words
+
+> This one shows you what it cannot.
+
+> *(out — let the end card hold)*
+
+---
+
+## Numbers, so none of them drift
+
+Everything the voice says has to match what is on screen.
+
+| Where | Figure | Source |
+| --- | --- | --- |
+| mandate | $500 total, $100 a purchase | the demo mandate in `leash/store.py` |
+| shop | $999 refused | the live Channel3 run in the footage |
+| structuring | $75 + $75 to two Acme addresses | the live run |
+| red team | 5 objectives, 322 attempts, 0 breaches | 316 strategy + 6 model, both artifacts |
+
+**The old script said 338 attempts and 319 refused.** Those numbers died
+when the boundary bug was fixed: the search path changed, and the totals
+are now 316 and 297. The card in the video says 322, which is both
+adversaries together. Do not say 338.
+
+## Recording notes
+
+- One take per section is fine. They are cut to timecode, not performed
+  continuously, so a fluff only costs you that section.
+- Record dry and close. No music, no room. The picture has no audio at all,
+  so the voice sits on a silent bed and anything in the room will be heard.
+- Lower than feels natural. The material is dry on purpose, and selling it
+  harder makes it sound less true.
+- Total spoken: about **290 words over 2:39**, which is unhurried. If you
+  are running out of breath, you are going too fast, not too long.
