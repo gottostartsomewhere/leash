@@ -341,7 +341,18 @@ const SHOTS = {
       await page.getByRole("button", { name: "Send the agent" }).click();
       await page.getByText("What it did").waitFor({ timeout: 90_000 });
       mark("result");
-      await sleep(1400);
+      await sleep(1100);
+      // Put the document back on its origin before framing anything.
+      //
+      // The shelf makes the page 2747px wide, and the browser leaves it
+      // scrolled 827px to the right once the result renders. The trace rows
+      // are 2387px wide, so their left edge sits at -481: the verdict, the
+      // product and the byline are all off the left of the frame, and the
+      // only part of the row still in shot is the price column at the far
+      // right. Every framing taken from here was being computed against
+      // that, which is why a push onto the byline landed on empty space.
+      await page.evaluate(() => window.scrollTo({ left: 0, behavior: "smooth" }));
+      await sleep(700);
       // Held full frame rather than pushed into.
       //
       // The shelf overflows the document instead of scrolling inside its
@@ -351,13 +362,26 @@ const SHOTS = {
       // the columns that matter or lands beside them. Both beats read at
       // full size anyway, and the callout that follows does the explaining
       // with numbers.
-      mark("trace");
-      await sleep(2800);
-      mark("trace/out");
+      // Push onto the byline rather than holding the whole frame.
+      //
+      // `Chose` is the last row of the result: who picked the product, and
+      // the reason they gave. It is the only place in the cut where the
+      // model is shown rather than claimed, and at full frame it is twelve
+      // pixels of grey at the bottom edge. At this scale the two rows it
+      // sits under come into frame with it, so the refusal and the thing
+      // that caused it are read in one shot.
+      //
+      // Framed on the model's name rather than on `.chose` itself. The row
+      // runs the full width of the result, 2387px of it, so its centre is
+      // a point in the middle of empty table and a push aimed there lands
+      // on the shelf. The name is a span of a couple of hundred pixels and
+      // has a centre worth pointing a camera at; the reason it gave sits
+      // immediately to its right and comes along at this scale.
+      await look(page, mark, ".chose-who", "trace", { scale: 1.7, hold: 1400 });
       mark("grid");
-      await sleep(2400);
+      await sleep(1800);
       mark("grid/out");
-      await sleep(900);
+      await sleep(600);
     });
     await page.close();
   },

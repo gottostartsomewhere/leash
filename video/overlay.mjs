@@ -48,8 +48,11 @@ const CAPTIONS = {
     { from: "shelf+0.2", to: "product-0.5", title: "It searches a real catalogue", note: "Live products and real merchants, through Channel3" },
     { at: "product", title: "Real listings, real merchants", note: "A live catalogue, not a fixture dressed up as one" },
     { from: "result+0.4", to: "trace-0.5", title: "Now let it spend", note: "Every item checked before any money moves" },
-    { at: "trace", title: "What it tried, in order", note: "The $999 chair refused at the $100 ceiling" },
-    { at: "grid", title: "What it bought instead", note: "Inside every term, and recorded with its reason" },
+    // Kept short on purpose. This caption runs under a push that fills the
+    // right two thirds of the frame with the result panel, and a longer
+    // line reaches across into it and lands on the byline it is pointing at.
+    { at: "trace", title: "A model chose it", note: "The product, and nothing else" },
+    { at: "grid", title: "And the mandate refused it", note: "$190.49, over the $100 ceiling. It came back with $97.99." },
   ],
   structuring: [
     { from: 0.3, to: "second-0.3", title: "$75 to Acme US", note: "Under the $100 ceiling, so it clears" },

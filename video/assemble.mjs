@@ -74,7 +74,11 @@ const SEGMENTS = [
   { name: "flow", kind: "seq", seconds: 37 },
 
   { name: "mandate", kind: "seq", seconds: 12 },
-  { name: "shop", kind: "seq", seconds: 20, callout: { at: 15.0 } },
+  // 23s, not 20. The take runs 20.0s now: the agent's result is network
+  // bound, and the beat that reads the byline is a push that did not exist
+  // before. The callout cannot start until that push has unwound, which is
+  // 17.8, and it needs 4.6s of its own.
+  { name: "shop", kind: "seq", seconds: 23, callout: { at: 17.8 } },
   { name: "structuring", kind: "seq", seconds: 24, callout: { at: 19.0 } },
   { name: "payout", kind: "seq", seconds: 15 },
   {
