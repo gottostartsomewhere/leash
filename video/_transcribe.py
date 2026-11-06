@@ -23,6 +23,20 @@ def key() -> str:
 
 
 token = key()
+def out_name(p: pathlib.Path, n: int) -> str:
+    """Named after the file, not after its position on the command line.
+
+    Numbering by position meant transcribing one file wrote `_take1.json`
+    whatever that file was, so checking the assembled voice track quietly
+    overwrote the word timings the assembly is built from.
+    """
+    if "(1)" in p.name:
+        return "_take2.json"
+    if p.name.startswith("Record"):
+        return "_take1.json"
+    return f"_{p.stem.replace('-', '_')}.json"
+
+
 for n, path in enumerate(sys.argv[1:], start=1):
     p = pathlib.Path(path)
     with httpx.Client(timeout=300.0) as client:
@@ -40,7 +54,7 @@ for n, path in enumerate(sys.argv[1:], start=1):
     if r.status_code != 200:
         sys.exit(f"HTTP {r.status_code}: {r.text[:600]}")
     out = r.json()
-    (ROOT / "video" / f"_take{n}.json").write_text(
+    (ROOT / "video" / out_name(p, n)).write_text(
         json.dumps(out, indent=1), encoding="utf-8"
     )
     print(f"\n{'=' * 72}\nTAKE {n}  {p.name}  {out.get('duration')}s\n{'=' * 72}")

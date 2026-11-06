@@ -1,0 +1,1437 @@
+{
+ "task": "transcribe",
+ "language": "English",
+ "duration": 162.17999833599998,
+ "text": " Every agent demo ends the same way. The agent buys the thing, everyone claps, and nobody asks what happens when it buys the wrong thing. Leash is the part that says no, you write a mandate, a total, a ceiling per purchase, which merchants, which categories, how fast. The agent gets a goal, not a budget. It never touches a payment credential. Every purchase it tries runs 11 checks before any money moves. When it is refused, it is not just blocked. It is told what would have cleared. That is the idea. This is it running for real. One mandate $500, a hundred a purchase, named merchants, named categories. Now send an agent as it with a goal and no budget. Find me an office chair. A model chooses the product This is the only decision it gets to make is ruffed on the ceiling told what would clear and it came back inside Now the part that I actually care about A teleagent nothing over a hundred and a competent one does not give up. It splits the purchase. 75 to ACME US, 75 to ACME EU, each clears the cap. Only the cluster does not, refused a structuring. Approved spend settles through PayPal payouts. Real batches, real money, a sandbox account on the other side. Same amount in PayPal's own books. When it comes off, one click mid session, every unsettled hold is dropped. Money that already moved, stays moved. The agent does not know anything changed. It keeps asking, it keeps getting nothing. Two red themes, one of them was a model. 322 attempts, zero breaches. Every other demo shows you what their agent can buy. one shows you what it cannot.",
+ "words": [
+  {
+   "word": "Every",
+   "start": 8.32,
+   "end": 8.42
+  },
+  {
+   "word": "agent",
+   "start": 8.42,
+   "end": 8.8
+  },
+  {
+   "word": "demo",
+   "start": 8.8,
+   "end": 9.18
+  },
+  {
+   "word": "ends",
+   "start": 9.18,
+   "end": 9.62
+  },
+  {
+   "word": "the",
+   "start": 9.62,
+   "end": 9.82
+  },
+  {
+   "word": "same",
+   "start": 9.82,
+   "end": 10.08
+  },
+  {
+   "word": "way.",
+   "start": 10.08,
+   "end": 10.98
+  },
+  {
+   "word": "The",
+   "start": 10.6,
+   "end": 11.16
+  },
+  {
+   "word": "agent",
+   "start": 11.16,
+   "end": 11.48
+  },
+  {
+   "word": "buys",
+   "start": 11.48,
+   "end": 11.8
+  },
+  {
+   "word": "the",
+   "start": 11.8,
+   "end": 12.04
+  },
+  {
+   "word": "thing,",
+   "start": 12.04,
+   "end": 12.6
+  },
+  {
+   "word": "everyone",
+   "start": 12.6,
+   "end": 12.94
+  },
+  {
+   "word": "claps,",
+   "start": 12.94,
+   "end": 13.72
+  },
+  {
+   "word": "and",
+   "start": 13.72,
+   "end": 13.86
+  },
+  {
+   "word": "nobody",
+   "start": 13.86,
+   "end": 14.16
+  },
+  {
+   "word": "asks",
+   "start": 14.16,
+   "end": 14.48
+  },
+  {
+   "word": "what",
+   "start": 14.48,
+   "end": 14.72
+  },
+  {
+   "word": "happens",
+   "start": 14.72,
+   "end": 15.2
+  },
+  {
+   "word": "when",
+   "start": 15.2,
+   "end": 15.4
+  },
+  {
+   "word": "it",
+   "start": 15.4,
+   "end": 15.56
+  },
+  {
+   "word": "buys",
+   "start": 15.56,
+   "end": 15.78
+  },
+  {
+   "word": "the",
+   "start": 15.26,
+   "end": 15.98
+  },
+  {
+   "word": "wrong",
+   "start": 15.98,
+   "end": 16.2
+  },
+  {
+   "word": "thing.",
+   "start": 16.2,
+   "end": 16.82
+  },
+  {
+   "word": "Leash",
+   "start": 17.26,
+   "end": 17.96
+  },
+  {
+   "word": "is",
+   "start": 17.96,
+   "end": 18.16
+  },
+  {
+   "word": "the",
+   "start": 18.16,
+   "end": 18.32
+  },
+  {
+   "word": "part",
+   "start": 18.32,
+   "end": 18.56
+  },
+  {
+   "word": "that",
+   "start": 18.56,
+   "end": 18.8
+  },
+  {
+   "word": "says",
+   "start": 18.8,
+   "end": 19.1
+  },
+  {
+   "word": "no,",
+   "start": 19.1,
+   "end": 19.84
+  },
+  {
+   "word": "you",
+   "start": 19.84,
+   "end": 20
+  },
+  {
+   "word": "write",
+   "start": 20,
+   "end": 20.22
+  },
+  {
+   "word": "a",
+   "start": 20.22,
+   "end": 20.58
+  },
+  {
+   "word": "mandate,",
+   "start": 20.58,
+   "end": 21.04
+  },
+  {
+   "word": "a",
+   "start": 21.04,
+   "end": 21.2
+  },
+  {
+   "word": "total,",
+   "start": 21.2,
+   "end": 21.9
+  },
+  {
+   "word": "a",
+   "start": 21.9,
+   "end": 22.18
+  },
+  {
+   "word": "ceiling",
+   "start": 22.18,
+   "end": 22.4
+  },
+  {
+   "word": "per",
+   "start": 22.4,
+   "end": 22.6
+  },
+  {
+   "word": "purchase,",
+   "start": 22.6,
+   "end": 23.7
+  },
+  {
+   "word": "which",
+   "start": 23.3,
+   "end": 23.92
+  },
+  {
+   "word": "merchants,",
+   "start": 23.92,
+   "end": 24.9
+  },
+  {
+   "word": "which",
+   "start": 24.9,
+   "end": 25.24
+  },
+  {
+   "word": "categories,",
+   "start": 25.24,
+   "end": 26.26
+  },
+  {
+   "word": "how",
+   "start": 26.26,
+   "end": 26.44
+  },
+  {
+   "word": "fast.",
+   "start": 26.44,
+   "end": 28.68
+  },
+  {
+   "word": "The",
+   "start": 29.28,
+   "end": 29.38
+  },
+  {
+   "word": "agent",
+   "start": 29.38,
+   "end": 29.54
+  },
+  {
+   "word": "gets",
+   "start": 29.54,
+   "end": 29.82
+  },
+  {
+   "word": "a",
+   "start": 29.82,
+   "end": 29.98
+  },
+  {
+   "word": "goal,",
+   "start": 29.98,
+   "end": 30.28
+  },
+  {
+   "word": "not",
+   "start": 30.28,
+   "end": 30.72
+  },
+  {
+   "word": "a",
+   "start": 30.72,
+   "end": 30.82
+  },
+  {
+   "word": "budget.",
+   "start": 30.82,
+   "end": 31.52
+  },
+  {
+   "word": "It",
+   "start": 31.08,
+   "end": 31.7
+  },
+  {
+   "word": "never",
+   "start": 31.7,
+   "end": 31.86
+  },
+  {
+   "word": "touches",
+   "start": 31.86,
+   "end": 32.32
+  },
+  {
+   "word": "a",
+   "start": 32.32,
+   "end": 32.6
+  },
+  {
+   "word": "payment",
+   "start": 32.6,
+   "end": 32.94
+  },
+  {
+   "word": "credential.",
+   "start": 32.94,
+   "end": 34.02
+  },
+  {
+   "word": "Every",
+   "start": 33.76,
+   "end": 34.32
+  },
+  {
+   "word": "purchase",
+   "start": 34.32,
+   "end": 34.76
+  },
+  {
+   "word": "it",
+   "start": 34.76,
+   "end": 34.92
+  },
+  {
+   "word": "tries",
+   "start": 34.92,
+   "end": 35.42
+  },
+  {
+   "word": "runs",
+   "start": 35.42,
+   "end": 35.82
+  },
+  {
+   "word": "11",
+   "start": 35.82,
+   "end": 36.14
+  },
+  {
+   "word": "checks",
+   "start": 36.14,
+   "end": 36.46
+  },
+  {
+   "word": "before",
+   "start": 36.46,
+   "end": 36.92
+  },
+  {
+   "word": "any",
+   "start": 36.92,
+   "end": 37.46
+  },
+  {
+   "word": "money",
+   "start": 37.46,
+   "end": 37.98
+  },
+  {
+   "word": "moves.",
+   "start": 37.98,
+   "end": 39.66
+  },
+  {
+   "word": "When",
+   "start": 42.4,
+   "end": 42.98
+  },
+  {
+   "word": "it",
+   "start": 42.98,
+   "end": 43.1
+  },
+  {
+   "word": "is",
+   "start": 43.1,
+   "end": 43.26
+  },
+  {
+   "word": "refused,",
+   "start": 43.26,
+   "end": 43.88
+  },
+  {
+   "word": "it",
+   "start": 43.88,
+   "end": 44
+  },
+  {
+   "word": "is",
+   "start": 44,
+   "end": 44.16
+  },
+  {
+   "word": "not",
+   "start": 44.16,
+   "end": 44.46
+  },
+  {
+   "word": "just",
+   "start": 44.46,
+   "end": 44.7
+  },
+  {
+   "word": "blocked.",
+   "start": 44.7,
+   "end": 45.42
+  },
+  {
+   "word": "It",
+   "start": 45.02,
+   "end": 45.6
+  },
+  {
+   "word": "is",
+   "start": 45.6,
+   "end": 45.78
+  },
+  {
+   "word": "told",
+   "start": 45.78,
+   "end": 46.2
+  },
+  {
+   "word": "what",
+   "start": 46.2,
+   "end": 46.7
+  },
+  {
+   "word": "would",
+   "start": 46.7,
+   "end": 46.94
+  },
+  {
+   "word": "have",
+   "start": 46.94,
+   "end": 47.04
+  },
+  {
+   "word": "cleared.",
+   "start": 47.04,
+   "end": 48.42
+  },
+  {
+   "word": "That",
+   "start": 48.48,
+   "end": 49.02
+  },
+  {
+   "word": "is",
+   "start": 49.02,
+   "end": 49.16
+  },
+  {
+   "word": "the",
+   "start": 49.16,
+   "end": 49.26
+  },
+  {
+   "word": "idea.",
+   "start": 49.26,
+   "end": 50.04
+  },
+  {
+   "word": "This",
+   "start": 49.62,
+   "end": 50.2
+  },
+  {
+   "word": "is",
+   "start": 50.2,
+   "end": 50.36
+  },
+  {
+   "word": "it",
+   "start": 50.36,
+   "end": 50.5
+  },
+  {
+   "word": "running",
+   "start": 50.5,
+   "end": 50.84
+  },
+  {
+   "word": "for",
+   "start": 50.84,
+   "end": 51.28
+  },
+  {
+   "word": "real.",
+   "start": 51.28,
+   "end": 54.22
+  },
+  {
+   "word": "One",
+   "start": 54.3,
+   "end": 54.42
+  },
+  {
+   "word": "mandate $500,",
+   "start": 54.42,
+   "end": 56.44
+  },
+  {
+   "word": "a",
+   "start": 56.44,
+   "end": 56.64
+  },
+  {
+   "word": "hundred",
+   "start": 56.64,
+   "end": 56.82
+  },
+  {
+   "word": "a",
+   "start": 56.82,
+   "end": 56.92
+  },
+  {
+   "word": "purchase,",
+   "start": 56.92,
+   "end": 57.76
+  },
+  {
+   "word": "named",
+   "start": 57.76,
+   "end": 57.92
+  },
+  {
+   "word": "merchants,",
+   "start": 57.92,
+   "end": 58.78
+  },
+  {
+   "word": "named",
+   "start": 58.78,
+   "end": 58.98
+  },
+  {
+   "word": "categories.",
+   "start": 58.98,
+   "end": 60.5
+  },
+  {
+   "word": "Now",
+   "start": 60.56,
+   "end": 61.18
+  },
+  {
+   "word": "send",
+   "start": 61.18,
+   "end": 61.38
+  },
+  {
+   "word": "an",
+   "start": 61.38,
+   "end": 61.52
+  },
+  {
+   "word": "agent",
+   "start": 61.52,
+   "end": 62.06
+  },
+  {
+   "word": "as",
+   "start": 62.06,
+   "end": 62.42
+  },
+  {
+   "word": "it",
+   "start": 62.42,
+   "end": 62.62
+  },
+  {
+   "word": "with",
+   "start": 62.62,
+   "end": 62.86
+  },
+  {
+   "word": "a",
+   "start": 62.86,
+   "end": 63.04
+  },
+  {
+   "word": "goal",
+   "start": 63.04,
+   "end": 63.34
+  },
+  {
+   "word": "and",
+   "start": 63.34,
+   "end": 63.56
+  },
+  {
+   "word": "no",
+   "start": 63.56,
+   "end": 63.8
+  },
+  {
+   "word": "budget.",
+   "start": 63.8,
+   "end": 65.26
+  },
+  {
+   "word": "Find",
+   "start": 65.14,
+   "end": 65.66
+  },
+  {
+   "word": "me",
+   "start": 65.66,
+   "end": 65.96
+  },
+  {
+   "word": "an",
+   "start": 65.96,
+   "end": 66.22
+  },
+  {
+   "word": "office",
+   "start": 66.22,
+   "end": 66.52
+  },
+  {
+   "word": "chair.",
+   "start": 66.52,
+   "end": 68.7
+  },
+  {
+   "word": "A",
+   "start": 73.8,
+   "end": 74.5
+  },
+  {
+   "word": "model",
+   "start": 74.5,
+   "end": 74.78
+  },
+  {
+   "word": "chooses",
+   "start": 74.78,
+   "end": 75.14
+  },
+  {
+   "word": "the",
+   "start": 75.14,
+   "end": 75.36
+  },
+  {
+   "word": "product.",
+   "start": 75.36,
+   "end": 76.1
+  },
+  {
+   "word": "This",
+   "start": 75.82,
+   "end": 76.42
+  },
+  {
+   "word": "is",
+   "start": 76.42,
+   "end": 76.56
+  },
+  {
+   "word": "the",
+   "start": 76.56,
+   "end": 76.72
+  },
+  {
+   "word": "only",
+   "start": 76.72,
+   "end": 76.92
+  },
+  {
+   "word": "decision",
+   "start": 76.92,
+   "end": 77.46
+  },
+  {
+   "word": "it",
+   "start": 77.46,
+   "end": 77.74
+  },
+  {
+   "word": "gets",
+   "start": 77.74,
+   "end": 78
+  },
+  {
+   "word": "to",
+   "start": 78,
+   "end": 78.16
+  },
+  {
+   "word": "make.",
+   "start": 78.16,
+   "end": 79.7
+  },
+  {
+   "word": "is",
+   "start": 79.7,
+   "end": 79.9
+  },
+  {
+   "word": "ruffed",
+   "start": 79.9,
+   "end": 80.16
+  },
+  {
+   "word": "on",
+   "start": 80.16,
+   "end": 80.44
+  },
+  {
+   "word": "the",
+   "start": 80.44,
+   "end": 80.6
+  },
+  {
+   "word": "ceiling,",
+   "start": 80.649994,
+   "end": 81.46999
+  },
+  {
+   "word": "told",
+   "start": 81.46999,
+   "end": 81.67
+  },
+  {
+   "word": "what",
+   "start": 81.67,
+   "end": 81.92999
+  },
+  {
+   "word": "would",
+   "start": 81.92999,
+   "end": 82.07
+  },
+  {
+   "word": "clear,",
+   "start": 82.07,
+   "end": 82.71
+  },
+  {
+   "word": "and",
+   "start": 82.149994,
+   "end": 83.03
+  },
+  {
+   "word": "it",
+   "start": 83.03,
+   "end": 83.149994
+  },
+  {
+   "word": "came",
+   "start": 83.149994,
+   "end": 83.39
+  },
+  {
+   "word": "back",
+   "start": 83.39,
+   "end": 83.729996
+  },
+  {
+   "word": "inside.",
+   "start": 83.729996,
+   "end": 85.09
+  },
+  {
+   "word": "Now",
+   "start": 85.09,
+   "end": 85.549995
+  },
+  {
+   "word": "the",
+   "start": 85.549995,
+   "end": 85.71
+  },
+  {
+   "word": "part",
+   "start": 85.71,
+   "end": 85.95
+  },
+  {
+   "word": "that",
+   "start": 85.95,
+   "end": 86.11
+  },
+  {
+   "word": "I",
+   "start": 86.11,
+   "end": 86.189995
+  },
+  {
+   "word": "actually",
+   "start": 86.189995,
+   "end": 86.509995
+  },
+  {
+   "word": "care",
+   "start": 86.509995,
+   "end": 86.78999
+  },
+  {
+   "word": "about.",
+   "start": 86.78999,
+   "end": 87.49
+  },
+  {
+   "word": "A",
+   "start": 89.009995,
+   "end": 89.21
+  },
+  {
+   "word": "teleagent",
+   "start": 89.21,
+   "end": 90.009995
+  },
+  {
+   "word": "nothing",
+   "start": 90.009995,
+   "end": 90.49
+  },
+  {
+   "word": "over",
+   "start": 90.49,
+   "end": 90.869995
+  },
+  {
+   "word": "a",
+   "start": 90.869995,
+   "end": 91.03
+  },
+  {
+   "word": "hundred",
+   "start": 91.03,
+   "end": 91.39
+  },
+  {
+   "word": "and",
+   "start": 91.39,
+   "end": 91.78999
+  },
+  {
+   "word": "a",
+   "start": 91.78999,
+   "end": 91.909996
+  },
+  {
+   "word": "competent",
+   "start": 91.909996,
+   "end": 92.329994
+  },
+  {
+   "word": "one",
+   "start": 92.329994,
+   "end": 92.61
+  },
+  {
+   "word": "does",
+   "start": 92.61,
+   "end": 92.81
+  },
+  {
+   "word": "not",
+   "start": 92.81,
+   "end": 92.96999
+  },
+  {
+   "word": "give",
+   "start": 92.96999,
+   "end": 93.189995
+  },
+  {
+   "word": "up.",
+   "start": 93.189995,
+   "end": 93.59
+  },
+  {
+   "word": "It",
+   "start": 93.59,
+   "end": 93.649994
+  },
+  {
+   "word": "splits",
+   "start": 93.649994,
+   "end": 94.009995
+  },
+  {
+   "word": "the",
+   "start": 94.009995,
+   "end": 94.189995
+  },
+  {
+   "word": "purchase.",
+   "start": 94.189995,
+   "end": 94.99
+  },
+  {
+   "word": "75",
+   "start": 95.89,
+   "end": 96.369995
+  },
+  {
+   "word": "to",
+   "start": 96.369995,
+   "end": 96.729996
+  },
+  {
+   "word": "ACME",
+   "start": 96.729996,
+   "end": 97.06999
+  },
+  {
+   "word": "US,",
+   "start": 97.06999,
+   "end": 97.67
+  },
+  {
+   "word": "75",
+   "start": 97.67,
+   "end": 98.17
+  },
+  {
+   "word": "to",
+   "start": 98.17,
+   "end": 98.49
+  },
+  {
+   "word": "ACME",
+   "start": 98.49,
+   "end": 98.869995
+  },
+  {
+   "word": "EU,",
+   "start": 98.869995,
+   "end": 99.35
+  },
+  {
+   "word": "each",
+   "start": 99.35,
+   "end": 99.89
+  },
+  {
+   "word": "clears",
+   "start": 99.89,
+   "end": 100.17
+  },
+  {
+   "word": "the",
+   "start": 100.17,
+   "end": 100.42999
+  },
+  {
+   "word": "cap.",
+   "start": 100.42999,
+   "end": 101.509995
+  },
+  {
+   "word": "Only",
+   "start": 101.509995,
+   "end": 102.31
+  },
+  {
+   "word": "the",
+   "start": 102.31,
+   "end": 102.49
+  },
+  {
+   "word": "cluster",
+   "start": 102.49,
+   "end": 102.96999
+  },
+  {
+   "word": "does",
+   "start": 102.96999,
+   "end": 103.28999
+  },
+  {
+   "word": "not,",
+   "start": 103.28999,
+   "end": 104.03
+  },
+  {
+   "word": "refused",
+   "start": 104.03,
+   "end": 104.56999
+  },
+  {
+   "word": "a",
+   "start": 104.56999,
+   "end": 104.71
+  },
+  {
+   "word": "structuring.",
+   "start": 104.71,
+   "end": 105.77
+  },
+  {
+   "word": "Approved",
+   "start": 108.45,
+   "end": 108.92999
+  },
+  {
+   "word": "spend",
+   "start": 108.92999,
+   "end": 109.31
+  },
+  {
+   "word": "settles",
+   "start": 109.31,
+   "end": 109.689995
+  },
+  {
+   "word": "through",
+   "start": 109.689995,
+   "end": 110.09
+  },
+  {
+   "word": "PayPal",
+   "start": 110.09,
+   "end": 110.75
+  },
+  {
+   "word": "payouts.",
+   "start": 110.75,
+   "end": 112.11
+  },
+  {
+   "word": "Real",
+   "start": 111.75,
+   "end": 112.31
+  },
+  {
+   "word": "batches,",
+   "start": 112.31,
+   "end": 113.31
+  },
+  {
+   "word": "real",
+   "start": 113.31,
+   "end": 113.549995
+  },
+  {
+   "word": "money,",
+   "start": 113.549995,
+   "end": 114.11
+  },
+  {
+   "word": "a",
+   "start": 114.11,
+   "end": 114.27
+  },
+  {
+   "word": "sandbox",
+   "start": 114.27,
+   "end": 114.61
+  },
+  {
+   "word": "account",
+   "start": 114.61,
+   "end": 115.03
+  },
+  {
+   "word": "on",
+   "start": 115.03,
+   "end": 115.229996
+  },
+  {
+   "word": "the",
+   "start": 115.229996,
+   "end": 115.34999
+  },
+  {
+   "word": "other",
+   "start": 115.34999,
+   "end": 115.56999
+  },
+  {
+   "word": "side.",
+   "start": 115.56999,
+   "end": 116.509995
+  },
+  {
+   "word": "Same",
+   "start": 120.99,
+   "end": 121.53
+  },
+  {
+   "word": "amount",
+   "start": 121.53,
+   "end": 122.03
+  },
+  {
+   "word": "in",
+   "start": 122.03,
+   "end": 122.33
+  },
+  {
+   "word": "PayPal's",
+   "start": 122.33,
+   "end": 122.95
+  },
+  {
+   "word": "own",
+   "start": 122.95,
+   "end": 123.34999
+  },
+  {
+   "word": "books.",
+   "start": 123.34999,
+   "end": 125.28999
+  },
+  {
+   "word": "When",
+   "start": 129.97,
+   "end": 129.98999
+  },
+  {
+   "word": "it",
+   "start": 129.98999,
+   "end": 130.11
+  },
+  {
+   "word": "comes",
+   "start": 130.11,
+   "end": 130.41
+  },
+  {
+   "word": "off,",
+   "start": 130.41,
+   "end": 131.37
+  },
+  {
+   "word": "one",
+   "start": 131.37,
+   "end": 131.56999
+  },
+  {
+   "word": "click",
+   "start": 131.56999,
+   "end": 131.87
+  },
+  {
+   "word": "mid",
+   "start": 131.87,
+   "end": 132.15
+  },
+  {
+   "word": "session,",
+   "start": 132.15,
+   "end": 132.93
+  },
+  {
+   "word": "every",
+   "start": 132.93,
+   "end": 133.09
+  },
+  {
+   "word": "unsettled",
+   "start": 133.09,
+   "end": 133.59
+  },
+  {
+   "word": "hold",
+   "start": 133.59,
+   "end": 133.87
+  },
+  {
+   "word": "is",
+   "start": 133.87,
+   "end": 134.06999
+  },
+  {
+   "word": "dropped.",
+   "start": 134.06999,
+   "end": 136.53
+  },
+  {
+   "word": "Money",
+   "start": 136.41,
+   "end": 136.89
+  },
+  {
+   "word": "that",
+   "start": 136.89,
+   "end": 137.11
+  },
+  {
+   "word": "already",
+   "start": 137.11,
+   "end": 137.53
+  },
+  {
+   "word": "moved,",
+   "start": 137.53,
+   "end": 138.15
+  },
+  {
+   "word": "stays",
+   "start": 138.15,
+   "end": 138.56999
+  },
+  {
+   "word": "moved.",
+   "start": 138.56999,
+   "end": 139.11
+  },
+  {
+   "word": "The",
+   "start": 138.93,
+   "end": 139.53
+  },
+  {
+   "word": "agent",
+   "start": 139.53,
+   "end": 139.73
+  },
+  {
+   "word": "does",
+   "start": 139.73,
+   "end": 139.95
+  },
+  {
+   "word": "not",
+   "start": 139.95,
+   "end": 140.19
+  },
+  {
+   "word": "know",
+   "start": 140.19,
+   "end": 140.37
+  },
+  {
+   "word": "anything",
+   "start": 140.37,
+   "end": 140.69
+  },
+  {
+   "word": "changed.",
+   "start": 140.69,
+   "end": 141.48999
+  },
+  {
+   "word": "It",
+   "start": 141.01,
+   "end": 141.59
+  },
+  {
+   "word": "keeps",
+   "start": 141.59,
+   "end": 141.81
+  },
+  {
+   "word": "asking,",
+   "start": 141.81,
+   "end": 142.51
+  },
+  {
+   "word": "it",
+   "start": 142.51,
+   "end": 142.73
+  },
+  {
+   "word": "keeps",
+   "start": 142.73,
+   "end": 143.19
+  },
+  {
+   "word": "getting",
+   "start": 143.19,
+   "end": 143.48999
+  },
+  {
+   "word": "nothing.",
+   "start": 143.48999,
+   "end": 144.69
+  },
+  {
+   "word": "Two",
+   "start": 145.10999,
+   "end": 145.70999
+  },
+  {
+   "word": "red",
+   "start": 145.70999,
+   "end": 145.97
+  },
+  {
+   "word": "themes,",
+   "start": 145.97,
+   "end": 146.59
+  },
+  {
+   "word": "one",
+   "start": 146.59,
+   "end": 146.75
+  },
+  {
+   "word": "of",
+   "start": 146.75,
+   "end": 146.91
+  },
+  {
+   "word": "them",
+   "start": 146.91,
+   "end": 147.10999
+  },
+  {
+   "word": "was",
+   "start": 147.10999,
+   "end": 147.29
+  },
+  {
+   "word": "a",
+   "start": 147.29,
+   "end": 147.43
+  },
+  {
+   "word": "model.",
+   "start": 147.43,
+   "end": 150.32999
+  },
+  {
+   "word": "322",
+   "start": 150.10999,
+   "end": 151.60999
+  },
+  {
+   "word": "attempts,",
+   "start": 151.60999,
+   "end": 152.51
+  },
+  {
+   "word": "zero",
+   "start": 152.51,
+   "end": 152.76999
+  },
+  {
+   "word": "breaches.",
+   "start": 152.76999,
+   "end": 155.43
+  },
+  {
+   "word": "Every",
+   "start": 154.97,
+   "end": 155.47
+  },
+  {
+   "word": "other",
+   "start": 155.47,
+   "end": 155.75
+  },
+  {
+   "word": "demo",
+   "start": 155.75,
+   "end": 156.04999
+  },
+  {
+   "word": "shows",
+   "start": 156.04999,
+   "end": 156.35
+  },
+  {
+   "word": "you",
+   "start": 156.35,
+   "end": 156.53
+  },
+  {
+   "word": "what",
+   "start": 156.53,
+   "end": 156.69
+  },
+  {
+   "word": "their",
+   "start": 156.69,
+   "end": 156.97
+  },
+  {
+   "word": "agent",
+   "start": 156.97,
+   "end": 157.10999
+  },
+  {
+   "word": "can",
+   "start": 157.10999,
+   "end": 157.35
+  },
+  {
+   "word": "buy.",
+   "start": 157.35,
+   "end": 157.93
+  },
+  {
+   "word": "one",
+   "start": 158.03,
+   "end": 158.20999
+  },
+  {
+   "word": "shows",
+   "start": 158.20999,
+   "end": 158.53
+  },
+  {
+   "word": "you",
+   "start": 158.53,
+   "end": 158.76999
+  },
+  {
+   "word": "what",
+   "start": 158.76999,
+   "end": 159.07
+  },
+  {
+   "word": "it",
+   "start": 159.07,
+   "end": 159.19
+  },
+  {
+   "word": "cannot.",
+   "start": 159.19,
+   "end": 159.59
+  }
+ ],
+ "segments": null,
+ "x_groq": {
+  "id": "req_01m6rq4hjve3f9yxcc809sp975"
+ }
+}

@@ -12,7 +12,7 @@
 // Every sound effect is synthesised. Nothing is licensed, nothing is
 // downloaded, and nothing costs anything.
 
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import ffmpeg from "ffmpeg-static";
 import fs from "node:fs";
 import path from "node:path";
@@ -32,6 +32,53 @@ function run(args) {
   execFileSync(ffmpeg, ["-hide_banner", "-loglevel", "error", "-y", ...args], {
     stdio: ["ignore", "ignore", "pipe"],
   });
+}
+
+/** Run ffmpeg for what it prints rather than for what it writes.
+ *
+ *  spawnSync, not execFileSync: ffmpeg's filters report on stderr and
+ *  execFileSync hands back stdout, so this read as a file with no silence
+ *  in it at all and every cut quietly fell back to blind padding. */
+function capture(args) {
+  const r = spawnSync(ffmpeg, ["-hide_banner", "-y", ...args], {
+    encoding: "utf-8",
+    maxBuffer: 1 << 26,
+  });
+  return `${r.stdout ?? ""}\n${r.stderr ?? ""}`;
+}
+
+/** Every stretch of real silence in the take.
+ *
+ *  The browser recorder gated this take hard, which is why its noise floor
+ *  is 36dB under the other one, and it means there is true silence between
+ *  almost every word. That is a gift for cutting: a boundary placed inside
+ *  one of these can neither clip the word before it nor let the word after
+ *  it bleed in, because there is nothing there to bleed. */
+function silences() {
+  // -45dB and 30ms, not -50 and 100ms.
+  //
+  // At the coarse setting six of the twenty one boundaries had no silence
+  // within reach at all, because he ran those sentences together without
+  // pausing, and each of them fell back to blind padding and took the
+  // first syllable of the next line with it. Those are exactly the cuts
+  // that sounded wrong. A 30ms dip is not a pause but it is somewhere to
+  // put a boundary, and `snap` still prefers the longest silence it can
+  // find, so a real sentence break wins wherever there is one.
+  const out = capture([
+    "-i", SRC, "-af", "silencedetect=noise=-45dB:d=0.03", "-f", "null", "-",
+  ]);
+  const spans = [];
+  let start = null;
+  for (const line of out.split(/\r?\n/)) {
+    const a = /silence_start:\s*([\d.]+)/.exec(line);
+    const b = /silence_end:\s*([\d.]+)/.exec(line);
+    if (a) start = Number(a[1]);
+    if (b && start !== null) {
+      spans.push({ start, end: Number(b[1]) });
+      start = null;
+    }
+  }
+  return spans;
 }
 
 // ---------------------------------------------------------------- the voice
@@ -60,56 +107,139 @@ const LINES = [
   { name: "mandate", words: [99, 108], at: 53.4 },
   { name: "shopping", words: [109, 124], at: 60.8 },
   { name: "model", words: [125, 138], at: 73.6 },
-  // Starts on "refused", not on the "This is" he added before it.
-  { name: "refusal", words: [141, 153], at: 79.4 },
+  // Keeps the "This is" he added in front of "refused".
+  //
+  // Cutting it off meant starting the clip inside a word: he runs "make.
+  // This is refused" together with no pause anywhere in it, so there was
+  // no silence to put a boundary in and the cut landed mid-syllable. It
+  // came back from the check transcript as "is ruffed". There is a real
+  // pause before "This", the sentence is no worse for carrying it, and a
+  // clean cut beats a tidier script.
+  { name: "refusal", words: [139, 153], at: 79.4 },
   { name: "structuring", words: [154, 161], at: 85.2 },
-  { name: "split", words: [162, 179], at: 88.6 },
+  { name: "split", words: [162, 179], at: 88.8 },
   { name: "addresses", words: [180, 191], at: 95.6 },
-  { name: "catch", words: [192, 199], at: 101.5 },
+  { name: "catch", words: [192, 199], at: 101.9 },
   { name: "money", words: [200, 216], at: 108.2 },
   { name: "books", words: [217, 222], at: 121.0 },
   { name: "revoke", words: [223, 235], at: 129.6 },
   { name: "meaning", words: [236, 254], at: 136.4 },
-  { name: "redteam", words: [255, 263], at: 145.0 },
-  { name: "numbers", words: [264, 267], at: 149.6 },
-  { name: "close", words: [268, 277], at: 154.7 },
-  // Stops before "thank you", which is not in the script and not in the cut.
-  { name: "turn", words: [278, 284], at: 158.5 },
+  { name: "redteam", words: [255, 263], at: 145.3 },
+  { name: "numbers", words: [264, 267], at: 150.1 },
+  // The closing couplet, as one clip, and still stopping before the "thank
+  // you" that is not in the script and not in the cut.
+  //
+  // "...what their agent can buy. This one shows you what it cannot." runs
+  // continuously with no pause between the halves, so splitting them meant
+  // cutting inside "This", and the word simply vanished: the check
+  // transcript heard "buy. one shows you what it cannot." It is one
+  // thought and he delivered it as one, so it is one clip now. Placed so
+  // the turn lands as the end card arrives, which is where it belongs.
+  { name: "close", words: [268, 284], at: 155.0 },
 ];
 
-// Breath room around each cut. Enough that a consonant is never clipped off
-// the front, short enough that the gated silence either side stays silent.
-const LEAD = 0.18;
-const TAIL = 0.30;
+// How much silence to keep either side of a line, at most. Taken out of a
+// real silence rather than added blindly: a fixed tail on a continuous read
+// reaches into the next word, which is why the first mix had the next line
+// bleeding faintly into the end of the one before it.
+const LEAD = 0.25;
+const TAIL = 0.34;
+
+/** Put a cut inside the silence next to a word, never next to the word.
+ *
+ *  `dir` -1 looks backwards from the start of a line, +1 forwards from its
+ *  end. Takes at most 70% of whatever silence it finds, so the boundary
+ *  always has real silence on both sides of it even if Whisper's idea of
+ *  where the word begins is off by a tenth of a second. */
+/** Distance from an instant to a silence, counting nought if it is inside. */
+function reach(t, g) {
+  if (t >= g.start && t <= g.end) return 0;
+  return Math.min(Math.abs(g.start - t), Math.abs(g.end - t));
+}
+
+function snap(t, dir, gaps, limit) {
+  // Gaps that CONTAIN the timestamp, not just gaps that start near it.
+  //
+  // Whisper pads each word's end out to wherever the next word begins, so
+  // the end of a line is reported in the middle of the pause after it
+  // rather than at the sound: "fast." is marked ending at 21.14 when the
+  // audio stops at 19.81 and the silence runs 19.81 to 21.19. Measuring
+  // from the gap's start put that silence 1.33s away and out of range, so
+  // four boundaries found nothing and fell back to blind padding, which is
+  // precisely where the next line was bleeding in.
+  const near = gaps.filter((g) => reach(t, g) <= 0.7);
+  if (!near.length) return { cut: t + dir * limit * 0.5, gap: null };
+  // The longest one within reach. A sentence break is a longer silence than
+  // the gaps between words inside it, so length is what tells them apart.
+  const best = near.reduce((a, b) =>
+    b.end - b.start > a.end - a.start ? b : a,
+  );
+  const room = Math.min(limit, (best.end - best.start) * 0.7);
+  return { cut: dir < 0 ? best.end - room : best.start + room, gap: best };
+}
 
 function cutVoice() {
   const words = JSON.parse(fs.readFileSync(TAKE, "utf-8")).words;
+  const gaps = silences();
   const clips = [];
 
-  console.log("voice\n");
+  console.log(`voice   ${gaps.length} silences found\n`);
   for (const [i, line] of LINES.entries()) {
     const [a, b] = line.words;
-    const from = Math.max(0, words[a].start - LEAD);
-    const to = words[b].end + TAIL;
+    const head = snap(words[a].start, -1, gaps, LEAD);
+    const foot = snap(words[b].end, +1, gaps, TAIL);
+    const from = Math.max(0, head.cut);
+    const to = foot.cut;
     const dur = to - from;
     const next = LINES[i + 1];
     const room = next ? next.at - line.at : RUNTIME - line.at;
     const slack = room - dur;
 
+    // Fade across the silence that was kept, not across the word. 25ms was
+    // enough to stop a click and not nearly enough to stop the edit sounding
+    // like one: the gate drops the floor to nothing between lines, so a
+    // short fade is the noise floor itself appearing and vanishing. A long
+    // one over silence is inaudible, and the line then starts on its own
+    // onset instead of partway up a ramp.
+    // Measured off the silence, not off Whisper's word times, which are
+    // padded and routinely put the "end" of a line a second after the
+    // sound stopped. The fade in finishes as the speech starts; the fade
+    // out begins the instant it stops.
+    const quietIn = head.gap ? head.gap.end - from : 0.03;
+    const quietOut = foot.gap ? to - foot.gap.start : 0.03;
+    const lead = Math.max(0.02, Math.min(quietIn, 0.14));
+    const tail = Math.max(0.03, Math.min(quietOut, 0.26));
+
     const file = path.join(WORK, `vo-${String(i).padStart(2, "0")}-${line.name}.wav`);
     run([
       "-ss", from.toFixed(3), "-t", dur.toFixed(3), "-i", SRC,
       "-ar", String(SR), "-ac", "1",
-      // 25ms either end, so a cut never lands as a click.
-      "-af", `afade=t=in:st=0:d=0.025,afade=t=out:st=${(dur - 0.025).toFixed(3)}:d=0.025`,
+      "-af",
+      `afade=t=in:st=0:d=${lead.toFixed(3)}:curve=qsin,` +
+        `afade=t=out:st=${(dur - tail).toFixed(3)}:d=${tail.toFixed(3)}:curve=qsin`,
       file,
     ]);
     clips.push({ ...line, file, dur });
 
-    const flag = slack < 0 ? "  OVERRUNS" : slack < 0.4 ? "  tight" : "";
+    // The silence actually kept either side. A tail near zero means the cut
+    // landed on the word instead of after it, which is audible as a clipped
+    // consonant or as the next line leaking in under the fade.
+    // Only two things are worth flagging here, and "did a word survive the
+    // cut" is not one of them: checking that against Whisper's word times
+    // flagged nine clips that were all fine, because those times are the
+    // unreliable thing in the first place. The real check is to transcribe
+    // the finished voice track and diff it against the words these spans
+    // claim to carry, which is what `sound/voice-check.mp3` is for.
+    const bad =
+      slack < 0
+        ? "  OVERRUNS"
+        : !head.gap || !foot.gap
+          ? "  NO SILENCE, padded blindly"
+          : "";
     console.log(
       `  ${line.name.padEnd(12)} ${fmt(line.at)}  ${dur.toFixed(2)}s` +
-        `  slack ${slack.toFixed(2)}s${flag}`,
+        `  slack ${slack.toFixed(2)}` +
+        `  quiet ${quietIn.toFixed(2)}/${quietOut.toFixed(2)}${bad}`,
     );
   }
   return clips;
@@ -264,11 +394,6 @@ function buildEffects(els) {
   const names = [...new Set(HITS.map((h) => h.el))];
   const inputs = names.flatMap((n) => ["-i", els[n]]);
 
-  // A bed under all of it: brown noise with everything above 150Hz taken
-  // off, so it reads as room rather than as a sound. Without it the gaps
-  // between lines are digital silence, and digital silence sounds broken.
-  inputs.push("-f", "lavfi", "-i", `anoisesrc=c=brown:a=0.9:d=${RUNTIME}:r=${SR}`);
-  const bedIn = names.length;
 
   // Each element is used more than once, so every placement needs its own
   // copy of it. asplit on the input, one output per use of that element.
@@ -289,12 +414,30 @@ function buildEffects(els) {
     ...inputs,
     "-filter_complex",
     `${splits.join(";")};${placed.join(";")};` +
-      `${mix}amix=inputs=${HITS.length}:normalize=0:dropout_transition=0[hits];` +
-      `[${bedIn}:a]lowpass=f=150,volume=0.10[bed];` +
-      `[hits][bed]amix=inputs=2:normalize=0[out]`,
+      `${mix}amix=inputs=${HITS.length}:normalize=0:dropout_transition=0[out]`,
     "-map", "[out]", "-t", String(RUNTIME), "-ar", String(SR), "-ac", "1",
     path.join(WORK, "effects.wav"),
   ]);
+
+  // Room, as its own track, because it must not duck.
+  //
+  // The take was gated, so between lines there is not a quiet room, there
+  // is nothing at all. That is what makes an entry sound like a switch
+  // being thrown rather than someone starting to speak. A continuous bed
+  // under the whole thing gives the ear something that does not stop, and
+  // it has to be continuous: ducked with the hits it disappears under
+  // every line and reappears after it, which is the same fault again,
+  // slower. Brown noise with everything above 120Hz taken off, low enough
+  // to be felt rather than heard, with its own ends faded so the file does
+  // not start and finish on a step.
+  run([
+    "-f", "lavfi", "-i", `anoisesrc=c=brown:a=0.9:d=${RUNTIME}:r=${SR}`,
+    "-af",
+      `lowpass=f=120,volume=0.085,` +
+      `afade=t=in:st=0:d=1.2,afade=t=out:st=${RUNTIME - 2.5}:d=2.5`,
+    "-ar", String(SR), "-ac", "1", path.join(WORK, "room.wav"),
+  ]);
+
   console.log(`\neffects    ${HITS.length} placements, ${names.length} elements`);
 }
 
@@ -307,10 +450,13 @@ function mix() {
   run([
     "-i", path.join(WORK, "voice.wav"),
     "-i", path.join(WORK, "effects.wav"),
+    "-i", path.join(WORK, "room.wav"),
     "-filter_complex",
       `[0:a]asplit=2[vo][key];` +
       `[1:a][key]sidechaincompress=threshold=0.05:ratio=6:attack=12:release=420[ducked];` +
-      `[vo][ducked]amix=inputs=2:normalize=0:weights=1 0.62[sum];` +
+      // Room goes in flat. It is the one thing in the mix that must not
+      // move, because the whole point of it is that it never stops.
+      `[vo][ducked][2:a]amix=inputs=3:normalize=0:weights=1 0.62 1[sum];` +
       // -13 to land at about -14 LUFS. Single-pass loudnorm undershoots by
       // a little over a decibel here, and -14 is what YouTube normalises
       // to: it turns loud uploads down and leaves quiet ones alone, so a
