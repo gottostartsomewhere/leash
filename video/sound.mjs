@@ -142,7 +142,11 @@ const LINES = [
   // transcript heard "buy. one shows you what it cannot." It is one
   // thought and he delivered it as one, so it is one clip now. Placed so
   // the turn lands as the end card arrives, which is where it belongs.
-  { name: "close", words: [268, 284], at: 155.0 },
+  // 151.75 so the first word lands exactly on 2:32, which is where the
+  // closing card arrives: the clip carries a quarter second of silence
+  // in front of "Every", so the placement sits that much earlier than
+  // the time you hear.
+  { name: "close", words: [268, 284], at: 151.75 },
 ];
 
 // How much silence to keep either side of a line, at most. Taken out of a
