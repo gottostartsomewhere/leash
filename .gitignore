@@ -37,3 +37,6 @@ video/*.mp4
 .idea/
 .DS_Store
 Thumbs.db
+
+# Rendered audio stages. The mix is rebuilt from sound.mjs and the take.
+video/sound/
