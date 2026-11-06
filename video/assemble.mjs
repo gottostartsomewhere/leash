@@ -62,33 +62,40 @@ const FULL = 1.0638;
 // picture moves. Software cuts instead, and lets the interface supply the
 // motion. So there is no drift anywhere in here, only the moment of the cut.
 const SEGMENTS = [
-  // Open on the problem, then say what this is before showing any of it.
-  // Cutting from a title card straight into a dense grid asks the viewer to
-  // work out what they are looking at while it is already moving.
+  // Explain it once in motion, then prove it is real.
+  //
+  // The premise card ("01 the mandate, 02 the check, 03 the record") and
+  // the structuring card ("Two addresses. One merchant.") are both gone:
+  // the flow says each of them better, and says them while something is
+  // moving. Everything after the flow is the live product doing the thing
+  // the animation just promised.
   { name: "problem", kind: "seq", seconds: 7 },
   { name: "lower", kind: "seq", seconds: 5 },
-  { name: "premise", kind: "seq", seconds: 8 },
+  { name: "flow", kind: "seq", seconds: 37 },
 
-  // Slots now sit about two seconds past the footage, no more. A long held
-  // tail is a freeze with a caption on it, and six seconds of that reads as
-  // the video having stalled.
-  { name: "mandate", kind: "seq", seconds: 13 },
-  { name: "shop", kind: "seq", seconds: 21.5, callout: { at: 16.6 } },
-  { name: "statement", kind: "seq", seconds: 4 },
+  { name: "mandate", kind: "seq", seconds: 12 },
+  { name: "shop", kind: "seq", seconds: 20, callout: { at: 15.0 } },
   { name: "structuring", kind: "seq", seconds: 24, callout: { at: 19.0 } },
   { name: "payout", kind: "seq", seconds: 15 },
   {
     name: "paypal",
     kind: "video",
-    seconds: 11,
+    // 9.2s, which is what the two usable stretches actually add up to. A
+    // slot longer than its own footage would silently shorten the segment
+    // and slide every crossfade after it.
+    seconds: 9.2,
     src: `${DESKTOP}/Recording 2026-11-03 204231.mp4`,
     cuts: [
-      { from: 3.4, length: 5 },
-      { from: 14.8, length: 6 },
+      // The balance and the recent list. Ends before 7.4, where the page
+      // is scrolled down to its own footer.
+      { from: 3.4, length: 3.8 },
+      // The Activity page, which is a better view than the one this used
+      // to use and does not straddle the navigation that reloads it.
+      { from: 22.4, length: 5.4 },
     ],
   },
-  { name: "revoke", kind: "seq", seconds: 16, callout: { at: 12.0 } },
-  { name: "tally", kind: "seq", seconds: 9 },
+  { name: "revoke", kind: "seq", seconds: 15, callout: { at: 12.0 } },
+  { name: "tally", kind: "seq", seconds: 8 },
   { name: "closing", kind: "seq", seconds: 6 },
   { name: "endcard", kind: "seq", seconds: 5 },
 ];
