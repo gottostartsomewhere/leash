@@ -9,18 +9,20 @@ after it.
 ## How to read this
 
 - Times are where you **start** the line, not where it ends.
-- Word counts are there so you know whether you are rushing. Roughly
-  **150 words a minute** is a normal speaking pace; this script runs at
-  about **110**, which leaves room to breathe and to stop.
+- Lines are timed at a normal **150 words a minute**. The gaps between them
+  bring the whole thing down to about **108**, which is why it does not
+  feel rushed even though no single line is slow.
 - **The silences are written in and they are not padding.** The picture is
   doing the work in those gaps.
+- Every line ends before the next one starts, with room to spare. If you
+  are colliding with the next cue you are reading too slowly, not too much.
 
 ## The one rule
 
-**Never read what is already on screen.** The cards and the animation
-captions carry the *mechanics*. Your job is the *argument*. There is one
-deliberate exception, the last two lines, where saying it with the card is
-the point.
+**Never read what is already on screen.** The cards, the animation captions
+and the callouts carry the *mechanics*. Your job is the *argument*. There
+is one deliberate exception, the last two lines, where saying it with the
+card is the point.
 
 ---
 
@@ -34,7 +36,7 @@ the screen.
 
 ---
 
-## 0:08 · title, into the animation · ~10s · 24 words
+## 0:08 · title, into the animation · 24 words · ends 0:17.6
 
 Start just as the Leash wordmark settles. Flat delivery. This is the whole
 pitch and it should sound like an observation, not a slogan.
@@ -44,7 +46,7 @@ pitch and it should sound like an observation, not a slogan.
 
 ---
 
-## 0:20 · the animation, act one · ~9s · 23 words
+## 0:20 · the animation, act one · 23 words · ends 0:29.2
 
 The track and the eleven checks are on screen now.
 
@@ -53,7 +55,7 @@ The track and the eleven checks are on screen now.
 
 ---
 
-## 0:31 · the animation, act two · ~10s · 25 words
+## 0:31 · the animation, act two · 25 words · ends 0:41.0
 
 The token is running at the wall.
 
@@ -63,16 +65,14 @@ The token is running at the wall.
 
 ---
 
-## 0:42 · the counter-offer · ~5s · 14 words
+## 0:42 · the counter-offer · 14 words · ends 0:47.6
 
 > And when it is refused, it is not just blocked. It is told what would
 > have cleared.
 
-> *(then stop, let acts three and four play out on their own)*
-
 ---
 
-## 0:49 · the live app · ~4s · 11 words
+## 0:49 · the live app · 11 words · ends 0:53.4
 
 Hard cut from animation to the real thing. Mark the change in your voice.
 
@@ -80,42 +80,42 @@ Hard cut from animation to the real thing. Mark the change in your voice.
 
 ---
 
-## 0:54 · the mandate · ~5s · 13 words
+## 0:54 · the mandate · 13 words · ends 0:59.2
 
 > One mandate. Five hundred dollars. A hundred a purchase. Named merchants,
 > named categories.
 
 ---
 
-## 1:01 · shopping · ~7s · 19 words
+## 1:01 · shopping · 16 words · ends 1:07.4
 
-The shelf is sliding in under you. Real products, real merchants.
+The shelf is sliding in under you. Real products, real merchants, live
+through Channel3.
 
 > Now send an agent at it with a goal and no budget. Find me an office
 > chair.
 
 ---
 
-## 1:12 · the model picks · ~5s · 14 words
+## 1:12 · the model picks · 14 words · ends 1:17.6
 
-The camera is about to push onto the byline. **Say this into the push**, so
-the words land as the name does.
+The result lands at 1:11.7 and the camera pushes onto the byline at 1:15.4.
+**Say this into the push**, so the words land as the model's name does.
 
 > A model chooses the product. That is the only decision it gets to make.
 
 ---
 
-## 1:18 · the refusal · ~8s · 22 words
+## 1:18 · the refusal · 13 words · ends 1:23.2
 
-The callout is counting up while you say it. Name the numbers, do not read
-them off.
+The callout comes up at 1:17.7 with the arithmetic on it. Say the shape of
+it, not the digits.
 
-> It picked a hundred and ninety dollar chair. Refused at the hundred
-> dollar ceiling, told what would clear, and it came back inside.
+> Refused on the ceiling, told what would clear, and it came back inside.
 
 ---
 
-## 1:23 · structuring · ~3s · 7 words
+## 1:25 · structuring · 7 words · ends 1:27.8
 
 Slow down here. This is the beat the whole submission rests on.
 
@@ -123,72 +123,70 @@ Slow down here. This is the beat the whole submission rests on.
 
 ---
 
-## 1:28 · the split · ~7s · 18 words
+## 1:29 · the split · 19 words · ends 1:36.6
 
 > Tell an agent nothing over a hundred, and a competent one does not give
 > up. It splits the purchase.
 
 ---
 
-## 1:36 · two addresses · ~8s · 21 words
+## 1:38 · two addresses · 14 words · ends 1:43.6
 
-> Seventy five to Acme US. Seventy five to Acme EU. Two addresses, one
-> merchant. Each charge clears the cap on its own.
-
----
-
-## 1:45 · the catch · ~5s · 11 words
-
-Land this one hard, then nothing.
-
-> Only the cluster does not. Refused as structuring, with the arithmetic
-> attached.
+> Seventy five to Acme US, seventy five to Acme EU. Each clears the cap.
 
 ---
 
-## 1:52 · the money · ~7s · 17 words
+## 1:44 · the catch · 8 words · ends 1:47.2
+
+Land this one hard, then nothing. The callout is holding the arithmetic
+while you say it.
+
+> Only the cluster does not. Refused as structuring.
+
+---
+
+## 1:52 · the money · 17 words · ends 1:58.8
 
 > Approved spend settles through PayPal Payouts. Real batches, real money,
 > a sandbox account on the other side.
 
 ---
 
-## 2:02 · PayPal's own ledger · ~3s · 6 words
+## 2:02 · PayPal's own ledger · 6 words · ends 2:04.4
 
 > Same amounts, in PayPal's own books.
 
 ---
 
-## 2:10 · revoke · ~6s · 14 words
+## 2:10 · revoke · 13 words · ends 2:15.2
 
-> And it comes off. One click, mid session. Every hold that has not settled
-> is dropped.
-
----
-
-## 2:17 · what revocation actually means · ~8s · 23 words
-
-> Money that already moved stays moved, because that is the truth. The agent
-> does not know anything changed. It keeps asking. It keeps getting nothing.
+> And it comes off. One click, mid session. Every unsettled hold is dropped.
 
 ---
 
-## 2:25 · the red team · ~5s · 12 words
+## 2:16 · what revocation actually means · 20 words · ends 2:24.0
 
-> We pointed two red teams at it. One of them was a model.
+> Money that already moved stays moved. The agent does not know anything
+> changed. It keeps asking, it keeps getting nothing.
 
 ---
 
-## 2:30 · the numbers · ~4s · 10 words
+## 2:25 · the red team · 9 words · ends 2:28.6
+
+> Two red teams. One of them was a model.
+
+---
+
+## 2:29 · the numbers · 8 words · ends 2:32.2
 
 The card is showing 5 / 322 / 0 while you say this. You are naming them,
 not reading them.
 
-> Three hundred and twenty two attempts, five objectives, zero breaches.
+> Three hundred and twenty two attempts, zero breaches.
 
 ---
 
-## 2:33 · the close · ~4s · 10 words
+## 2:33 · the close · 10 words · ends 2:37.0
 
 **The exception to the rule.** The card says these words and so do you.
 Say them with it, not over it.
@@ -197,13 +195,33 @@ Say them with it, not over it.
 
 ---
 
-## 2:37 · the turn · ~3s · 8 words
+## 2:38 · the turn · 7 words · ends 2:40.8
 
 > This one shows you what it cannot.
 
 > *(out, let the end card hold)*
 
 ---
+
+## Where the picture actually cuts
+
+Useful if a line feels like it is landing on the wrong thing. These are the
+real segment boundaries in the finished file, after the crossfades.
+
+| Segment | Runs |
+| --- | --- |
+| problem | 0:00 to 0:07 |
+| wordmark | 0:06.6 to 0:11.6 |
+| flow animation | 0:11.2 to 0:48.2 |
+| mandate | 0:47.9 to 0:59.9 |
+| shop | 0:59.9 to 1:22.9 |
+| structuring | 1:22.5 to 1:46.5 |
+| payout | 1:46.1 to 2:01.1 |
+| PayPal | 2:00.7 to 2:09.9 |
+| revoke | 2:09.3 to 2:24.3 |
+| red team | 2:24.0 to 2:32.0 |
+| closing | 2:31.6 to 2:37.6 |
+| end card | 2:37.2 to 2:42.2 |
 
 ## Numbers, so none of them drift
 
@@ -224,7 +242,8 @@ Two sets of numbers died along the way and are still quotable by accident:
 - **Not a $999 chair.** That was the ranking fallback picking the top of the
   shelf, back when the agent had no model in it. The model picks the
   $190.49 one and the chair it settles on is $97.99. The $999 chair is
-  still visible on the shelf, which is why the wrong number is easy to say.
+  still sitting on the shelf in that same shot, which is why the wrong
+  number is easy to say.
 
 ## Recording notes
 
@@ -234,5 +253,5 @@ Two sets of numbers died along the way and are still quotable by accident:
   so the voice sits on a silent bed and anything in the room will be heard.
 - Lower than feels natural. The material is dry on purpose, and selling it
   harder makes it sound less true.
-- Total spoken: about **300 words over 2:42**, which is unhurried. If you
-  are running out of breath, you are going too fast, not too long.
+- Total spoken: **291 words over 2:42**. That is unhurried. If you are
+  running out of breath, you are going too fast, not too long.
