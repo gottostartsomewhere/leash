@@ -87,7 +87,7 @@
 
       .node .mark {
         font-family: var(--mono);
-        font-size: 19px;
+        font-size: 21px;
         letter-spacing: 0.06em;
         color: var(--ink-2);
       }
@@ -98,7 +98,7 @@
         transform: translateX(-50%);
         white-space: nowrap;
         font-family: var(--mono);
-        font-size: 17px;
+        font-size: 18px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--ink-3);
@@ -115,12 +115,12 @@
       /* The goal, in the words a person would actually use. */
       #goal {
         position: absolute;
-        padding: 13px 22px;
+        padding: 15px 26px;
         border: 1px solid color-mix(in srgb, var(--amber) 42%, transparent);
         border-radius: 3px;
         background: color-mix(in srgb, var(--amber) 9%, var(--panel));
         font-family: var(--mono);
-        font-size: 26px;
+        font-size: 29px;
         color: var(--ink);
         white-space: nowrap;
         opacity: 0;
@@ -129,8 +129,8 @@
       /* -- the shelf ------------------------------------------------------ */
       .card {
         position: absolute;
-        width: 206px;
-        padding: 15px 16px 14px;
+        width: 250px;
+        padding: 17px 18px 16px;
         border: 1px solid var(--line-soft);
         border-radius: 3px;
         background: var(--panel);
@@ -138,7 +138,7 @@
       }
 
       .card .t {
-        font-size: 17px;
+        font-size: 19px;
         font-weight: 500;
         color: var(--ink-2);
         white-space: nowrap;
@@ -147,16 +147,16 @@
       }
 
       .card .p {
-        margin-top: 10px;
+        margin-top: 11px;
         font-family: var(--mono);
-        font-size: 25px;
+        font-size: 30px;
         color: var(--ink);
       }
 
       .card .d {
-        margin-top: 5px;
+        margin-top: 6px;
         font-family: var(--mono);
-        font-size: 14px;
+        font-size: 15px;
         color: var(--ink-4);
       }
 
@@ -207,9 +207,9 @@
         display: flex;
         align-items: center;
         gap: 16px;
-        padding: 14px 22px 14px 18px;
+        padding: 16px 26px 16px 20px;
         border: 1px solid var(--line);
-        border-left: 3px solid var(--amber);
+        border-left: 4px solid var(--amber);
         border-radius: 3px;
         background: var(--raise);
         box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
@@ -219,24 +219,28 @@
 
       .token .amt {
         position: relative;
+        /* Fixed width, because the number rolls from 0.00 up to 150.00 and
+         * a token that changes width while it is travelling wobbles. */
+        min-width: 156px;
+        text-align: right;
         font-family: var(--mono);
-        font-size: 34px;
+        font-size: 40px;
         font-weight: 500;
         color: var(--ink);
       }
 
       .token .strike {
         position: absolute;
-        left: -3px;
+        left: -4px;
         top: 52%;
-        height: 2px;
+        height: 3px;
         width: 0;
         background: var(--red);
       }
 
       .token .to {
         font-family: var(--mono);
-        font-size: 17px;
+        font-size: 19px;
         color: var(--ink-3);
       }
 
@@ -251,12 +255,12 @@
       /* -- labels --------------------------------------------------------- */
       .flag {
         position: absolute;
-        padding: 9px 15px;
+        padding: 11px 18px;
         border: 1px solid color-mix(in srgb, var(--red) 52%, transparent);
         border-radius: 3px;
         background: color-mix(in srgb, var(--red) 13%, var(--panel));
         font-family: var(--mono);
-        font-size: 20px;
+        font-size: 23px;
         letter-spacing: 0.02em;
         color: #f0a493;
         white-space: nowrap;
@@ -270,7 +274,7 @@
         border-radius: 3px;
         background: color-mix(in srgb, var(--amber) 10%, var(--panel));
         font-family: var(--mono);
-        font-size: 23px;
+        font-size: 26px;
         color: var(--amber);
         white-space: nowrap;
         opacity: 0;
@@ -294,7 +298,7 @@
 
       #row span {
         font-family: var(--mono);
-        font-size: 21px;
+        font-size: 23px;
         color: var(--ink-2);
       }
 
@@ -311,7 +315,7 @@
       #sum {
         position: absolute;
         font-family: var(--mono);
-        font-size: 40px;
+        font-size: 46px;
         color: var(--ink);
         white-space: nowrap;
         opacity: 0;
@@ -324,11 +328,11 @@
 
       #stamp {
         position: absolute;
-        padding: 16px 34px;
+        padding: 18px 38px;
         border: 2px solid var(--red);
         border-radius: 3px;
         font-family: var(--mono);
-        font-size: 40px;
+        font-size: 44px;
         font-weight: 700;
         letter-spacing: 0.14em;
         text-transform: uppercase;
@@ -338,11 +342,44 @@
         opacity: 0;
       }
 
+      /* The mandate, written out. Each row lights as its gate is passed, so
+         the track stops being an abstraction halfway through act two. */
+      #checks {
+        position: absolute;
+        display: grid;
+        /* Column flow needs the ROWS pinned, not the columns: with only
+           grid-auto-rows set it lays all eleven out on one line and runs
+           off the edge of the frame. */
+        grid-template-rows: repeat(4, 38px);
+        grid-auto-flow: column;
+        grid-auto-columns: 320px;
+        column-gap: 30px;
+        opacity: 0;
+      }
+
+      .chk {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        font-family: var(--mono);
+        font-size: 19px;
+        color: var(--ink-4);
+      }
+
+      .chk u {
+        width: 9px;
+        height: 9px;
+        border: 1px solid var(--ink-4);
+        border-radius: 50%;
+        text-decoration: none;
+        flex: none;
+      }
+
       #credits {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 66px;
+        bottom: 26px;
         text-align: center;
         font-family: var(--mono);
         font-size: 19px;
@@ -398,6 +435,7 @@
 
       <div id="sum"><span id="sum-a">75</span> + <span id="sum-b">75</span> = <b id="sum-t">150</b></div>
       <div id="stamp">Structuring</div>
+      <div id="checks"></div>
       <div id="credits">Channel3 · Groq · PayPal Payouts · AG Grid · Render</div>
     </div>
 
