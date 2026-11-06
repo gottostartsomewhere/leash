@@ -234,19 +234,84 @@
   const RED = "#e2553d";
   const IDLE = "#4a443e";
 
-  function shelf(cards, t, { arrive, pickAt, leave, pick = 0 }) {
+  // Where a docking card has to end up: the middle of the token it becomes.
+  const DOCK_X = () => START + TOKW / 2;
+  const DOCK_Y = TRACK_Y;
+
+  function shelf(cards, t, { arrive, pickAt, dockAt, leave, pick = 0 }) {
     cards.forEach((c, i) => {
       const inP = cue(t, arrive + i * 0.11, 0.55, ease.hard);
-      const out = cue(t, leave + i * 0.05, 0.5, ease.hard);
       const chosen = i === pick;
       const narrow = cue(t, pickAt, 0.65, ease.hard);
       const dim = chosen ? 0 : narrow;
+
+      if (chosen) {
+        // Down onto the track and out, while the token comes up in the
+        // same place. Without this the token simply appears at the far
+        // left and nothing connects it to the thing that was picked.
+        const d = cue(t, dockAt, 0.62, ease.hard);
+        const box = c.getBoundingClientRect();
+        const cx = c.offsetLeft + box.width / 2;
+        const cy = c.offsetTop + box.height / 2;
+        const dx = (DOCK_X() - cx) * d;
+        const dy = (DOCK_Y - cy) * d;
+        c.style.opacity = inP * (1 - cue(t, dockAt + 0.34, 0.3, ease.hard));
+        c.style.transform =
+          `translate(${(1 - inP) * 96 + dx}px, ${-(1 - inP) * 12 + dy}px) ` +
+          `scale(${(0.97 + 0.03 * inP) * (1 - 0.42 * d)})`;
+        c.classList.toggle("on", narrow > 0.35 && d < 0.6);
+        return;
+      }
+
+      const out = cue(t, leave + i * 0.05, 0.5, ease.hard);
       c.style.opacity = inP * (1 - 0.74 * dim) * (1 - out);
       c.style.transform =
         `translate(${(1 - inP) * 96 + out * 64}px, ${-(1 - inP) * 12}px) ` +
         `scale(${(0.97 + 0.03 * inP) * (1 - 0.05 * dim)})`;
-      c.classList.toggle("on", chosen && narrow > 0.35 && out < 0.1);
+      c.classList.remove("on");
     });
+  }
+
+  /* -- what is happening, in words --------------------------------------
+   * Timed to the beat it describes, not read over the top of it. The
+   * picture was legible as a mechanism and silent about the point of the
+   * mechanism, which is what made it feel like a diagram. */
+
+  const SAID = [
+    { a: 1.0, b: 4.4, t: "An agent is given a goal. Not a budget." },
+    { a: 4.8, b: 8.2, t: "It searches a real catalogue." },
+    { a: 8.6, b: 12.2, t: "It proposes the best thing it can find." },
+    { a: 12.5, b: 15.8, t: "Refused. <s>150</s> is over the <b>100</b> cap." },
+    { a: 16.1, b: 19.6, t: "It is told what <b>would</b> clear, and shops again." },
+    // Two lines, not one. The single line claimed all eleven had passed
+    // while the token was still sitting at the start of the track.
+    { a: 20.0, b: 22.2, t: "It comes back with <b>88</b>." },
+    { a: 22.5, b: 25.0, t: "All eleven checks pass." },
+    { a: 25.4, b: 27.4, t: "Paid, and recorded with its reason." },
+    { a: 28.1, b: 31.2, t: "Now it splits the purchase across two addresses." },
+    { a: 31.5, b: 33.2, t: "Each charge clears the cap on its own." },
+    { a: 33.5, b: 36.6, t: "<s>Together they do not.</s>" },
+  ];
+
+  const sayEl = $("say");
+  const sayRule = sayEl.querySelector(".say-rule");
+  const sayText = sayEl.querySelector(".say-t");
+
+  function say(t) {
+    const cur = SAID.filter((c) => t >= c.a - 0.45 && t < c.b + 0.45).pop();
+    if (!cur) {
+      sayRule.style.width = "0px";
+      sayText.style.opacity = 0;
+      return;
+    }
+    if (sayText.dataset.k !== cur.t) {
+      sayText.innerHTML = cur.t;
+      sayText.dataset.k = cur.t;
+    }
+    const inP = cue(t, cur.a, 0.42, ease.hard);
+    const outP = cue(t, cur.b, 0.3, ease.hard);
+    sayRule.style.width = `${inP * 116 * (1 - outP)}px`;
+    wipe(sayText, inP * (1 - outP));
   }
 
   /* -- the timeline ---------------------------------------------------------- */
@@ -341,18 +406,18 @@
     node($("cat"), cue(t, 3.7, 0.55, ease.back));
     wipe($("cat-cap"), cue(t, 4.1, 0.5, ease.hard));
 
-    shelf(cardsA, t, { arrive: 4.5, pickAt: 7.4, leave: 17.2, pick: 0 });
+    shelf(cardsA, t, { arrive: 4.5, pickAt: 7.0, dockAt: 8.0, leave: 10.4, pick: 0 });
 
     /* ---- act two: the wall ---------------------------------------------- */
 
     {
-      const born = cue(t, 8.6, 0.6, ease.back);
+      const born = cue(t, 8.42, 0.4, ease.hard);
       const gone = cue(t, 17.1, 0.4, ease.hard);
       const x = (t > 16.5 ? L2.at(t) : L1.at(t)) + recoil(t, 12.4);
       t1.style.opacity = born * (1 - gone);
       t1.style.top = `${TRACK_Y - 38}px`;
       t1.style.transform = `translateX(${x}px)`;
-      roll(amtOf(t1), 150, cue(t, 8.8, 0.8), { decimals: 2, grouping: false });
+      roll(amtOf(t1), 150, cue(t, 8.5, 0.55), { decimals: 2, grouping: false });
       strikeOf(t1).style.width = `${cue(t, 13.6, 0.5, ease.hard) * 166}px`;
       t1.classList.toggle("bad", t >= 12.45);
     }
@@ -404,17 +469,17 @@
 
     /* ---- act three: all the way through --------------------------------- */
 
-    shelf(cardsB, t, { arrive: 18.9, pickAt: 20.1, leave: 25.6, pick: 0 });
+    shelf(cardsB, t, { arrive: 18.2, pickAt: 19.6, dockAt: 20.3, leave: 22.4, pick: 0 });
 
     {
-      const born = cue(t, 20.9, 0.5, ease.back);
+      const born = cue(t, 20.72, 0.4, ease.hard);
       const gone = cue(t, 25.7, 0.5, ease.hard);
       t2.style.opacity = born * (1 - gone);
       t2.style.top = `${TRACK_Y - 38}px`;
       t2.style.transform =
         `translate(${L3.at(t)}px, ${gone * 170}px) scale(${1 - 0.16 * gone})`;
       t2.classList.add("ok");
-      roll(amtOf(t2), 88, cue(t, 21.1, 0.7), { decimals: 2, grouping: false });
+      roll(amtOf(t2), 88, cue(t, 20.8, 0.5), { decimals: 2, grouping: false });
     }
 
     {
@@ -486,7 +551,7 @@
       // The total stays away until it is counted, otherwise the line reads
       // "75 + 75 = 0" for half a second and looks broken.
       $("sum-t").style.opacity = cue(t, 31.95, 0.2);
-      roll($("sum-t"), 150, cue(t, 31.95, 0.5), { decimals: 0, grouping: false });
+      roll($("sum-t"), 150, cue(t, 31.95, 0.32), { decimals: 0, grouping: false });
 
       const stamp = $("stamp");
       const st = cue(t, 33.2, 0.5, ease.back) * (1 - cue(t, 36.5, 0.4));
@@ -496,14 +561,16 @@
       stamp.style.transform = `scale(${0.76 + 0.24 * st}) rotate(${(1 - st) * -3}deg)`;
     }
 
+    say(t);
+
     /* ---- the stack that did it ------------------------------------------ */
 
     wipe($("credits"), cue(t, 35.3, 1.0, ease.hard));
 
     // Anything belonging to an act that has not started is off, not merely
     // left wherever the previous frame put it.
-    if (t < 8.5) t1.style.opacity = 0;
-    if (t < 20.8) t2.style.opacity = 0;
+    if (t < 8.4) t1.style.opacity = 0;
+    if (t < 20.7) t2.style.opacity = 0;
     if (t < 27.9) {
       t3.style.opacity = 0;
       t4.style.opacity = 0;

@@ -342,6 +342,42 @@
         opacity: 0;
       }
 
+      /* What is happening, in a sentence. Top left, where the eye starts,
+         and it leads down into the track. The animation was legible as a
+         mechanism and silent about what the mechanism was for. */
+      #say {
+        position: absolute;
+        left: 70px;
+        top: 44px;
+        max-width: 1180px;
+      }
+
+      .say-rule {
+        display: block;
+        width: 0;
+        height: 3px;
+        background: var(--amber);
+        margin-bottom: 16px;
+      }
+
+      .say-t {
+        font-size: 38px;
+        font-weight: 500;
+        letter-spacing: -0.015em;
+        line-height: 1.16;
+      }
+
+      .say-t b {
+        color: var(--amber);
+        font-weight: 500;
+      }
+
+      .say-t s {
+        color: var(--red);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
       /* The mandate, written out. Each row lights as its gate is passed, so
          the track stops being an abstraction halfway through act two. */
       #checks {
@@ -435,6 +471,7 @@
 
       <div id="sum"><span id="sum-a">75</span> + <span id="sum-b">75</span> = <b id="sum-t">150</b></div>
       <div id="stamp">Structuring</div>
+      <div id="say"><i class="say-rule"></i><div class="say-t"></div></div>
       <div id="checks"></div>
       <div id="credits">Channel3 · Groq · PayPal Payouts · AG Grid · Render</div>
     </div>
