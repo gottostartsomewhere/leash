@@ -125,7 +125,14 @@ const LINES = [
   { name: "revoke", words: [223, 235], at: 129.6 },
   { name: "meaning", words: [236, 254], at: 136.4 },
   { name: "redteam", words: [255, 263], at: 145.3 },
-  { name: "numbers", words: [264, 267], at: 150.1 },
+  // Hard on the heels of the red team line, by request, and he is
+  // right: "two red teams, one of them a model" and the count are one
+  // sentence with a comma in it, and a second of air between them made
+  // the number sound like a new topic. 147.9 puts 0.07s between the
+  // last word of one and the first of the next, which is a breath
+  // rather than a pause. It also fixes the sync: the tally card is
+  // gone at 2:32 and the old placement ran the count past it.
+  { name: "numbers", words: [264, 267], at: 147.9 },
   // The closing couplet, as one clip, and still stopping before the "thank
   // you" that is not in the script and not in the cut.
   //
@@ -191,9 +198,6 @@ function cutVoice() {
     const from = Math.max(0, head.cut);
     const to = foot.cut;
     const dur = to - from;
-    const next = LINES[i + 1];
-    const room = next ? next.at - line.at : RUNTIME - line.at;
-    const slack = room - dur;
 
     // Fade across the silence that was kept, not across the word. 25ms was
     // enough to stop a click and not nearly enough to stop the edit sounding
@@ -219,27 +223,35 @@ function cutVoice() {
         `afade=t=out:st=${(dur - tail).toFixed(3)}:d=${tail.toFixed(3)}:curve=qsin`,
       file,
     ]);
-    clips.push({ ...line, file, dur });
+    clips.push({ ...line, file, dur, lead, tail, quietIn, quietOut, head, foot });
+  }
 
-    // The silence actually kept either side. A tail near zero means the cut
-    // landed on the word instead of after it, which is audible as a clipped
-    // consonant or as the next line leaking in under the fade.
-    // Only two things are worth flagging here, and "did a word survive the
-    // cut" is not one of them: checking that against Whisper's word times
-    // flagged nine clips that were all fine, because those times are the
-    // unreliable thing in the first place. The real check is to transcribe
-    // the finished voice track and diff it against the words these spans
-    // claim to carry, which is what `sound/voice-check.mp3` is for.
+  // Reported as the gap between the last word of one line and the first
+  // word of the next, not as the gap between the clips.
+  //
+  // Clips are allowed to overlap, and one pair deliberately does: each
+  // carries a quarter second of silence at the head and a third at the
+  // tail, so two clips can sit over each other by half a second with
+  // nothing but room tone in the overlap. Measuring clip against clip
+  // called that an overrun when the words were still 70ms apart.
+  for (const [i, c] of clips.entries()) {
+    const n = clips[i + 1];
+    // quietIn/quietOut, not lead/tail: those two are the fade lengths and
+    // are capped well below the silence they run over, so using them put
+    // the first word a tenth of a second earlier than it really is.
+    const speechEnds = c.at + c.dur - c.quietOut;
+    const nextBegins = n ? n.at + n.quietIn : RUNTIME;
+    const gap = nextBegins - speechEnds;
     const bad =
-      slack < 0
-        ? "  OVERRUNS"
-        : !head.gap || !foot.gap
+      gap < 0
+        ? "  WORDS COLLIDE"
+        : !c.head.gap || !c.foot.gap
           ? "  NO SILENCE, padded blindly"
           : "";
     console.log(
-      `  ${line.name.padEnd(12)} ${fmt(line.at)}  ${dur.toFixed(2)}s` +
-        `  slack ${slack.toFixed(2)}` +
-        `  quiet ${quietIn.toFixed(2)}/${quietOut.toFixed(2)}${bad}`,
+      `  ${c.name.padEnd(12)} ${fmt(c.at)}  ${c.dur.toFixed(2)}s` +
+        `  gap to next ${gap.toFixed(2)}` +
+        `  quiet ${c.quietIn.toFixed(2)}/${c.quietOut.toFixed(2)}${bad}`,
     );
   }
   return clips;
@@ -274,13 +286,17 @@ function buildVoice(clips) {
 
 // ------------------------------------------------------------------ the bed
 
-/** One synthesised element, rendered once and placed many times. */
-function element(name, filter, dur) {
+/** One synthesised element, rendered once and placed many times.
+ *
+ *  `source` is a complete lavfi source including its own duration, because
+ *  the oscillator and the noise generator spell their arguments
+ *  differently. `chain` is an optional filter pass over it. */
+function element(name, source, chain) {
   const file = path.join(WORK, `sfx-${name}.wav`);
-  run([
-    "-f", "lavfi", "-i", `${filter}:d=${dur}:s=${SR}`,
-    "-ar", String(SR), "-ac", "1", file,
-  ]);
+  const args = ["-f", "lavfi", "-i", source];
+  if (chain) args.push("-af", chain);
+  args.push("-ar", String(SR), "-ac", "1", file);
+  run(args);
   return file;
 }
 
@@ -291,39 +307,45 @@ function makeElements() {
   // a drum rather than a beep because the decay is what the ear reads.
   out.impact = element(
     "impact",
-    "aevalsrc='(0.9*sin(2*PI*52*t)+0.35*sin(2*PI*104*t))*exp(-4.5*t)'",
-    1.4,
+    `aevalsrc='(0.9*sin(2*PI*52*t)+0.35*sin(2*PI*104*t))*exp(-4.5*t)':d=1.4:s=${SR}`,
   );
 
   // The same thing an octave down and slower, for the two cuts that are
   // supposed to land like a door closing.
   out.sub = element(
     "sub",
-    "aevalsrc='(0.95*sin(2*PI*38*t)+0.25*sin(2*PI*76*t))*exp(-2.2*t)'",
-    2.2,
+    `aevalsrc='(0.95*sin(2*PI*38*t)+0.25*sin(2*PI*76*t))*exp(-2.2*t)':d=2.2:s=${SR}`,
   );
 
-  // A riser. The frequency ramps quadratically so it accelerates into the
-  // cut instead of arriving at a constant rate, and the amplitude comes up
-  // with it. Quiet, because it is a lead-in and not an event.
+  // A riser, made of air rather than of pitch.
+  //
+  // The first one swept a sine from 180Hz to 3kHz, which is the textbook
+  // way to build a whistle: one moving partial with nothing around it, so
+  // the ear locks onto it as a note and follows it all the way up. Six of
+  // those in two and a half minutes is somebody whistling at you.
+  // Band-limited noise has no partial to follow, so a rising envelope on
+  // it reads as something approaching instead of something singing. The
+  // band is deliberately narrow at the top: above about 7kHz it starts to
+  // hiss, and the whole point is that it should not draw attention.
   out.riser = element(
     "riser",
-    "aevalsrc='0.5*sin(2*PI*(180*t+1400*t*t))*pow(t/1.1,2.2)'",
-    1.1,
+    `anoisesrc=c=white:a=0.9:d=1.1:r=${SR}`,
+    "highpass=f=620,lowpass=f=6800," +
+      "volume='pow(min(t/1.0,1),2.6)':eval=frame," +
+      "afade=t=out:st=0.92:d=0.18",
   );
 
-  // A tick. The checks firing, and the smallest thing in the mix.
+  // A tick. The checks firing, and the smallest thing in the mix. A pitch
+  // is fine here because it lasts 16ms: too short to be heard as a note.
   out.tick = element(
     "tick",
-    "aevalsrc='0.6*sin(2*PI*2100*t)*exp(-60*t)'",
-    0.09,
+    `aevalsrc='0.6*sin(2*PI*2100*t)*exp(-60*t)':d=0.09:s=${SR}`,
   );
 
   // A soft mark, for a camera landing. Rounder than the tick and lower.
   out.land = element(
     "land",
-    "aevalsrc='0.5*sin(2*PI*520*t)*exp(-11*t)'",
-    0.5,
+    `aevalsrc='0.5*sin(2*PI*520*t)*exp(-11*t)':d=0.5:s=${SR}`,
   );
 
   return out;
@@ -334,10 +356,10 @@ function makeElements() {
 // into a cut, the hit lands on it.
 const HITS = [
   // the problem card, and the wordmark it resolves into
-  { el: "riser", at: 5.5, gain: 0.5 },
+  { el: "riser", at: 5.5, gain: 0.36 },
   { el: "impact", at: 6.6, gain: 0.8 },
   // into the animation
-  { el: "riser", at: 10.1, gain: 0.45 },
+  { el: "riser", at: 10.1, gain: 0.32 },
   { el: "impact", at: 11.2, gain: 0.6 },
   // the mandate being written, and the token setting off
   { el: "land", at: 20.2, gain: 0.5 },
@@ -352,7 +374,7 @@ const HITS = [
   { el: "impact", at: 41.6, gain: 0.7 },
   { el: "land", at: 45.2, gain: 0.45 },
   // hard cut out of the animation into the live app
-  { el: "riser", at: 46.8, gain: 0.6 },
+  { el: "riser", at: 46.8, gain: 0.44 },
   { el: "sub", at: 47.9, gain: 0.95 },
   // the mandate panel, each push
   { el: "land", at: 50.5, gain: 0.4 },
@@ -366,7 +388,7 @@ const HITS = [
   { el: "land", at: 75.4, gain: 0.6 },
   { el: "tick", at: 77.7, gain: 0.45 },
   // into structuring, which is the beat the whole thing rests on
-  { el: "riser", at: 81.4, gain: 0.6 },
+  { el: "riser", at: 81.4, gain: 0.44 },
   { el: "impact", at: 82.5, gain: 0.85 },
   { el: "tick", at: 85.6, gain: 0.45 }, // the second charge
   { el: "land", at: 87.8, gain: 0.5 }, // the cluster
@@ -379,11 +401,11 @@ const HITS = [
   // PayPal's own books
   { el: "land", at: 120.7, gain: 0.5 },
   // revoke
-  { el: "riser", at: 128.2, gain: 0.55 },
+  { el: "riser", at: 128.2, gain: 0.40 },
   { el: "sub", at: 129.3, gain: 1.0 },
   { el: "land", at: 134.0, gain: 0.4 },
   // the tally counting up
-  { el: "riser", at: 142.9, gain: 0.5 },
+  { el: "riser", at: 142.9, gain: 0.36 },
   { el: "impact", at: 144.0, gain: 0.7 },
   // the close
   { el: "impact", at: 151.6, gain: 0.65 },
