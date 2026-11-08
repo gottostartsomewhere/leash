@@ -10,13 +10,15 @@ from __future__ import annotations
 
 import os
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Annotated, Any
+from typing import Annotated, Any, AsyncIterator, Callable, TypeVar
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import mcp_server
 from .agent import Need, ShoppingAgent
 from .catalog import Catalog, CatalogError, build_catalog
 from .config import Settings, settings as default_settings
@@ -93,7 +95,16 @@ TAGS = [
     {"name": "demo", "description": "Rebuild the seeded scenario."},
 ]
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    """Start the agent endpoint's session manager. See `mcp_server.Endpoint`."""
+    async with agent_endpoint.running():
+        yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Leash",
     version="0.1.0",
     summary="Scoped, revocable, auditable spending authority for AI agents",
@@ -111,7 +122,11 @@ app = FastAPI(
         "**Every rule runs on every attempt.** `trace` carries all of them, "
         "passed and failed, with the numbers each one decided on. A refusal "
         "names every reason rather than the first one found, so an agent "
-        "never fixes one problem only to meet the next."
+        "never fixes one problem only to meet the next.\n\n"
+        "**Any agent can be put on a Leash.** The same mandate is served over "
+        "the Model Context Protocol at `/mcp`, so Claude, ChatGPT or any MCP "
+        "client can read it, shop and ask to spend, through the same checks "
+        "and into the same audit log. It has no tool that moves money."
     ),
     license_info={
         "name": "MIT",
@@ -165,6 +180,29 @@ StoreDep = Annotated[Store, Depends(get_store)]
 GatewayDep = Annotated[PayoutGateway, Depends(get_gateway)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 CatalogDep = Annotated[Catalog, Depends(get_catalog)]
+
+_T = TypeVar("_T")
+
+
+def _live(getter: Callable[[], _T]) -> Callable[[], _T]:
+    """A getter that honours dependency overrides.
+
+    The HTTP routes get the store through `Depends`, which the test suite
+    overrides, while the MCP tools call a getter directly, which it does not.
+    Without this the two would quietly diverge in tests: an outside agent's
+    purchase would land in one store while the assertions read another.
+    """
+    return lambda: app.dependency_overrides.get(getter, getter)()
+
+
+# The same mandate, served to agents that are not ours. See mcp_server.
+agent_server = mcp_server.build(
+    store=_live(get_store), catalog=_live(get_catalog), settings=_live(get_settings)
+)
+agent_endpoint = mcp_server.Endpoint(agent_server)
+app.add_route(
+    "/mcp", agent_endpoint, methods=["GET", "POST", "DELETE"], include_in_schema=False
+)
 
 
 def _ledger(store: Store, mandate_id: str) -> Ledger:
