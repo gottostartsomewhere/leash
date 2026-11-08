@@ -20,6 +20,8 @@ Leash resolves payees back to their registrable domain, groups charges by mercha
 
 Revocation works the way it should. One click kills the mandate mid-session. Every hold that has not settled is dropped and the budget returns. Money that already moved stays moved, because that is the truth, and a tool that pretends otherwise is lying to you. The agent does not know anything changed. It keeps asking. It keeps getting nothing.
 
+And it has been attacked. Two red teams went at the mandate, a deterministic search and a model. The search tried 316 ways and got nowhere. The model found a real hole on its first serious run: it sent exactly the $100 cap to one merchant twice and both were allowed, because three separate checks each assumed the boundary belonged to one of the others. That is fixed, and it is the part of this project I am proudest of.
+
 ## How we built it
 
 **Backend** is FastAPI and Pydantic v2. The decision engine is eleven independent checks over an immutable context, each returning a structured result rather than a boolean, so the UI can render why a thing was refused instead of just that it was.
@@ -56,7 +58,7 @@ Four seams use a Protocol with two implementations: the payout gateway, the agen
 
 **Structuring is harder than it sounds.** The naive version groups by payee id and catches nothing, because the whole point is that the addresses differ. Resolving `shop.acme.co.uk` and `pay.acme.com` back to the same merchant means handling compound public suffixes, and getting it wrong in the other direction is worse: merging two genuinely separate merchants would refuse honest purchases.
 
-**A test suite that was quietly lying.** Four tests only passed because nobody on the team had a PayPal key, so the settings fell back to the simulated gateway. They had been green for weeks and would have gone red the moment anyone configured credentials. A hermetic settings fixture fixed it. Separately, migrating to Channel3's real taxonomy exposed three tests named for stock and pacing that were actually passing on a category refusal, so they had been testing nothing at all.
+**A test suite that was quietly lying.** Four tests only passed because no PayPal key had ever been set, so the settings fell back to the simulated gateway. They had been green for weeks and would have gone red the moment anyone configured credentials. A hermetic settings fixture fixed it. Separately, migrating to Channel3's real taxonomy exposed three tests named for stock and pacing that were actually passing on a category refusal, so they had been testing nothing at all.
 
 **`env_file=".env"` resolves against the working directory.** Running uvicorn from one directory up silently fell back to the simulated gateway. Silent fallback is the worst possible failure for this: the demo runs, looks perfect, and moves no money. It now resolves from the module path.
 

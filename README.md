@@ -250,9 +250,12 @@ product would read as out of scope and the engine would look broken while
 working perfectly.
 
 Against the live catalogue the headline beat looks like this: asked for an
-office chair, the agent finds a Bdi Circa at 999.00 from 2modern.com, is
-refused by the 100.00 per-item cap, searches again with 100.00 as a ceiling,
-and buys an Ergonomic Mesh Office Chair at 74.99 from costway.com.
+office chair, a model picks one from the shortlist the catalogue returned, it
+is refused by the 100.00 per-item cap, and the agent searches again with
+100.00 as a ceiling and buys something inside it. In the run in the video the
+model picked a 190.49 chair from overstock.com and the agent settled on a
+97.99 one from bestbuy.com. The index is live, so the chairs differ every
+run. The shape does not.
 
 One detail worth naming, because it cuts against this project's first rule.
 Channel3 returns prices as JSON numbers in dollars and cents, and no float is
