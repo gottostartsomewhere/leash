@@ -6,23 +6,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
     <style>
-      /* The app's own tokens. A thumbnail that does not look like the
-         product is a thumbnail that lies about the product. */
       :root {
         --ground: #0b0a09;
         --ink: #ece7e1;
         --ink-2: #9d958c;
-        --ink-3: #6a635c;
-        --line: #2b2622;
         --amber: #dfa33c;
-        --critical: #e2553d;
-        --green: #7fa37a;
         --ui: "Archivo", "Segoe UI", system-ui, sans-serif;
-        --mono: "JetBrains Mono", "Cascadia Mono", ui-monospace, monospace;
       }
 
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -37,171 +30,127 @@
         position: relative;
       }
 
-      /* A warm lift behind the numbers so the frame is not a flat rectangle,
-         and a vignette so the corners fall away. Both very low contrast:
-         at sidebar size the type has to be the only thing competing. */
-      body::before {
-        content: "";
+      /* -- the screenshots ---------------------------------------------- */
+
+      /* Three real frames from the app, angled and overlapping so the shape
+         reads as "software" from across a room, before any of the detail
+         does. They are turned well down: at sidebar size a bright interface
+         behind a logo is just texture competing with the only thing that
+         has to survive. */
+      .shots {
+        position: absolute;
+        inset: -8%;
+        transform: rotate(-7deg);
+      }
+      .shot {
+        position: absolute;
+        width: 760px;
+        border-radius: 10px;
+        border: 1px solid rgba(236, 231, 225, 0.14);
+        box-shadow: 0 40px 90px rgba(0, 0, 0, 0.7);
+        /* Brightened, not just faded up. The interface is near-black by
+           design, so a dark screenshot at half opacity over a dark ground
+           is an empty rectangle: the first version of this had three of
+           them and you could not see one. Lifting the exposure is what
+           makes it read as a dense product UI; the veil below then takes
+           the brightness back out of the middle where the name sits. */
+        filter: brightness(2.1) contrast(1.04) saturate(1.1);
+      }
+      .shot img { display: block; width: 100%; border-radius: inherit; }
+
+      .shot.a { top: -40px; left: 40px; }
+      .shot.b { top: 300px; left: 560px; width: 700px; }
+      .shot.c { top: 60px; left: 1000px; width: 720px; }
+
+      /* -- the lighting -------------------------------------------------- */
+
+      /* A hole burned in the middle so the wordmark sits on near-black, and
+         the corners pulled down so nothing competes at the edges. This is
+         what makes the logo legible rather than the logo being bigger. */
+      .veil {
         position: absolute;
         inset: 0;
         background:
-          radial-gradient(58% 52% at 22% 40%, rgba(223, 163, 60, 0.11), transparent 70%),
-          radial-gradient(44% 44% at 86% 82%, rgba(226, 85, 61, 0.08), transparent 70%);
+          radial-gradient(46% 50% at 50% 48%, rgba(11, 10, 9, 0.94) 24%, rgba(11, 10, 9, 0.6) 58%, transparent 82%),
+          radial-gradient(125% 105% at 50% 50%, transparent 46%, rgba(11, 10, 9, 0.8) 92%),
+          linear-gradient(180deg, rgba(11, 10, 9, 0.3), rgba(11, 10, 9, 0.12) 40%, rgba(11, 10, 9, 0.55));
+      }
+      /* The one warm note, borrowed from the product's own amber. */
+      .glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(40% 44% at 50% 46%, rgba(223, 163, 60, 0.13), transparent 70%);
       }
 
-      .frame {
-        position: relative;
-        height: 100%;
-        padding: 58px 64px;
+      /* -- the logo ------------------------------------------------------ */
+
+      .lockup {
+        position: absolute;
+        inset: 0;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-      }
-
-      /* -- the rule it is breaking ------------------------------------- */
-
-      .cap {
-        display: inline-flex;
         align-items: center;
-        gap: 14px;
-        font-family: var(--mono);
-        font-size: 25px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--ink-3);
-      }
-      .cap b {
-        font-weight: 700;
-        color: var(--ink-2);
-        letter-spacing: 0.06em;
-      }
-      .cap i {
-        font-style: normal;
-        width: 40px;
-        height: 1px;
-        background: var(--line);
-      }
-
-      /* -- the sum ------------------------------------------------------ */
-
-      .sum {
-        display: flex;
-        align-items: baseline;
+        justify-content: center;
         gap: 30px;
-        font-family: var(--mono);
-        font-weight: 700;
-        font-size: 142px;
-        line-height: 0.92;
-        letter-spacing: -0.03em;
       }
-      .sum .op { color: var(--ink-3); font-size: 96px; }
-
-      /* Each charge clears on its own, and the tick is the whole joke:
-         both are legal, and the pair is not. */
-      .charge { position: relative; }
-      .charge::after {
-        content: "PASSES";
-        position: absolute;
-        left: 4px;
-        top: calc(100% + 14px);
-        font-family: var(--mono);
-        font-size: 21px;
-        font-weight: 400;
-        letter-spacing: 0.2em;
-        color: var(--green);
-      }
-
-      .verdict {
-        margin-top: 76px;
+      .mark-row {
         display: flex;
         align-items: center;
         gap: 34px;
       }
-      .verdict .eq {
-        font-family: var(--mono);
-        font-weight: 700;
-        font-size: 118px;
-        line-height: 1;
-        color: var(--ink-3);
+      /* The app's own mark: an anchor point, a cord with slack in it, and
+         the collar at the far end. Not the favicon's loop-and-handle,
+         which works at 16px in a browser tab and reads as the symbol for
+         Mars once it is four inches wide. */
+      svg.mark {
+        width: 252px;
+        height: 140px;
+        overflow: visible;
+        filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.9));
       }
-      .verdict .word {
-        font-family: var(--ui);
+      .anchor { fill: var(--amber); }
+      .cord,
+      .collar { fill: none; stroke: var(--ink); stroke-linecap: round; }
+
+      .word {
         font-weight: 800;
-        font-size: 128px;
-        line-height: 1;
-        letter-spacing: -0.015em;
-        color: var(--critical);
-        text-transform: uppercase;
+        font-size: 158px;
+        line-height: 0.9;
+        letter-spacing: 0.005em;
+        /* A whisper of a shadow, so the letters hold their edge wherever a
+           screenshot happens to sit behind them. */
+        text-shadow: 0 6px 40px rgba(0, 0, 0, 0.85);
       }
 
-      .why {
-        margin-top: 26px;
-        font-family: var(--mono);
-        font-size: 30px;
-        letter-spacing: 0.02em;
-        color: var(--amber);
-      }
-
-      /* -- who is saying it --------------------------------------------- */
-
-      .foot {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-      }
-      .brand { display: flex; align-items: center; gap: 16px; }
-      .brand svg { width: 46px; height: 46px; overflow: visible; }
-      .brand .ring,
-      .brand .tether { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
-      .brand .handle { fill: var(--amber); stroke: var(--ink); stroke-width: 2; }
-      .brand .word {
-        font-weight: 800;
-        font-size: 46px;
-        letter-spacing: 0.015em;
-      }
       .tag {
-        text-align: right;
-        font-family: var(--mono);
-        font-size: 24px;
-        line-height: 1.45;
-        color: var(--ink-3);
+        font-size: 36px;
+        font-weight: 600;
+        letter-spacing: 0.005em;
+        color: var(--ink-2);
+        text-shadow: 0 4px 24px rgba(0, 0, 0, 0.9);
       }
-      .tag b { display: block; font-weight: 400; color: var(--ink-2); }
+      .tag b { color: var(--ink); font-weight: 700; }
     </style>
   </head>
   <body>
-    <div class="frame">
-      <div class="cap">
-        <span>Per purchase cap</span><i></i><b>$100</b>
-      </div>
+    <div class="shots">
+      <div class="shot a"><img src="thumb/a.jpg" alt="" /></div>
+      <div class="shot b"><img src="thumb/b.jpg" alt="" /></div>
+      <div class="shot c"><img src="thumb/c.jpg" alt="" /></div>
+    </div>
+    <div class="veil"></div>
+    <div class="glow"></div>
 
-      <div>
-        <div class="sum">
-          <span class="charge">$75</span>
-          <span class="op">+</span>
-          <span class="charge">$75</span>
-        </div>
-        <div class="verdict">
-          <span class="eq">=</span>
-          <span class="word">Refused</span>
-        </div>
-        <div class="why">same merchant, two addresses</div>
+    <div class="lockup">
+      <div class="mark-row">
+        <svg class="mark" viewBox="0 0 27 15" aria-hidden="true">
+          <circle class="anchor" cx="2.6" cy="3" r="2.6" />
+          <path class="cord" d="M2.6 3 C 6 13.6, 16.5 13.6, 23.4 5.8" stroke-width="1.4" />
+          <circle class="collar" cx="23.6" cy="5.6" r="2.3" stroke-width="1.4" />
+        </svg>
+        <span class="word">Leash</span>
       </div>
-
-      <div class="foot">
-        <div class="brand">
-          <svg viewBox="0 0 32 32" aria-hidden="true">
-            <circle class="ring" cx="13" cy="19" r="9" />
-            <path class="tether" d="M19.5 12.5 L25.5 6.5" />
-            <circle class="handle" cx="26" cy="6" r="3.5" />
-          </svg>
-          <span class="word">Leash</span>
-        </div>
-        <div class="tag">
-          <b>spending limits for AI agents</b>
-          settled over PayPal Payouts
-        </div>
-      </div>
+      <div class="tag">a spending limit for <b>AI agents</b></div>
     </div>
   </body>
 </html>

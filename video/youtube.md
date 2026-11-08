@@ -81,21 +81,26 @@ agentic commerce, LLM red team, fintech, spending limits, hackathon
 
 ## Thumbnail
 
-`video/thumb.png`, 2560x1440, 542KB. Built from `thumb.html` with
-`node video/thumb.mjs`, in the app's own tokens, so it looks like the
-product rather than like a thumbnail about the product.
+`video/thumb.jpg`, 2560x1440, 306KB. Rebuild with `node video/thumb.mjs`,
+which also writes a PNG and a 1280x720. Upload the JPEG: same resolution,
+a sixth of the PNG's weight, and the PNG sits at 1.78MB against a 2MB
+ceiling, which is too near the edge for a file you pick once.
 
-It leads on the structuring catch rather than on the name, because that is
-the only thing in the project nobody else is showing: two charges that each
-pass, and a refusal anyway. A viewer who reads "$75 + $75 = REFUSED" under
-a "$100 cap" has a question, and the question is the click.
+The wordmark over three real frames of the app, angled and dimmed. Two
+things that were not obvious:
 
-Checked at 320x180, which is the size it is actually chosen at. The sum,
-the verdict, "PASSES" and the wordmark all survive. The line bottom right
-does not, which is fine: it is there for the larger placements.
+The screenshots had to be **brightened**, not just faded up. The interface
+is near-black by design, so dark frames at half opacity over a dark ground
+are empty rectangles. They are lifted about two stops and the veil takes
+the brightness back out of the middle, where the name sits.
 
-Do not use a frame from the video. The interface is legible at full size
-and turns to mush in a sidebar.
+The mark is the app's own, from `App.tsx`: an anchor point, a cord with
+slack in it, a collar. Not the favicon's loop-and-handle, which is right at
+16px in a browser tab and reads as the symbol for Mars once it is four
+inches wide.
+
+Checked at 320x180, which is the size it is chosen at. The wordmark, the
+mark and the tagline all survive.
 
 ## After it is up
 
