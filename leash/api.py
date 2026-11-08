@@ -8,17 +8,20 @@ on the charge, so the grid tells the truth about what actually settled.
 
 from __future__ import annotations
 
+import asyncio
 import os
+import time
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Annotated, Any, AsyncIterator, Callable, TypeVar
+from typing import Annotated, Any, AsyncIterator, Callable, Literal, TypeVar
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import mcp_server
+from .adversary import LLMAdversary, StrategyAdversary
 from .agent import Need, ShoppingAgent
 from .catalog import Catalog, CatalogError, build_catalog
 from .config import Settings, settings as default_settings
@@ -34,7 +37,9 @@ from .payouts import (
     holds_money,
 )
 from .reconcile import reconcile_all, reconcile_batch
+from .redteam import ALL_OBJECTIVES, Suite, run_campaign, world_from
 from .schemas import (
+    AttackOut,
     AttemptIn,
     AttemptOut,
     CatalogOut,
@@ -413,6 +418,108 @@ def revoke_mandate(mandate_id: str, store: StoreDep) -> dict[str, Any]:
         "revoked": True,
         "released_charge_ids": [c.id for c in dropped],
         "summary": dict(ledger.summary()),
+    }
+
+
+#: One model attack at a time. Each one is a few dozen calls to a free model
+#: tier, and a handful of judges pressing the button together would spend
+#: the rate limit on each other instead of on the mandate.
+_model_attack = asyncio.Lock()
+
+_CAMPAIGN_FIELDS = (
+    "objective", "description", "attempts", "allowed", "blocked", "held", "breach", "by_code",
+)
+_MOVE_FIELDS = (
+    "sequence", "strategy", "payee", "category", "amount", "currency",
+    "rationale", "verdict", "codes", "headline",
+)
+
+
+@app.post("/mandates/{mandate_id}/attack", response_model=AttackOut, tags=["mandates"])
+async def attack_mandate(
+    mandate_id: str,
+    store: StoreDep,
+    settings: SettingsDep,
+    by: Literal["strategy", "model"] = "strategy",
+) -> dict[str, Any]:
+    """Point an attacker at this mandate, and report what got through.
+
+    Five objectives: beat the per-purchase cap, beat the per-merchant cap,
+    spend past the total, buy outside the categories, spend after
+    revocation. `by=strategy` is the exhaustive deterministic search, around
+    three hundred attempts in tens of milliseconds. `by=model` hands the same
+    objectives to a language model, which is slower, tries far fewer things,
+    and is the attacker that has found real bugs.
+
+    It runs on a sandbox: a fresh ledger built from this mandate's terms and
+    seeded with the charges it already holds. So it attacks the mandate as it
+    stands, including whatever is already spent, and leaves not one attempt
+    behind in the real one.
+    """
+    ledger = _ledger(store, mandate_id)
+    mandate = ledger.mandate
+    world = world_from(store, mandate)
+    seed = tuple(c for c in ledger.charges() if c.commits)
+
+    if by == "model":
+        brain = build_brain(settings)
+        if brain is None:
+            raise HTTPException(status_code=503, detail="no model is configured on this server")
+        if _model_attack.locked():
+            raise HTTPException(
+                status_code=429, detail="a model attack is already running; try again in a moment"
+            )
+        adversary: Any = LLMAdversary(brain)
+        max_attempts = 8
+    else:
+        adversary = StrategyAdversary()
+        max_attempts = 120
+
+    async def every_objective() -> Suite:
+        start = datetime.now(timezone.utc)
+        return Suite(
+            tuple(
+                [
+                    await run_campaign(
+                        mandate=mandate,
+                        world=world,
+                        objective=objective(),
+                        adversary=adversary,
+                        directory=store.directory,
+                        max_attempts=max_attempts,
+                        start=start,
+                        seed_charges=seed,
+                    )
+                    for objective in ALL_OBJECTIVES
+                ]
+            )
+        )
+
+    began = time.perf_counter()
+    if by == "model":
+        async with _model_attack:
+            suite = await every_objective()
+    else:
+        suite = await every_objective()
+    elapsed = (time.perf_counter() - began) * 1000
+
+    body = suite.to_dict()
+    return {
+        "adversary": adversary.name,
+        "held": suite.held,
+        "attempts": suite.attempts,
+        "blocked": suite.blocked,
+        "allowed": suite.attempts - suite.blocked,
+        "breaches": body["breaches"],
+        "elapsed_ms": round(elapsed),
+        "sandboxed": True,
+        "campaigns": [
+            {
+                **{k: c[k] for k in _CAMPAIGN_FIELDS},
+                "log": [{k: m[k] for k in _MOVE_FIELDS} for m in c["log"]],
+            }
+            for c in body["campaigns"]
+        ],
     }
 
 

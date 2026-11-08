@@ -254,7 +254,10 @@ def build(
                 f"unknown payee {payee!r}; use the payee from a search_products result"
             )
         attempt = Attempt(
-            id=f"att_{uuid.uuid4().hex[:10]}",
+            # `mcp_`, not `att_`, so the screen can say which purchases came
+            # from an outside agent. The decision row carries no origin of
+            # its own, and the id is the one field every view already has.
+            id=f"mcp_{uuid.uuid4().hex[:10]}",
             mandate_id=book.mandate.id,
             payee=payee,
             category=category,

@@ -189,7 +189,10 @@ def test_an_outside_agents_purchase_lands_in_the_same_audit_log(client):
 
     rows = client.get(f"/mandates/{DEMO_MANDATE_ID}/decisions").json()
     rows = rows if isinstance(rows, list) else rows.get("decisions", rows)
-    assert any(r["payee"] == "northwind" and r["verdict"] == "allow" for r in rows)
+    mine = [r for r in rows if r["payee"] == "northwind" and r["verdict"] == "allow"]
+    assert mine
+    # Marked as an outside agent's, which is how the screen badges it.
+    assert mine[0]["attempt_id"].startswith("mcp_")
 
     recent = tool(client, "recent_decisions", limit=1)["decisions"]
     assert recent[0]["amount"] == "40.00 USD"

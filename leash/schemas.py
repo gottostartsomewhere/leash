@@ -362,6 +362,55 @@ class ResetOut(BaseModel):
     payees: list[SeededPayeeOut]
 
 
+class AttackMoveOut(BaseModel):
+    """One attempt an attacker made, and what the mandate said to it."""
+
+    sequence: int
+    strategy: str
+    payee: str
+    category: str
+    amount: int
+    currency: str
+    rationale: str
+    verdict: str
+    codes: list[str]
+    headline: str
+
+
+class AttackCampaignOut(BaseModel):
+    """Everything one attacker tried against one objective."""
+
+    objective: str
+    description: str
+    attempts: int
+    allowed: int
+    blocked: int
+    held: bool
+    breach: str | None
+    by_code: dict[str, int]
+    log: list[AttackMoveOut]
+
+
+class AttackOut(BaseModel):
+    """A red team run against a mandate, on a sandbox copy of it.
+
+    `allowed` counts attempts that cleared because they were inside the
+    rules, which is not a failure: an attacker trying to beat a $100 cap
+    with a $40 purchase gets the $40 purchase. A breach is an objective the
+    attacker actually achieved, and `breaches` lists them.
+    """
+
+    adversary: str
+    held: bool
+    attempts: int
+    blocked: int
+    allowed: int
+    breaches: list[str]
+    elapsed_ms: int
+    sandboxed: bool = True
+    campaigns: list[AttackCampaignOut]
+
+
 def terms(mandate: Mandate) -> dict[str, Any]:
     """Everything the mandate permits, in one readable object.
 

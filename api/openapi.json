@@ -1,6 +1,195 @@
 {
   "components": {
     "schemas": {
+      "AttackCampaignOut": {
+        "description": "Everything one attacker tried against one objective.",
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "integer"
+          },
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "blocked": {
+            "title": "Blocked",
+            "type": "integer"
+          },
+          "breach": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Breach"
+          },
+          "by_code": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Code",
+            "type": "object"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "held": {
+            "title": "Held",
+            "type": "boolean"
+          },
+          "log": {
+            "items": {
+              "$ref": "#/components/schemas/AttackMoveOut"
+            },
+            "title": "Log",
+            "type": "array"
+          },
+          "objective": {
+            "title": "Objective",
+            "type": "string"
+          }
+        },
+        "required": [
+          "objective",
+          "description",
+          "attempts",
+          "allowed",
+          "blocked",
+          "held",
+          "breach",
+          "by_code",
+          "log"
+        ],
+        "title": "AttackCampaignOut",
+        "type": "object"
+      },
+      "AttackMoveOut": {
+        "description": "One attempt an attacker made, and what the mandate said to it.",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Codes",
+            "type": "array"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "payee": {
+            "title": "Payee",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "strategy": {
+            "title": "Strategy",
+            "type": "string"
+          },
+          "verdict": {
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sequence",
+          "strategy",
+          "payee",
+          "category",
+          "amount",
+          "currency",
+          "rationale",
+          "verdict",
+          "codes",
+          "headline"
+        ],
+        "title": "AttackMoveOut",
+        "type": "object"
+      },
+      "AttackOut": {
+        "description": "A red team run against a mandate, on a sandbox copy of it.\n\n`allowed` counts attempts that cleared because they were inside the\nrules, which is not a failure: an attacker trying to beat a $100 cap\nwith a $40 purchase gets the $40 purchase. A breach is an objective the\nattacker actually achieved, and `breaches` lists them.",
+        "properties": {
+          "adversary": {
+            "title": "Adversary",
+            "type": "string"
+          },
+          "allowed": {
+            "title": "Allowed",
+            "type": "integer"
+          },
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "blocked": {
+            "title": "Blocked",
+            "type": "integer"
+          },
+          "breaches": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Breaches",
+            "type": "array"
+          },
+          "campaigns": {
+            "items": {
+              "$ref": "#/components/schemas/AttackCampaignOut"
+            },
+            "title": "Campaigns",
+            "type": "array"
+          },
+          "elapsed_ms": {
+            "title": "Elapsed Ms",
+            "type": "integer"
+          },
+          "held": {
+            "title": "Held",
+            "type": "boolean"
+          },
+          "sandboxed": {
+            "default": true,
+            "title": "Sandboxed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "adversary",
+          "held",
+          "attempts",
+          "blocked",
+          "allowed",
+          "breaches",
+          "elapsed_ms",
+          "campaigns"
+        ],
+        "title": "AttackOut",
+        "type": "object"
+      },
       "AttemptIn": {
         "description": "One proposed spend, submitted by the agent.",
         "properties": {
@@ -1877,6 +2066,63 @@
           }
         },
         "summary": "Get Mandate",
+        "tags": [
+          "mandates"
+        ]
+      }
+    },
+    "/mandates/{mandate_id}/attack": {
+      "post": {
+        "description": "Point an attacker at this mandate, and report what got through.\n\nFive objectives: beat the per-purchase cap, beat the per-merchant cap,\nspend past the total, buy outside the categories, spend after\nrevocation. `by=strategy` is the exhaustive deterministic search, around\nthree hundred attempts in tens of milliseconds. `by=model` hands the same\nobjectives to a language model, which is slower, tries far fewer things,\nand is the attacker that has found real bugs.\n\nIt runs on a sandbox: a fresh ledger built from this mandate's terms and\nseeded with the charges it already holds. So it attacks the mandate as it\nstands, including whatever is already spent, and leaves not one attempt\nbehind in the real one.",
+        "operationId": "attack_mandate_mandates__mandate_id__attack_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mandate_id",
+            "required": true,
+            "schema": {
+              "title": "Mandate Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "by",
+            "required": false,
+            "schema": {
+              "default": "strategy",
+              "enum": [
+                "strategy",
+                "model"
+              ],
+              "title": "By",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttackOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Attack Mandate",
         "tags": [
           "mandates"
         ]
