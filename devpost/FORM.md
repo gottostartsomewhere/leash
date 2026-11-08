@@ -13,21 +13,16 @@ Leash
 
 ## Elevator pitch
 
-166 characters, cap is 200.
+189 characters, cap is 200.
 
 ```
-Every other agent demo shows you what it can buy. This one shows you what it can't: scoped, revocable, auditable spending authority, enforced before PayPal is called.
+Put any AI agent on a Leash over MCP. It catches a $150 buy split into two $75s across one merchant's addresses, it has been attacked by an LLM red team, and it settles over PayPal Payouts.
 ```
 
-<details><summary>The original, if you prefer it (178 chars)</summary>
-
-```
-Scoped, revocable, auditable spending authority for AI agents, settled over PayPal Payouts. Every other demo shows you what their agent can buy. This one shows you what it can't.
-```
-
-It front-loads "PayPal Payouts", which a PayPal judge is scanning for. The
-one above front-loads the hook instead, and is the closing line of the video.
-</details>
+Leads on the one thing neither of the other two Leash entries can say: both
+ship their own built-in agent, and this one takes yours. Then the two things
+neither has at all, structuring detection and a red team that found a real
+bug, then PayPal.
 
 ## About the project
 
@@ -132,15 +127,17 @@ The API runs on a free Render instance and sleeps after fifteen idle minutes, so
 
 What to try, in order:
 
-1. Hit "Run scenario" for the whole sequence end to end.
+1. Hit "Watch it run" for the whole sequence end to end.
 
-2. Open "Send it shopping", type "office chair", and hit "Send the agent". A model picks from a live product catalogue, gets refused at the $100 per-purchase ceiling, is told the largest amount that would have cleared, re-shops under that ceiling, and buys something it is allowed to buy. Its reasoning is printed under the purchase, next to a verdict it did not make. Because the catalogue is live, the exact chairs differ every run.
+2. Hit "Attack it". Three hundred attacks across five objectives are thrown at a sandbox copy of the mandate as it stands, and every one is replayed: none get through, and the real mandate is untouched. Then try "Send a model at it", which is slower and shows the model's own reasoning for each attempt.
 
-3. Open "Ask for one thing" and send $75 to acme_us, then $75 to acme_eu. Both are under the $100 cap and the first is allowed. The second is refused as structuring: same merchant, two addresses. The grid opens an evidence row underneath it with the arithmetic, the window, the cluster total, and the largest amount that would have cleared.
+3. Open "Connect your agent". Add the URL shown there (https://leash-api-sm0h.onrender.com/mcp) to Claude or ChatGPT as a connector, and ask it to buy you an office chair. Its attempts appear in the log within a few seconds, marked "via MCP". Ask it to pay acme_us $75 and then acme_eu $75: the second is caught as structuring and its evidence opens by itself. It has no tool that can move money.
 
-4. Select the approved charges and hit "Approve and pay out". That sends a real PayPal Payouts batch in the sandbox, and each charge then carries the PayPal item id that paid it.
+4. Open "Send it shopping", type "office chair", and hit "Send the agent". A model picks from a live product catalogue, gets refused at the $100 per-purchase ceiling, is told the largest amount that would have cleared, re-shops under that ceiling, and buys something it is allowed to buy. Its reasoning is printed under the purchase. Because the catalogue is live, the exact chairs differ every run.
 
-5. Hit "Revoke", then try to spend anything at all. Every unsettled hold is dropped and the budget returns. Money that already moved stays moved.
+5. Select the held charges and hit "Approve and pay out". That sends a real PayPal Payouts batch in the sandbox, and each charge then carries the PayPal item id that paid it.
+
+6. Hit "Revoke", then try to spend anything at all. Every unsettled hold is dropped and the budget returns. Money that already moved stays moved.
 ```
 
 ## How would you rate your overall experience integrating PayPal?
@@ -214,18 +211,21 @@ I write payment and ledger code. "Have you attacked this with something that doe
 
 # Gallery images, in order
 
-Five, all 1920x1080, in this folder. Devpost shows the first one on the
+Six, all 1920x1080, in this folder. 2 to 5 are captured from the live site by
+`node video/gallery.mjs`, so they show exactly what the link does; 1 is the
+thumbnail, built from those same screens. Devpost puts the first one on the
 project card, so the wordmark leads.
 
 | File | Caption, each under the 140 limit |
 | --- | --- |
-| `1-leash.jpg` | Scoped, revocable, auditable spending authority for AI agents, settled over PayPal Payouts. |
-| `2-mandate.jpg` | The mandate: a total, a ceiling per purchase and per merchant, allowed categories, a pace limit, an expiry. The agent gets a goal. |
-| `3-model-refused.jpg` | A model picked a $190.49 chair. Refused at the $100 ceiling, told what would clear, it came back with one it was allowed to buy. |
-| `4-structuring.jpg` | Two $75 charges, two addresses, one merchant. Each clears the $100 cap on its own. The cluster does not, and the refusal shows why. |
-| `5-paypal.jpg` | The other side: a PayPal sandbox account receiving the payouts. Same amounts, in PayPal's own books. |
+| `1-leash.jpg` | Spending authority for AI agents. Put any agent on a Leash over MCP, attack it yourself, and it settles over PayPal Payouts. |
+| `2-intro.jpg` | What a judge sees first: what is at stake, and three ways in. Watch it run, attack it, or connect your own agent. |
+| `3-model-refused.jpg` | A model chose a $449 chair. Refused at the $100 ceiling and told what would clear, it came back with a $62.39 one inside the rules. |
+| `4-attack.jpg` | 316 attacks across five objectives, on a sandbox copy of the mandate as it stands. None got through, and the real one is untouched. |
+| `5-any-agent.jpg` | An outside agent over MCP: every attempt badged in the log, and its split across acme's two addresses caught as structuring. |
+| `6-paypal.jpg` | The other side: a PayPal sandbox account receiving the payouts. Same amounts, in PayPal's own books. |
 
-Lengths: 91, 130, 128, 131, 100.
+Lengths: 124, 113, 131, 131, 124, 100.
 
 # Upload a File (optional)
 

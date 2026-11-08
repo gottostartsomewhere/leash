@@ -108,7 +108,11 @@ npm --prefix web run dev
 Then open <http://localhost:5173>. Vite proxies `/api` to port 8000, so the
 browser only ever talks to one origin.
 
-**Run scenario** resets the demo and plays eleven spends: six clear, five are
+A first visit opens on one sentence about what is at stake and three ways
+in: watch it run, attack it, or connect your own agent. It folds to a single
+line after the first, and remembers that per browser.
+
+**Watch it run** (or **Run scenario** above the log) resets the demo and plays eleven spends: six clear, five are
 refused, and the fifth attempt is a 150 purchase split into two 75 charges
 across Acme's two receiver addresses. That row opens itself, because it is the
 one worth looking at.
@@ -127,7 +131,9 @@ Notes on the grid, since it is doing real work:
   out during a build expires before anyone judges it, and a demo that degrades
   on a date is not a demo.
 
-The console at the bottom has two modes.
+The console at the bottom has four modes. **Try to break it** and **Connect
+your agent** are described under [The AI](#the-ai) and
+[Any agent, over MCP](#any-agent-over-mcp). The other two:
 
 **Ask for one thing** sends a single spend by hand. It stays usable after
 revocation on purpose: asking a dead mandate for money and watching it refuse
@@ -195,6 +201,12 @@ python scripts/redteam.py --adversary both     # strategy search and model
 python scripts/redteam.py --adversary llm      # model only, needs the key
 ```
 
+It also runs from the screen, under **Try to break it**, through
+`POST /mandates/{id}/attack?by=strategy|model`. That builds a fresh ledger
+from the mandate's terms, seeds it with the charges the real one already
+holds, and attacks the copy, so it tests the mandate as it actually stands
+and leaves nothing behind in it.
+
 The deterministic attacker has been over this mandate 316 ways and never got
 through. The model found a hole on its first serious run: a charge of exactly
 the per-purchase cap, which the per-item check allows because it refuses only
@@ -208,6 +220,38 @@ Both models fall back to something deterministic when Groq is unavailable. A
 rate limit, a timeout, or a reply that is not valid JSON drops to the
 catalogue's own ranking rather than failing the request, so the app runs with
 no key at all and the whole test suite passes either way.
+
+### Any agent, over MCP
+
+The built-in shopper is a demonstration. The product is the layer between an
+agent and the money, and that layer is more useful the less it cares whose
+agent is on the other side. So the same mandate is served over the Model
+Context Protocol at `/mcp`:
+
+```
+https://leash-api-sm0h.onrender.com/mcp      # deployed
+http://127.0.0.1:8000/mcp                    # local
+```
+
+Add it as a connector in Claude or ChatGPT, or any MCP client over
+streamable HTTP, and the agent gets four tools: `read_mandate`,
+`search_products`, `request_purchase`, `recent_decisions`. Its purchases go
+through the same eleven checks into the same ledger the screen reads, badged
+*via MCP* in the grid, and the screen picks them up as they happen.
+
+There is no tool that moves money, revokes, or edits the mandate. An allowed
+purchase is a hold, and holds are released by a person, so an outside agent
+gets exactly the authority it would have over HTTP, which is to ask.
+
+```bash
+python scripts/agent_probe.py https://leash-api-sm0h.onrender.com/mcp
+```
+
+connects with the official client and runs the three beats: too expensive
+and told what would clear, back inside the cap, and a split across one
+merchant's two addresses caught as structuring. `tests/test_mcp.py` drives
+the same thing through the whole app, including the production Host header,
+which the SDK's default DNS-rebinding protection would refuse with a 421.
 
 ### Deploying it
 

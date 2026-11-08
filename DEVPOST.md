@@ -12,7 +12,7 @@ Leash
 
 *(Devpost caps this around 200 characters.)*
 
-Scoped, revocable, auditable spending authority for AI agents, settled over PayPal Payouts. Every other demo shows you what their agent can buy. This one shows you what it can't.
+Put any AI agent on a Leash over MCP. It catches a $150 buy split into two $75s across one merchant's addresses, it has been attacked by an LLM red team, and it settles over PayPal Payouts.
 
 ---
 
@@ -40,7 +40,9 @@ Leash resolves payees back to their registrable domain, groups charges by mercha
 
 Revocation works the way it should. One click kills the mandate mid-session. Every hold that has not settled is dropped and the budget returns. Money that already moved stays moved, because that is the truth, and a tool that pretends otherwise is lying to you. The agent does not know anything changed. It keeps asking. It keeps getting nothing.
 
-And it has been attacked. Two red teams went at the mandate, a deterministic search and a model. The search tried 316 ways and got nowhere. The model found a real hole on its first serious run: it sent exactly the $100 cap to one merchant twice and both were allowed, because three separate checks each assumed the boundary belonged to one of the others. That is fixed, and it is the part of this project I am proudest of.
+**Any agent can be put on it.** The mandate is also served over the Model Context Protocol, so Claude, ChatGPT or anything else that speaks MCP can connect with one URL, read the mandate, search the live catalogue and ask to spend, through the same eleven checks and into the same audit log. Nothing it can call moves money. An allowed purchase is a hold, and a person releases it. Point your own Claude at it and watch its attempts land on the screen as they happen, each one marked *via MCP*.
+
+And it has been attacked. Two red teams went at the mandate, a deterministic search and a model. The search tried 316 ways and got nowhere. The model found a real hole on its first serious run: it sent exactly the $100 cap to one merchant twice and both were allowed, because three separate checks each assumed the boundary belonged to one of the others. That is fixed, and it is the part of this project I am proudest of. You can attack it yourself: one button throws the same 316 attempts at a sandbox copy of the mandate as it stands, and replays every one.
 
 ### How I built it
 
@@ -70,9 +72,13 @@ The other model is the attacker, which is the one that found the bug above.
 
 Both run on Groq, and both degrade to something deterministic when the model is unavailable: a rate limit, a timeout, or JSON that is not JSON falls back to the catalogue's own ranking rather than failing the request. I found that one the hard way when Groq decommissioned `llama-3.1-8b-instant` mid-build and the agent carried on shopping without telling me.
 
+**Any agent** comes through the official MCP Python SDK, served as stateless streamable HTTP from inside the same FastAPI app, so an outside agent and the screen read one ledger. Four tools: `read_mandate`, `search_products`, `request_purchase`, `recent_decisions`. What is missing is the point. There is no tool that moves money, revokes, or edits the mandate, so an outside agent gets exactly the authority it would have over HTTP, which is to ask. Its attempts carry an `mcp_` id, which is how the grid badges them without a schema change.
+
+**The red team is a button.** `POST /mandates/{id}/attack` builds a fresh ledger from the mandate's terms, seeds it with the charges the real one already holds, and runs the attacker against that. So it attacks the mandate as it actually stands and leaves not one attempt behind in it, both of which are tested. The strategy search does its 316 attempts in well under a second; the screen replays them at a pace a person can follow and says that it is a replay. Model attacks run one at a time, because a few judges pressing the button together would otherwise spend a free rate limit on each other.
+
 **Hosting** is Render, both halves. The API is a web service and the UI is a static site, wired together with `render.yaml`. The free API sleeps after fifteen idle minutes, so `/health` reports which credentials are configured by variable name and never by value, which is also how I found a key that had been pasted onto the wrong service.
 
-Four seams use a Protocol with two implementations: the payout gateway, the agent brain, the adversary, and the catalogue. Each has a real one and a deterministic offline one. With no credentials the entire app runs offline and all 246 tests pass, which is what made it possible to build the rules properly instead of around an API.
+Four seams use a Protocol with two implementations: the payout gateway, the agent brain, the adversary, and the catalogue. Each has a real one and a deterministic offline one. With no credentials the entire app runs offline and all 265 tests pass, which is what made it possible to build the rules properly instead of around an API.
 
 ### Challenges I ran into
 
@@ -81,6 +87,8 @@ Four seams use a Protocol with two implementations: the payout gateway, the agen
 **A test suite that was quietly lying.** Four tests only passed because no PayPal key had ever been set, so the settings fell back to the simulated gateway. They had been green for weeks and would have gone red the moment anyone configured credentials. A hermetic settings fixture fixed it. Separately, migrating to Channel3's real taxonomy exposed three tests named for stock and pacing that were actually passing on a category refusal, so they had been testing nothing at all.
 
 **Every test sent one request at a time**, which is the one situation where checking a limit and then holding the money cannot go wrong. The API is not like that: it serves purchases from a thread pool and payouts from an event loop. Fired at once, thirty-two retries of a single idempotency key made thirty-two holds instead of one, a burst got seven charges through a pace limit of six, and two payout requests for the same charge sent it to PayPal twice, with the second only noticing after the money had gone. The ledger now takes a lock, a payout claims its charges before it calls the processor rather than after, and thirteen tests fire their requests together and fail without the fix.
+
+**Putting an outside agent on it found four more.** The MCP SDK switches on DNS-rebinding protection for a server bound to localhost and then accepts only a localhost Host header, so every request that reached Render came back `421 Misdirected Request`, which no amount of testing on a laptop would have shown. A mounted app's own lifespan never runs, and that lifespan is what starts the session manager. The decision payload carries money as integer minor units, so the first draft told an agent the largest purchase that would clear was "10000", which an agent that takes the field literally reads as ten thousand dollars. And the SDK masks any exception but its own `ToolError`, so an agent that guessed a payee was never told to use the one from a search result. Each has a test now that fails if the bug comes back, checked by putting the bug back.
 
 **`env_file=".env"` resolves against the working directory.** Running uvicorn from one directory up silently fell back to the simulated gateway. Silent fallback is the worst possible failure for this: the demo runs, looks perfect, and moves no money. It now resolves from the module path.
 
@@ -123,13 +131,14 @@ Mandate delegation, so an agent can issue a narrower mandate to a sub-agent and 
 ## Built with
 
 ```
-python  fastapi  pydantic  paypal  paypal-payouts  groq  llm
+python  fastapi  pydantic  paypal  paypal-payouts  groq  llm  mcp
 channel3  ag-grid  render  react  typescript  vite  playwright  ffmpeg
 ```
 
 ## Try it out
 
 - **Live app:** https://leash-web.onrender.com
+- **Connect your own agent (MCP):** https://leash-api-sm0h.onrender.com/mcp
 - **API health:** https://leash-api-sm0h.onrender.com/health
 - **Source:** https://github.com/gottostartsomewhere/leash
 - **Video:** `[YOUTUBE LINK GOES HERE]`
@@ -140,7 +149,9 @@ channel3  ag-grid  render  react  typescript  vite  playwright  ffmpeg
 
 ### What to try, in order
 
-1. Hit **Run scenario** for the whole sequence end to end.
-2. Open **Send it shopping**, type "office chair", and hit **Send the agent**. Watch a model pick a chair, get refused at the ceiling, and come back with one it is allowed to buy. Its reasoning is printed under the purchase.
-3. Open **Ask for one thing** and send $75 to `acme_us`, then $75 to `acme_eu`. Both are under the $100 cap. The second one is refused as structuring.
-4. Hit **Revoke**, then try to spend anything at all.
+1. Hit **Watch it run** for the whole sequence end to end.
+2. Hit **Attack it**. Three hundred attacks hit a sandbox copy of the mandate and every one is replayed. Then try **Send a model at it**.
+3. Open **Connect your agent**, add the URL to Claude or ChatGPT as a connector, and ask it to buy you an office chair. Its attempts appear in the log within a few seconds, marked *via MCP*. Ask it to try paying `acme_us` $75 and `acme_eu` $75 and watch the second get caught.
+4. Open **Send it shopping**, type "office chair", and hit **Send the agent**. A model picks a chair, gets refused at the ceiling, and comes back with one it is allowed to buy. Its reasoning is printed under the purchase.
+5. Select the held charges and hit **Approve and pay out**. That is a real PayPal Payouts batch in the sandbox.
+6. Hit **Revoke**, then try to spend anything at all.
