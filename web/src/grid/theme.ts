@@ -15,8 +15,8 @@ export const leashTheme = themeQuartz.withParams({
 
   headerBackgroundColor: "#121010",
   headerTextColor: "#6a635c",
-  headerFontSize: "10px",
-  headerFontWeight: 600,
+  headerFontSize: "12px",
+  headerFontWeight: 500,
   headerHeight: 32,
 
   rowHeight: 34,

@@ -1,4 +1,5 @@
 import type {
+  AttackReport,
   AttemptBody,
   Balances,
   CatalogResults,
@@ -100,4 +101,22 @@ export const api = {
 
   reconcile: (batchId: string) =>
     post<Record<string, unknown>>(`/payouts/${batchId}/reconcile`),
+
+  /** A red team run against the mandate, on a sandbox copy of it. */
+  attack: (id: string, by: "strategy" | "model") =>
+    post<AttackReport>(`/mandates/${id}/attack?by=${by}`),
 };
+
+/** Where an outside agent connects, as a person would paste it.
+ *
+ *  Never the dev proxy path: "/api/mcp" means nothing to Claude or ChatGPT.
+ *  In development it is the local engine; deployed, it is the public API. */
+export const MCP_URL = BASE.startsWith("http")
+  ? `${BASE}/mcp`
+  : BASE === "/api"
+    ? "http://127.0.0.1:8000/mcp"
+    : `${window.location.origin}/mcp`;
+
+/** Decisions an outside agent made over MCP. The engine gives those
+ *  attempts an `mcp_` id, which is the one field every view already has. */
+export const viaMcp = (attemptId: string) => attemptId.startsWith("mcp_");

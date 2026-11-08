@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import type { CustomCellRendererProps } from "ag-grid-react";
+import { viaMcp } from "../api";
 import { label, money, sentence, withCurrency } from "../format";
 import type { CheckRow, EvidenceRow, GridRow, LogRow, Severity } from "../types";
 
@@ -34,6 +35,19 @@ export function VerdictCell({ data }: CustomCellRendererProps<GridRow>) {
 export function MoneyCell({ data }: CustomCellRendererProps<GridRow>) {
   if (!data || data.kind !== "decision") return null;
   return <span className="num">{money(data.amount, data.currency)}</span>;
+}
+
+/** The payee, and whether an outside agent asked to pay it. A purchase
+ *  requested over MCP is the most interesting row on the screen when a
+ *  person has just pointed their own Claude at it, so it says so. */
+export function PayeeCell({ data }: CustomCellRendererProps<GridRow>) {
+  if (!data || data.kind !== "decision") return null;
+  return (
+    <span className="payee-cell">
+      <span>{data.payee}</span>
+      {viaMcp(data.attempt_id) ? <span className="via-mcp">via MCP</span> : null}
+    </span>
+  );
 }
 
 /* -- charge state ------------------------------------------------------ */

@@ -33,7 +33,7 @@
   --ui: "Archivo", "Segoe UI", system-ui, sans-serif;
   --mono: "JetBrains Mono", "Cascadia Mono", ui-monospace, monospace;
 
-  --rail: 332px;
+  --rail: 300px;
   --topbar: 46px;
 
   color-scheme: dark;
@@ -75,7 +75,7 @@ button {
 
 .shell {
   display: grid;
-  grid-template-rows: var(--topbar) 1fr;
+  grid-template-rows: var(--topbar) auto 1fr;
   height: 100%;
 }
 
@@ -90,9 +90,8 @@ button {
 
 .wordmark {
   font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-size: 17px;
+  letter-spacing: -0.01em;
 }
 
 /* The mark is the subject: a line with slack in it, tethered at one end. */
@@ -159,12 +158,13 @@ button {
   margin-bottom: 12px;
 }
 
+/* Section labels read as words, not as a stencil. They were 10px capitals
+ * with heavy tracking, which looked like a size they were not. */
 .label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.17em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
 }
 
 .hint {
@@ -252,9 +252,7 @@ button {
 }
 
 .gauge-legend .k {
-  font-size: 9.5px;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  font-size: 11px;
   color: var(--ink-3);
 }
 
@@ -631,10 +629,8 @@ button {
 }
 
 .evidence-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .evidence-detail {
@@ -658,10 +654,8 @@ button {
 }
 
 .fact .k {
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-4);
+  font-size: 11px;
+  color: var(--ink-3);
 }
 
 .fact .v {
@@ -787,9 +781,7 @@ button {
 }
 
 .field > span {
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 11.5px;
   color: var(--ink-3);
 }
 
@@ -858,16 +850,15 @@ button {
 }
 
 .console-tab {
-  padding: 7px 12px 6px;
+  padding: 10px 14px 9px;
   border: 0;
   border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--ink-3);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
 }
 
 .console-tab:hover {
@@ -1216,7 +1207,7 @@ button {
 }
 
 .ag-header-cell-text {
-  letter-spacing: 0.13em;
+  letter-spacing: 0;
 }
 
 /* Note: AG Grid cells do not honour text-transform, so anything that needs

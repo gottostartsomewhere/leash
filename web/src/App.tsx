@@ -6,6 +6,9 @@ import { failuresOf, worstOf } from "./grid/renderers";
 import { Authority } from "./panels/Authority";
 import { AskConsole, type AskResult } from "./panels/AskConsole";
 import { ShopPanel } from "./panels/ShopPanel";
+import { AttackPanel } from "./panels/AttackPanel";
+import { ConnectPanel } from "./panels/ConnectPanel";
+import { Intro } from "./Intro";
 import { SCENARIO } from "./scenario";
 import type {
   Charge,
@@ -20,6 +23,33 @@ import type {
 
 const MANDATE_ID = "mnd_demo";
 const wait = (ms: number) => new Promise((done) => setTimeout(done, ms));
+
+type Dock = "ask" | "shop" | "attack" | "connect";
+
+const DOCK: [Dock, string][] = [
+  ["ask", "Ask for one thing"],
+  ["shop", "Send it shopping"],
+  ["attack", "Try to break it"],
+  ["connect", "Connect your agent"],
+];
+
+/** Whether this viewer folded the intro away. A convenience, so a private
+ *  window or blocked storage just shows the intro again. */
+const FOLD_KEY = "leash.intro.folded";
+function remembered(key: string): boolean {
+  try {
+    return window.localStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+function remember(key: string) {
+  try {
+    window.localStorage.setItem(key, "1");
+  } catch {
+    /* storage blocked; the intro just comes back next time */
+  }
+}
 
 /** A tether with slack in it, anchored at one end. */
 function Mark() {
@@ -49,7 +79,9 @@ export default function App() {
   const [selected, setSelected] = useState<string[]>([]);
   const [onlyRefusals, setOnlyRefusals] = useState(false);
   const [query, setQuery] = useState("");
-  const [console_, setConsole] = useState<"ask" | "shop">("ask");
+  const [console_, setConsole] = useState<Dock>("ask");
+  const [introFolded, setIntroFolded] = useState(() => remembered(FOLD_KEY));
+  const [attackKick, setAttackKick] = useState(false);
 
   const [busy, setBusy] = useState(false);
   const [running, setRunning] = useState(false);
@@ -131,6 +163,27 @@ export default function App() {
       cancelled.current = true;
     };
   }, [refresh, say]);
+
+  // Something other than this screen can spend now. An outside agent talking
+  // to /mcp lands in the same ledger, and a person watching their own Claude
+  // shop should see each attempt arrive, not find them after a reload. So
+  // poll, gently. Skipped while this screen has a request of its own in
+  // flight, so a slow poll can never paint an older answer over a newer one,
+  // and while the tab is hidden. A missed poll is not worth an error banner;
+  // the next one will try again.
+  const quiet = useRef(true);
+  useEffect(() => {
+    quiet.current = !busy && !running;
+  }, [busy, running]);
+
+  useEffect(() => {
+    if (!health) return;
+    const tick = window.setInterval(() => {
+      if (!quiet.current || document.visibilityState !== "visible") return;
+      refresh().catch(() => {});
+    }, 4000);
+    return () => window.clearInterval(tick);
+  }, [health, refresh]);
 
   const act = useCallback(
     async (work: () => Promise<void>) => {
@@ -276,6 +329,35 @@ export default function App() {
     [act],
   );
 
+  const foldIntro = useCallback(() => {
+    setIntroFolded(true);
+    remember(FOLD_KEY);
+  }, []);
+
+  const attack = useCallback(
+    (by: "strategy" | "model") => api.attack(MANDATE_ID, by),
+    [],
+  );
+
+  const watch = useCallback(() => {
+    foldIntro();
+    setConsole("ask");
+    void runScenario();
+  }, [foldIntro, runScenario]);
+
+  const attackNow = useCallback(() => {
+    foldIntro();
+    setConsole("attack");
+    setAttackKick(true);
+  }, [foldIntro]);
+
+  const consumeKick = useCallback(() => setAttackKick(false), []);
+
+  const connect = useCallback(() => {
+    foldIntro();
+    setConsole("connect");
+  }, [foldIntro]);
+
   const toggle = useCallback((attemptId: string) => {
     setExpanded((open) => {
       const next = new Set(open);
@@ -363,18 +445,27 @@ export default function App() {
           <Mark />
           <span className="wordmark">Leash</span>
         </span>
-        <span className="topbar-id">
-          <b>{mandate.mandate_id}</b>
-          <span>·</span>
-          <span>{mandate.agent_id}</span>
-        </span>
+        <span className="tagline">Spending authority for AI agents</span>
         <div className="topbar-right">
+          <span className="topbar-id num" title="This mandate, and the agent it was issued to">
+            {mandate.mandate_id} · {mandate.agent_id}
+          </span>
           <span className="chip">
             {health?.gateway === "paypal" ? "PayPal sandbox" : "Simulated payouts"}
           </span>
           <span className={`status ${mandate.status}`}>{mandate.status}</span>
         </div>
       </header>
+
+      <Intro
+        mandate={mandate}
+        collapsed={introFolded}
+        busy={working}
+        onWatch={watch}
+        onAttack={attackNow}
+        onConnect={connect}
+        onCollapse={foldIntro}
+      />
 
       <div className="body">
         <Authority
@@ -484,24 +575,19 @@ export default function App() {
             </div>
           </div>
 
-          <div>
+          <div id="dock" className="dock">
             <div className="console-tabs" role="tablist">
-              <button
-                className={`console-tab${console_ === "ask" ? " on" : ""}`}
-                onClick={() => setConsole("ask")}
-                role="tab"
-                aria-selected={console_ === "ask"}
-              >
-                Ask for one thing
-              </button>
-              <button
-                className={`console-tab${console_ === "shop" ? " on" : ""}`}
-                onClick={() => setConsole("shop")}
-                role="tab"
-                aria-selected={console_ === "shop"}
-              >
-                Send it shopping
-              </button>
+              {DOCK.map(([tab, name]) => (
+                <button
+                  key={tab}
+                  className={`console-tab${console_ === tab ? " on" : ""}`}
+                  onClick={() => setConsole(tab)}
+                  role="tab"
+                  aria-selected={console_ === tab}
+                >
+                  {name}
+                </button>
+              ))}
             </div>
 
             {console_ === "ask" ? (
@@ -514,12 +600,22 @@ export default function App() {
                 note={note}
                 onAsk={ask}
               />
-            ) : (
+            ) : console_ === "shop" ? (
               <ShopPanel
                 catalogName={health?.catalog ?? "static"}
                 busy={working}
                 onShop={shop}
               />
+            ) : console_ === "attack" ? (
+              <AttackPanel
+                busy={working}
+                revoked={mandate.status !== "active"}
+                onAttack={attack}
+                autostart={attackKick}
+                onAutostart={consumeKick}
+              />
+            ) : (
+              <ConnectPanel decisions={decisions} />
             )}
           </div>
         </div>

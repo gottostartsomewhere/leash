@@ -18,6 +18,7 @@ import {
   EvidenceBand,
   HeadroomCell,
   MoneyCell,
+  PayeeCell,
   RulesCell,
   StateCell,
   VerdictCell,
@@ -53,36 +54,37 @@ export function DecisionGrid({
       {
         headerName: "#",
         field: "sequence" as never,
-        width: 72,
-        minWidth: 72,
+        width: 54,
+        minWidth: 54,
         cellClass: "num",
         sortable: true,
         valueGetter: (p: ValueGetterParams<GridRow>) =>
           isDecision(p.data) ? p.data.sequence : null,
       },
       {
-        headerName: "TIME",
-        width: 92,
+        headerName: "Time",
+        width: 84,
         cellClass: "num",
         valueGetter: (p: ValueGetterParams<GridRow>) =>
           isDecision(p.data) ? clockTime(p.data.evaluated_at) : "",
       },
       {
-        headerName: "VERDICT",
-        width: 94,
+        headerName: "Verdict",
+        width: 86,
         cellRenderer: VerdictCell,
         valueGetter: (p: ValueGetterParams<GridRow>) =>
           isDecision(p.data) ? p.data.verdict : "",
       },
       {
-        headerName: "PAYEE",
-        width: 124,
+        headerName: "Payee",
+        width: 150,
+        cellRenderer: PayeeCell,
         valueGetter: (p: ValueGetterParams<GridRow>) =>
           isDecision(p.data) ? p.data.payee : "",
       },
       {
-        headerName: "CATEGORY",
-        width: 108,
+        headerName: "Category",
+        width: 112,
         // Capitalised by formatting the value rather than with CSS: AG Grid's
         // cells do not honour text-transform, so the stylesheet silently did
         // nothing here. The payee column is left alone, because those are
@@ -92,17 +94,17 @@ export function DecisionGrid({
           isDecision(p.data) ? p.data.category : "",
       },
       {
-        headerName: "AMOUNT",
-        width: 108,
+        headerName: "Amount",
+        width: 98,
         type: "rightAligned",
         cellRenderer: MoneyCell,
         valueGetter: (p: ValueGetterParams<GridRow>) =>
           isDecision(p.data) ? p.data.amount : null,
       },
       {
-        headerName: "RULES THAT FIRED",
+        headerName: "Rules that fired",
         flex: 1,
-        minWidth: 240,
+        minWidth: 190,
         sortable: false,
         cellRenderer: RulesCell,
         cellRendererParams: { expanded, onToggle },
@@ -110,16 +112,16 @@ export function DecisionGrid({
           isDecision(p.data) ? p.data.failed_codes.join(" ") : "",
       },
       {
-        headerName: "HEADROOM",
-        width: 142,
+        headerName: "Headroom",
+        width: 128,
         sortable: false,
         cellRenderer: HeadroomCell,
         valueGetter: (p: ValueGetterParams<GridRow>) =>
           isDecision(p.data) ? p.data.max_allowable : null,
       },
       {
-        headerName: "MONEY",
-        width: 104,
+        headerName: "Money",
+        width: 96,
         sortable: true,
         cellRenderer: StateCell,
         // Flashes when a hold turns into a settled payout, so the moment the
@@ -265,8 +267,8 @@ function NoRows() {
     <div className="empty">
       <h3>Nothing has been asked for yet</h3>
       <p>
-        Run the scenario, or send a single spend from the console below. Every
-        decision lands here with the rules it was measured against.
+        Watch it run, ask for something below, or connect your own agent.
+        Every request lands here with every rule it was measured against.
       </p>
     </div>
   );

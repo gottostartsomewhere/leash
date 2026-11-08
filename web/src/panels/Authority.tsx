@@ -35,17 +35,17 @@ function Gauge({ mandate }: { mandate: MandateSummary }) {
       </div>
       <div className="gauge-legend">
         <div>
-          <span className="k">settled</span>
+          <span className="k">Settled</span>
           <span className="v">{money(settled, currency)}</span>
         </div>
         <div>
-          <span className="k">held</span>
+          <span className="k">Held</span>
           <span className="v" style={{ color: held ? "var(--sev-high)" : undefined }}>
             {money(held, currency)}
           </span>
         </div>
         <div>
-          <span className="k">available</span>
+          <span className="k">Available</span>
           <span className="v">{money(available, currency)}</span>
         </div>
       </div>
@@ -182,8 +182,8 @@ export function Authority({
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           <div>
-            <span className="k" style={{ fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-4)" }}>
-              categories
+            <span className="scope-k">
+              Categories
             </span>
             <div className="scope">
               {terms.allowed_categories?.length ? (
@@ -198,8 +198,8 @@ export function Authority({
             </div>
           </div>
           <div>
-            <span className="k" style={{ fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-4)" }}>
-              counterparties
+            <span className="scope-k">
+              Counterparties
             </span>
             <div className="scope">
               {terms.allowed_payees?.length ? (

@@ -202,3 +202,43 @@ export interface EvidenceRow {
 }
 
 export type GridRow = LogRow | EvidenceRow;
+
+/** One attempt a red team made against the mandate. Amounts in minor units. */
+export interface AttackMove {
+  sequence: number;
+  strategy: string;
+  payee: string;
+  category: string;
+  amount: number;
+  currency: string;
+  rationale: string;
+  verdict: "allow" | "block";
+  codes: string[];
+  headline: string;
+}
+
+/** Everything one attacker tried against one objective. */
+export interface AttackCampaign {
+  objective: string;
+  description: string;
+  attempts: number;
+  allowed: number;
+  blocked: number;
+  held: boolean;
+  breach: string | null;
+  by_code: Record<string, number>;
+  log: AttackMove[];
+}
+
+/** A red team run, on a sandbox copy of the mandate. */
+export interface AttackReport {
+  adversary: string;
+  held: boolean;
+  attempts: number;
+  blocked: number;
+  allowed: number;
+  breaches: string[];
+  elapsed_ms: number;
+  sandboxed: boolean;
+  campaigns: AttackCampaign[];
+}

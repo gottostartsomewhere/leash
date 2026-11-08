@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import App from "./App";
 import "./styles.css";
+import "./rebuild.css";
 
 // Community only, and deliberately. An Enterprise trial key taken out now
 // expires before this is judged, and a demo that degrades on a date is not a
