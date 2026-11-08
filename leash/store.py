@@ -214,8 +214,14 @@ def demo_mandate(now: datetime | None = None) -> Mandate:
     )
 
 
-def seed_demo(store: Store, config: Settings | None = None) -> Store:
-    """Load the demo scenario into `store`. This is the reset button."""
+def seed_demo(
+    store: Store, config: Settings | None = None, mandate: Mandate | None = None
+) -> Store:
+    """Load the demo scenario into `store`. This is the reset button.
+
+    `mandate` replaces the default one, which is how a mandate drafted from
+    plain English and signed by a person becomes the one the demo runs.
+    """
     config = config or default_settings()
     store.reset()
     for payee_id, name, group in _DEMO_PAYEES:
@@ -227,7 +233,7 @@ def seed_demo(store: Store, config: Settings | None = None) -> Store:
                 group=group,
             )
         )
-    store.open(demo_mandate())
+    store.open(mandate or demo_mandate())
     return store
 
 

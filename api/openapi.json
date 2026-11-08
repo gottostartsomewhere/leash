@@ -645,6 +645,138 @@
         "title": "DecisionOut",
         "type": "object"
       },
+      "DraftAttackOut": {
+        "properties": {
+          "adversary": {
+            "title": "Adversary",
+            "type": "string"
+          },
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "breaches": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Breaches",
+            "type": "array"
+          },
+          "elapsed_ms": {
+            "title": "Elapsed Ms",
+            "type": "integer"
+          },
+          "held": {
+            "title": "Held",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "adversary",
+          "attempts",
+          "held",
+          "breaches",
+          "elapsed_ms"
+        ],
+        "title": "DraftAttackOut",
+        "type": "object"
+      },
+      "DraftIn": {
+        "description": "What a person is willing to let an agent do, in their own words.",
+        "properties": {
+          "text": {
+            "maxLength": 800,
+            "minLength": 8,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "DraftIn",
+        "type": "object"
+      },
+      "DraftOut": {
+        "description": "A mandate drafted from plain English, checked and attacked, not signed.\n\n`mandate` is the exact body to sign: the terms the person is shown are\nthe terms that would take effect, with nothing filled in afterwards.",
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "attack": {
+            "$ref": "#/components/schemas/DraftAttackOut"
+          },
+          "drafted_by": {
+            "title": "Drafted By",
+            "type": "string"
+          },
+          "exposure": {
+            "items": {
+              "$ref": "#/components/schemas/ExposureOut"
+            },
+            "title": "Exposure",
+            "type": "array"
+          },
+          "mandate": {
+            "$ref": "#/components/schemas/MandateIn-Output"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "unclear": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unclear",
+            "type": "array"
+          }
+        },
+        "required": [
+          "text",
+          "drafted_by",
+          "mandate",
+          "assumptions",
+          "unclear",
+          "exposure",
+          "attack"
+        ],
+        "title": "DraftOut",
+        "type": "object"
+      },
+      "ExposureOut": {
+        "description": "One line of the worst an agent could do inside a mandate.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "loose": {
+            "title": "Loose",
+            "type": "boolean"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "value",
+          "loose",
+          "note"
+        ],
+        "title": "ExposureOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -763,7 +895,7 @@
         "title": "ItemOut",
         "type": "object"
       },
-      "MandateIn": {
+      "MandateIn-Input": {
         "description": "What the person is willing to let an agent do.",
         "properties": {
           "agent_id": {
@@ -899,7 +1031,138 @@
           "velocity": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/VelocityIn"
+                "$ref": "#/components/schemas/VelocityIn-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "agent_id",
+          "total_limit"
+        ],
+        "title": "MandateIn",
+        "type": "object"
+      },
+      "MandateIn-Output": {
+        "description": "What the person is willing to let an agent do.",
+        "properties": {
+          "agent_id": {
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "allowed_categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Categories"
+          },
+          "allowed_payees": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Payees"
+          },
+          "concentration_floor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concentration Floor"
+          },
+          "concentration_max_share": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concentration Max Share"
+          },
+          "currency": {
+            "default": "USD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "duration_hours": {
+            "default": 720.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Duration Hours",
+            "type": "number"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "per_item_limit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Item Limit"
+          },
+          "per_payee_limit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Payee Limit"
+          },
+          "structuring_window_seconds": {
+            "default": 900,
+            "minimum": 0.0,
+            "title": "Structuring Window Seconds",
+            "type": "integer"
+          },
+          "total_limit": {
+            "title": "Total Limit",
+            "type": "string"
+          },
+          "velocity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VelocityIn-Output"
               },
               {
                 "type": "null"
@@ -1699,7 +1962,7 @@
         "title": "ValidationError",
         "type": "object"
       },
-      "VelocityIn": {
+      "VelocityIn-Input": {
         "properties": {
           "max_amount": {
             "anyOf": [
@@ -1707,6 +1970,43 @@
                 "exclusiveMinimum": 0.0,
                 "type": "number"
               },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Amount"
+          },
+          "max_count": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Count"
+          },
+          "window_seconds": {
+            "exclusiveMinimum": 0.0,
+            "title": "Window Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "window_seconds"
+        ],
+        "title": "VelocityIn",
+        "type": "object"
+      },
+      "VelocityIn-Output": {
+        "properties": {
+          "max_amount": {
+            "anyOf": [
               {
                 "type": "string"
               },
@@ -1914,6 +2214,48 @@
         ]
       }
     },
+    "/demo/mandate": {
+      "post": {
+        "description": "Sign a mandate into the demo, replacing the default one.\n\nThe demo runs on one mandate, so signing a drafted one starts it over\nwith those terms and an empty log. The reset button puts the default\nback.",
+        "operationId": "sign_demo_mandate_demo_mandate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MandateIn-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sign Demo Mandate",
+        "tags": [
+          "demo"
+        ]
+      }
+    },
     "/demo/reset": {
       "post": {
         "description": "Rebuild the seeded scenario. Lets a take be re-recorded in a second.",
@@ -1988,7 +2330,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MandateIn"
+                "$ref": "#/components/schemas/MandateIn-Input"
               }
             }
           },
@@ -2017,6 +2359,48 @@
           }
         },
         "summary": "Create Mandate",
+        "tags": [
+          "mandates"
+        ]
+      }
+    },
+    "/mandates/draft": {
+      "post": {
+        "description": "Write a mandate in plain English, and see it checked and attacked first.\n\nA model turns the words into terms and lists what it had to assume and\nwhat it could not place. The engine then does what it does for any\nmandate: builds it with the same validation a hand-written one gets,\nreads it for what it leaves open, and attacks it. Nothing is signed.\n`mandate` in the reply is the exact body to sign, and signing is a\nseparate request the person makes after reading all of this. The model\ndrafts; it never decides what is allowed.",
+        "operationId": "draft_mandate_mandates_draft_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Draft Mandate",
         "tags": [
           "mandates"
         ]

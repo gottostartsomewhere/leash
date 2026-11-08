@@ -557,3 +557,205 @@
   line-height: 1.6;
   text-wrap: balance;
 }
+
+
+/* -- write a mandate ------------------------------------------------------ *
+ * A term the draft leaves open is amber: not a rule that fired, but the
+ * absence of one, which is the thing a person most needs to see before
+ * signing. What the model could not place is labelled "not enforced" in
+ * words, because colour alone would let someone sign past it. */
+
+.write-input textarea {
+  display: block;
+  width: 100%;
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.write-input textarea:focus-visible {
+  border-color: var(--ink-4);
+  outline: 1px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.write-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.examples {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-4);
+  font-size: 12px;
+}
+
+.example {
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+.example:hover {
+  border-color: var(--ink-4);
+  color: var(--ink);
+}
+
+.draft {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.draft-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+}
+
+.draft h3 {
+  margin: 0 0 8px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.draft h3 + * {
+  margin-bottom: 14px;
+}
+
+.terms-read,
+.exposure {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.terms-read > div {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  font-size: 12.5px;
+}
+
+.terms-read dt,
+.exposure dt {
+  color: var(--ink-3);
+}
+
+.terms-read dd,
+.exposure dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.terms-read dd.open {
+  color: var(--ink-4);
+}
+
+.exposure > div {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  column-gap: 0;
+  font-size: 12.5px;
+}
+
+.exposure dd.note {
+  grid-column: 2;
+  color: var(--ink-4);
+  font-size: 11.5px;
+}
+
+.exposure > div.loose dt,
+.exposure > div.loose dd {
+  color: var(--sev-high);
+}
+
+.exposure > div.loose dd.note {
+  color: color-mix(in oklab, var(--sev-high) 70%, var(--ink-3));
+}
+
+.draft-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0 0 0 16px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.draft-list.unclear {
+  color: var(--ink-2);
+}
+
+.not-enforced {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid color-mix(in oklab, var(--sev-high) 45%, transparent);
+  color: var(--sev-high);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.sign-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.attacked {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.attacked b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.attacked .held {
+  color: var(--settled);
+}
+
+.attacked .breach {
+  color: var(--sev-critical);
+}
+
+.drafted-by {
+  margin-left: 12px;
+  color: var(--ink-4);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.signed {
+  margin: 0;
+  color: var(--settled);
+  font-size: 13px;
+}
+
+@media (max-width: 980px) {
+  .draft-cols {
+    grid-template-columns: 1fr;
+  }
+}

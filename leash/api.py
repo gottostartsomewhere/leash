@@ -20,7 +20,7 @@ from typing import Annotated, Any, AsyncIterator, Callable, Literal, TypeVar
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import mcp_server
+from . import drafting, mcp_server
 from .adversary import LLMAdversary, StrategyAdversary
 from .agent import Need, ShoppingAgent
 from .catalog import Catalog, CatalogError, build_catalog
@@ -41,6 +41,8 @@ from .redteam import ALL_OBJECTIVES, Suite, run_campaign, world_from
 from .schemas import (
     AttackOut,
     AttemptIn,
+    DraftIn,
+    DraftOut,
     AttemptOut,
     CatalogOut,
     ChargeOut,
@@ -63,6 +65,7 @@ from .schemas import (
     terms,
 )
 from .store import (
+    DEMO_MANDATE_ID,
     NotFound,
     Store,
     build_demo_store,
@@ -361,8 +364,14 @@ def list_mandates(store: StoreDep) -> list[dict[str, Any]]:
     return [_mandate_view(ledger) for ledger in store.ledgers()]
 
 
-@app.post("/mandates", status_code=201, response_model=MandateOut, tags=["mandates"])
-def create_mandate(body: MandateIn, store: StoreDep) -> dict[str, Any]:
+def mandate_from(body: MandateIn, *, mandate_id: str | None = None) -> Mandate:
+    """A mandate from its terms, the one way every mandate is built.
+
+    Hand-written, drafted by a model from plain English, or signed into the
+    demo, they all come through here, so a model's draft is held to exactly
+    the rules a person's is. Raises ValueError for terms that do not make a
+    mandate.
+    """
     now = datetime.now(timezone.utc)
     currency = body.currency
 
@@ -377,30 +386,32 @@ def create_mandate(body: MandateIn, store: StoreDep) -> dict[str, Any]:
             max_amount=money(body.velocity.max_amount),
         )
 
+    return Mandate(
+        id=mandate_id or body.id or f"mnd_{uuid.uuid4().hex[:10]}",
+        agent_id=body.agent_id,
+        currency=currency,
+        total_limit=Money.from_major(body.total_limit, currency),
+        starts_at=now,
+        ends_at=now + timedelta(hours=body.duration_hours),
+        per_item_limit=money(body.per_item_limit),
+        per_payee_limit=money(body.per_payee_limit),
+        allowed_categories=(
+            frozenset(body.allowed_categories) if body.allowed_categories else None
+        ),
+        allowed_payees=(frozenset(body.allowed_payees) if body.allowed_payees else None),
+        velocity=velocity,
+        concentration_max_share=body.concentration_max_share,
+        concentration_floor=money(body.concentration_floor),
+        structuring_window_seconds=body.structuring_window_seconds,
+    )
+
+
+@app.post("/mandates", status_code=201, response_model=MandateOut, tags=["mandates"])
+def create_mandate(body: MandateIn, store: StoreDep) -> dict[str, Any]:
     try:
-        mandate = Mandate(
-            id=body.id or f"mnd_{uuid.uuid4().hex[:10]}",
-            agent_id=body.agent_id,
-            currency=currency,
-            total_limit=Money.from_major(body.total_limit, currency),
-            starts_at=now,
-            ends_at=now + timedelta(hours=body.duration_hours),
-            per_item_limit=money(body.per_item_limit),
-            per_payee_limit=money(body.per_payee_limit),
-            allowed_categories=(
-                frozenset(body.allowed_categories) if body.allowed_categories else None
-            ),
-            allowed_payees=(
-                frozenset(body.allowed_payees) if body.allowed_payees else None
-            ),
-            velocity=velocity,
-            concentration_max_share=body.concentration_max_share,
-            concentration_floor=money(body.concentration_floor),
-            structuring_window_seconds=body.structuring_window_seconds,
-        )
+        mandate = mandate_from(body)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-
     return _mandate_view(store.open(mandate))
 
 
@@ -521,6 +532,82 @@ async def attack_mandate(
             for c in body["campaigns"]
         ],
     }
+
+
+@app.post("/mandates/draft", response_model=DraftOut, tags=["mandates"])
+async def draft_mandate(body: DraftIn, store: StoreDep, settings: SettingsDep) -> dict[str, Any]:
+    """Write a mandate in plain English, and see it checked and attacked first.
+
+    A model turns the words into terms and lists what it had to assume and
+    what it could not place. The engine then does what it does for any
+    mandate: builds it with the same validation a hand-written one gets,
+    reads it for what it leaves open, and attacks it. Nothing is signed.
+    `mandate` in the reply is the exact body to sign, and signing is a
+    separate request the person makes after reading all of this. The model
+    drafts; it never decides what is allowed.
+    """
+    brain = build_brain(settings)
+    if brain is None:
+        raise HTTPException(status_code=503, detail="no model is configured on this server")
+    try:
+        drafted = await drafting.draft(body.text, brain)
+        mandate = mandate_from(drafted.body, mandate_id="mnd_draft")
+    except drafting.ModelUnavailable as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    world = world_from(store, mandate)
+    adversary = StrategyAdversary()
+    began = time.perf_counter()
+    start = datetime.now(timezone.utc)
+    suite = Suite(
+        tuple(
+            [
+                await run_campaign(
+                    mandate=mandate,
+                    world=world,
+                    objective=objective(),
+                    adversary=adversary,
+                    directory=store.directory,
+                    max_attempts=120,
+                    start=start,
+                )
+                for objective in ALL_OBJECTIVES
+            ]
+        )
+    )
+    return {
+        "text": body.text,
+        "drafted_by": drafted.drafted_by,
+        "mandate": drafted.body.model_dump(mode="json"),
+        "assumptions": list(drafted.assumptions),
+        "unclear": list(drafted.unclear),
+        "exposure": [e.to_dict() for e in drafting.exposure(mandate)],
+        "attack": {
+            "adversary": adversary.name,
+            "attempts": suite.attempts,
+            "held": suite.held,
+            "breaches": [r.breach for r in suite.reports if r.breach],
+            "elapsed_ms": round((time.perf_counter() - began) * 1000),
+        },
+    }
+
+
+@app.post("/demo/mandate", response_model=ResetOut, tags=["demo"])
+def sign_demo_mandate(body: MandateIn, store: StoreDep, settings: SettingsDep) -> dict[str, Any]:
+    """Sign a mandate into the demo, replacing the default one.
+
+    The demo runs on one mandate, so signing a drafted one starts it over
+    with those terms and an empty log. The reset button puts the default
+    back.
+    """
+    try:
+        mandate = mandate_from(body, mandate_id=DEMO_MANDATE_ID)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    seed_demo(store, settings, mandate=mandate)
+    return {"reset": True, **seed_summary(store)}
 
 
 @app.get("/mandates/{mandate_id}/charges", response_model=list[ChargeOut], tags=["money"])

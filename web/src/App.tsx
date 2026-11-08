@@ -8,6 +8,7 @@ import { AskConsole, type AskResult } from "./panels/AskConsole";
 import { ShopPanel } from "./panels/ShopPanel";
 import { AttackPanel } from "./panels/AttackPanel";
 import { ConnectPanel } from "./panels/ConnectPanel";
+import { WritePanel } from "./panels/WritePanel";
 import { Intro } from "./Intro";
 import { SCENARIO } from "./scenario";
 import type {
@@ -16,6 +17,7 @@ import type {
   GridRow,
   Health,
   LogRow,
+  MandateBody,
   MandateSummary,
   Payee,
   ShopStep,
@@ -24,13 +26,14 @@ import type {
 const MANDATE_ID = "mnd_demo";
 const wait = (ms: number) => new Promise((done) => setTimeout(done, ms));
 
-type Dock = "ask" | "shop" | "attack" | "connect";
+type Dock = "ask" | "shop" | "attack" | "connect" | "write";
 
 const DOCK: [Dock, string][] = [
   ["ask", "Ask for one thing"],
   ["shop", "Send it shopping"],
   ["attack", "Try to break it"],
   ["connect", "Connect your agent"],
+  ["write", "Write a mandate"],
 ];
 
 /** Whether this viewer folded the intro away. A convenience, so a private
@@ -353,6 +356,24 @@ export default function App() {
 
   const consumeKick = useCallback(() => setAttackKick(false), []);
 
+  const draftMandate = useCallback((text: string) => api.draft(text), []);
+
+  /** Signing starts the demo over on the new terms, so the log is cleared
+   *  with it: rows decided under the old mandate would read as decided
+   *  under this one. */
+  const signMandate = useCallback(
+    async (body: MandateBody) => {
+      await api.sign(body);
+      setExpanded(new Set());
+      setSelected([]);
+      setLastAsk(null);
+      seen.current = 0;
+      await refresh();
+      setNote("Signed. Everything from here is measured against the mandate you wrote.");
+    },
+    [refresh],
+  );
+
   const connect = useCallback(() => {
     foldIntro();
     setConsole("connect");
@@ -614,8 +635,10 @@ export default function App() {
                 autostart={attackKick}
                 onAutostart={consumeKick}
               />
-            ) : (
+            ) : console_ === "connect" ? (
               <ConnectPanel decisions={decisions} />
+            ) : (
+              <WritePanel busy={working} onDraft={draftMandate} onSign={signMandate} />
             )}
           </div>
         </div>

@@ -451,3 +451,42 @@ def terms(mandate: Mandate) -> dict[str, Any]:
             None if mandate.revoked_at is None else mandate.revoked_at.isoformat()
         ),
     }
+
+
+class DraftIn(BaseModel):
+    """What a person is willing to let an agent do, in their own words."""
+
+    text: str = Field(min_length=8, max_length=800)
+
+
+class ExposureOut(BaseModel):
+    """One line of the worst an agent could do inside a mandate."""
+
+    label: str
+    value: str
+    loose: bool
+    note: str
+
+
+class DraftAttackOut(BaseModel):
+    adversary: str
+    attempts: int
+    held: bool
+    breaches: list[str]
+    elapsed_ms: int
+
+
+class DraftOut(BaseModel):
+    """A mandate drafted from plain English, checked and attacked, not signed.
+
+    `mandate` is the exact body to sign: the terms the person is shown are
+    the terms that would take effect, with nothing filled in afterwards.
+    """
+
+    text: str
+    drafted_by: str
+    mandate: MandateIn
+    assumptions: list[str]
+    unclear: list[str]
+    exposure: list[ExposureOut]
+    attack: DraftAttackOut

@@ -1,5 +1,7 @@
 import type {
   AttackReport,
+  Draft,
+  MandateBody,
   AttemptBody,
   Balances,
   CatalogResults,
@@ -101,6 +103,12 @@ export const api = {
 
   reconcile: (batchId: string) =>
     post<Record<string, unknown>>(`/payouts/${batchId}/reconcile`),
+
+  /** Plain English to a checked, attacked, unsigned draft. */
+  draft: (text: string) => post<Draft>("/mandates/draft", { text }),
+
+  /** Sign a drafted mandate into the demo, replacing the default. */
+  sign: (body: MandateBody) => post<Record<string, unknown>>("/demo/mandate", body),
 
   /** A red team run against the mandate, on a sandbox copy of it. */
   attack: (id: string, by: "strategy" | "model") =>

@@ -242,3 +242,29 @@ export interface AttackReport {
   sandboxed: boolean;
   campaigns: AttackCampaign[];
 }
+
+/** Terms exactly as the engine takes them. Money as decimal strings. */
+export interface MandateBody {
+  agent_id: string;
+  total_limit: string;
+  currency: string;
+  duration_hours: number;
+  per_item_limit: string | null;
+  per_payee_limit: string | null;
+  allowed_categories: string[] | null;
+  allowed_payees: string[] | null;
+  velocity: { window_seconds: number; max_count: number | null; max_amount: string | null } | null;
+  structuring_window_seconds: number;
+  [key: string]: unknown;
+}
+
+/** A mandate drafted from plain English, checked and attacked, not signed. */
+export interface Draft {
+  text: string;
+  drafted_by: string;
+  mandate: MandateBody;
+  assumptions: string[];
+  unclear: string[];
+  exposure: { label: string; value: string; loose: boolean; note: string }[];
+  attack: { adversary: string; attempts: number; held: boolean; breaches: string[]; elapsed_ms: number };
+}
