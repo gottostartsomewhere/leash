@@ -217,13 +217,15 @@ I write payment and ledger code. "Have you attacked this with something that doe
 Five, all 1920x1080, in this folder. Devpost shows the first one on the
 project card, so the wordmark leads.
 
-| File | Caption to paste |
+| File | Caption, each under the 140 limit |
 | --- | --- |
-| `1-leash.jpg` | Leash: scoped, revocable, auditable spending authority for AI agents. |
-| `2-mandate.jpg` | The mandate. A total, a ceiling per purchase, a ceiling per merchant, which categories, a pace limit, an expiry. The agent gets a goal, not a budget. |
-| `3-model-refused.jpg` | A model chose the product and nothing else. It picked a $190.49 chair, the mandate refused it at the $100 ceiling and said what would clear, and it came back with one it was allowed to buy. Its reasoning sits under a verdict it did not make. |
-| `4-structuring.jpg` | Structuring detection. Two charges of $75 to two addresses that belong to one merchant. Each clears the $100 cap on its own; the cluster does not. The refusal keeps the arithmetic. |
-| `5-paypal.jpg` | The other side of it: a PayPal sandbox account receiving the payouts. Same amounts, in PayPal's own books. |
+| `1-leash.jpg` | Scoped, revocable, auditable spending authority for AI agents, settled over PayPal Payouts. |
+| `2-mandate.jpg` | The mandate: a total, a ceiling per purchase and per merchant, allowed categories, a pace limit, an expiry. The agent gets a goal. |
+| `3-model-refused.jpg` | A model picked a $190.49 chair. Refused at the $100 ceiling, told what would clear, it came back with one it was allowed to buy. |
+| `4-structuring.jpg` | Two $75 charges, two addresses, one merchant. Each clears the $100 cap on its own. The cluster does not, and the refusal shows why. |
+| `5-paypal.jpg` | The other side: a PayPal sandbox account receiving the payouts. Same amounts, in PayPal's own books. |
+
+Lengths: 91, 130, 128, 131, 100.
 
 # Upload a File (optional)
 

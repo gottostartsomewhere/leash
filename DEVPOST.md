@@ -70,7 +70,7 @@ Both run on Groq, and both degrade to something deterministic when the model is 
 
 **Hosting** is Render, both halves. The API is a web service and the UI is a static site, wired together with `render.yaml`. The free API sleeps after fifteen idle minutes, so `/health` reports which credentials are configured by variable name and never by value, which is also how I found a key that had been pasted onto the wrong service.
 
-Four seams use a Protocol with two implementations: the payout gateway, the agent brain, the adversary, and the catalogue. Each has a real one and a deterministic offline one. With no credentials the entire app runs offline and all 224 tests pass, which is what made it possible to build the rules properly instead of around an API.
+Four seams use a Protocol with two implementations: the payout gateway, the agent brain, the adversary, and the catalogue. Each has a real one and a deterministic offline one. With no credentials the entire app runs offline and all 233 tests pass, which is what made it possible to build the rules properly instead of around an API.
 
 ### Challenges I ran into
 
