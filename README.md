@@ -223,6 +223,28 @@ rate limit, a timeout, or a reply that is not valid JSON drops to the
 catalogue's own ranking rather than failing the request, so the app runs with
 no key at all and the whole test suite passes either way.
 
+### Writing it in plain English
+
+Under **Write a mandate**, a person says what an agent may spend in their own
+words and a model drafts the terms. The model drafts; it never decides.
+
+```bash
+curl -X POST http://127.0.0.1:8000/mandates/draft   -H "content-type: application/json"   -d '{"text": "Office supplies only. $300 in total, nothing over $80, for two weeks."}'
+```
+
+The reply carries the exact terms the engine would enforce, what the model
+assumed, what it could not turn into a rule, what the terms leave open in
+money (no per-purchase cap means one purchase could spend all of it), and the
+result of attacking the draft. It is built by `mandate_from`, the same function
+`POST /mandates` uses, so a draft is held to exactly the rules a hand-written
+mandate is. Nothing is signed until `POST /demo/mandate`, which the person
+makes after reading all of that.
+
+An exclusion inside a category, "no alcohol" inside groceries, cannot be
+enforced, because categories are the finest scope there is. The model is told
+to list it as unplaced rather than assumed, and the screen labels that list
+*not enforced*, because an assumption reads as a rule.
+
 ### Any agent, over MCP
 
 The built-in shopper is a demonstration. The product is the layer between an

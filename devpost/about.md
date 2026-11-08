@@ -22,6 +22,8 @@ Revocation works the way it should. One click kills the mandate mid-session. Eve
 
 **Any agent can be put on it.** The mandate is also served over the Model Context Protocol, so Claude, ChatGPT or anything else that speaks MCP can connect with one URL, read the mandate, search the live catalogue and ask to spend, through the same eleven checks and into the same audit log. Nothing it can call moves money. An allowed purchase is a hold, and a person releases it. Point your own Claude at it and watch its attempts land on the screen as they happen, each one marked *via MCP*.
 
+**Or write the mandate in your own words.** A model drafts the terms from plain English, then the screen shows exactly how it read them, every assumption it made, everything it could not turn into a rule (labelled *not enforced*), the worst an agent could do inside it, and the result of attacking it, all before you sign. The model drafts; it never decides what is allowed.
+
 And it has been attacked. Two red teams went at the mandate, a deterministic search and a model. The search tried 316 ways and got nowhere. The model found a real hole on its first serious run: it sent exactly the $100 cap to one merchant twice and both were allowed, because three separate checks each assumed the boundary belonged to one of the others. That is fixed, and it is the part of this project I am proudest of. You can attack it yourself: one button throws the same 316 attempts at a sandbox copy of the mandate as it stands, and replays every one.
 
 ## How we built it
@@ -56,9 +58,11 @@ Both run on Groq, and both degrade to something deterministic when the model is 
 
 **The red team is a button.** `POST /mandates/{id}/attack` builds a fresh ledger from the mandate's terms, seeds it with the charges the real one already holds, and runs the attacker against that. So it attacks the mandate as it actually stands and leaves not one attempt behind in it, both of which are tested. The strategy search does its 316 attempts in well under a second; the screen replays them at a pace a person can follow and says that it is a replay. Model attacks run one at a time, because a few judges pressing the button together would otherwise spend a free rate limit on each other.
 
+**Plain English is a draft, not a decision.** `POST /mandates/draft` asks the model for the same structured terms `POST /mandates` takes, then builds them with the one function every mandate goes through, reads them for what they leave open, and attacks them. Signing is a separate request the person makes. Run against the real model, it first listed "no alcohol" as an assumption, as if it would be enforced, when alcohol sits inside the food category and categories are the finest scope there is. Exclusions like that now land on a list the screen labels *not enforced*, because an assumption reads as a rule.
+
 **Hosting** is Render, both halves. The API is a web service and the UI is a static site, wired together with `render.yaml`. The free API sleeps after fifteen idle minutes, so `/health` reports which credentials are configured by variable name and never by value, which is also how I found a key that had been pasted onto the wrong service.
 
-Four seams use a Protocol with two implementations: the payout gateway, the agent brain, the adversary, and the catalogue. Each has a real one and a deterministic offline one. With no credentials the entire app runs offline and all 265 tests pass, which is what made it possible to build the rules properly instead of around an API.
+Four seams use a Protocol with two implementations: the payout gateway, the agent brain, the adversary, and the catalogue. Each has a real one and a deterministic offline one. With no credentials the entire app runs offline and all 277 tests pass, which is what made it possible to build the rules properly instead of around an API.
 
 ## Challenges we ran into
 
