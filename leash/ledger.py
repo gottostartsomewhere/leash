@@ -8,6 +8,7 @@ millisecond apart both see the full balance and both pass.
 
 from __future__ import annotations
 
+import threading
 from datetime import datetime, timezone
 from typing import Iterable, Mapping
 
@@ -59,6 +60,25 @@ class Ledger:
         self._by_key: dict[str, str] = {}
         self._by_attempt: dict[str, Decision] = {}
 
+        # Every read and every write goes through this.
+        #
+        # The hold above only works if deciding and holding happen as one
+        # step. The API serves `authorize` from a thread pool, and without a
+        # lock two threads could both evaluate against the same charges and
+        # both write a hold: thirty-two retries of one idempotency key made
+        # thirty-two holds, and a burst cleared seven charges through a pace
+        # limit of six. Reads are locked too, because iterating the charges
+        # while another thread inserts one raises rather than returning a
+        # stale answer. Reentrant, because summary() reads committed and
+        # revoke() calls release().
+        self._lock = threading.RLock()
+
+        # Holds a payout has claimed and is waiting on the processor for.
+        # Still PENDING and still counting against the budget, but they
+        # cannot be claimed again, released, or dropped by a revocation
+        # until that payout resolves them. See claim().
+        self._in_flight: set[str] = set()
+
     # -- state -----------------------------------------------------------
 
     @property
@@ -70,38 +90,44 @@ class Ledger:
         return self._directory
 
     def charges(self) -> tuple[Charge, ...]:
-        return tuple(self._charges.values())
+        with self._lock:
+            return tuple(self._charges.values())
 
     def decisions(self) -> tuple[Decision, ...]:
-        return tuple(self._decisions)
+        with self._lock:
+            return tuple(self._decisions)
 
     def charge(self, charge_id: str) -> Charge:
-        try:
-            return self._charges[charge_id]
-        except KeyError:
-            raise UnknownCharge(charge_id) from None
+        with self._lock:
+            try:
+                return self._charges[charge_id]
+            except KeyError:
+                raise UnknownCharge(charge_id) from None
 
     @property
     def committed(self) -> Money:
-        return Money.sum(
-            (c.amount for c in self._charges.values() if c.commits),
-            self._mandate.currency,
-        )
+        with self._lock:
+            return Money.sum(
+                (c.amount for c in self._charges.values() if c.commits),
+                self._mandate.currency,
+            )
 
     @property
     def available(self) -> Money:
-        return (self._mandate.total_limit - self.committed).clamped()
+        with self._lock:
+            return (self._mandate.total_limit - self.committed).clamped()
 
     @property
     def held(self) -> Money:
-        return Money.sum(
-            (
-                c.amount
-                for c in self._charges.values()
-                if c.state is ChargeState.PENDING
-            ),
-            self._mandate.currency,
-        )
+        with self._lock:
+            return Money.sum(
+                (
+                    c.amount
+                    for c in self._charges.values()
+                    if c.state is ChargeState.PENDING
+                ),
+                self._mandate.currency,
+            )
 
     # -- authorization ---------------------------------------------------
 
@@ -112,37 +138,78 @@ class Ledger:
         creates nothing. An agent that retries a timeout should not end up
         holding the budget twice.
         """
-        key = attempt.idempotency_key
-        if key is not None and key in self._by_key:
-            return self._by_attempt[self._by_key[key]]
+        with self._lock:
+            key = attempt.idempotency_key
+            if key is not None and key in self._by_key:
+                return self._by_attempt[self._by_key[key]]
 
-        decision = evaluate(
-            self._mandate,
-            attempt,
-            self._charges.values(),
-            now=now,
-            directory=self._directory,
-        )
-
-        if decision.allowed:
-            charge = Charge(
-                id=f"chg_{attempt.id}",
-                mandate_id=self._mandate.id,
-                payee=attempt.payee,
-                category=attempt.category,
-                amount=attempt.amount,
-                created_at=decision.evaluated_at,
-                state=ChargeState.PENDING,
-                description=attempt.description,
-                attempt_id=attempt.id,
+            decision = evaluate(
+                self._mandate,
+                attempt,
+                self._charges.values(),
+                now=now,
+                directory=self._directory,
             )
-            self._charges[charge.id] = charge
 
-        self._decisions.append(decision)
-        self._by_attempt[attempt.id] = decision
-        if key is not None:
-            self._by_key[key] = attempt.id
-        return decision
+            if decision.allowed:
+                charge = Charge(
+                    id=f"chg_{attempt.id}",
+                    mandate_id=self._mandate.id,
+                    payee=attempt.payee,
+                    category=attempt.category,
+                    amount=attempt.amount,
+                    created_at=decision.evaluated_at,
+                    state=ChargeState.PENDING,
+                    description=attempt.description,
+                    attempt_id=attempt.id,
+                )
+                self._charges[charge.id] = charge
+
+            self._decisions.append(decision)
+            self._by_attempt[attempt.id] = decision
+            if key is not None:
+                self._by_key[key] = attempt.id
+            return decision
+
+    # -- payouts ---------------------------------------------------------
+
+    def claim(self, charge_ids: Iterable[str]) -> tuple[Charge, ...]:
+        """Reserve pending holds for a payout that is about to go out.
+
+        Taken before the processor is called, because the call is the slow
+        part. The payout used to check each charge was PENDING, await PayPal,
+        and only then mark it settled, so a second request landing inside
+        that second passed the same check and the same charges were sent to
+        PayPal twice. The second request only found out when settling failed,
+        by which point the money had gone. Claiming is atomic, so the second
+        request is refused here, before anything leaves.
+
+        Duplicates in one request are collapsed rather than paid twice.
+        All or nothing: if any charge cannot be claimed, none is.
+        """
+        ids = list(dict.fromkeys(charge_ids))
+        with self._lock:
+            claimed = []
+            for charge_id in ids:
+                charge = self.charge(charge_id)
+                if charge.state is not ChargeState.PENDING:
+                    raise IllegalTransition(
+                        f"{charge_id} is {charge.state.value}, not a pending hold"
+                    )
+                if charge_id in self._in_flight:
+                    raise IllegalTransition(f"{charge_id} is already being paid out")
+                claimed.append(charge)
+            self._in_flight.update(ids)
+            return tuple(claimed)
+
+    def unclaim(self, charge_ids: Iterable[str]) -> None:
+        """Hand claimed holds back, once the payout holding them is done."""
+        with self._lock:
+            self._in_flight.difference_update(charge_ids)
+
+    def in_flight(self, charge_id: str) -> bool:
+        with self._lock:
+            return charge_id in self._in_flight
 
     # -- lifecycle -------------------------------------------------------
 
@@ -153,30 +220,42 @@ class Ledger:
         *,
         amount: Money | None = None,
     ) -> Charge:
-        charge = self.charge(charge_id)
-        if charge.state is not ChargeState.PENDING:
-            raise IllegalTransition(
-                f"{charge_id} is {charge.state.value}, only a pending hold can move"
-            )
-        moved = charge.with_state(to, amount)
-        self._charges[charge_id] = moved
-        return moved
+        with self._lock:
+            charge = self.charge(charge_id)
+            if charge.state is not ChargeState.PENDING:
+                raise IllegalTransition(
+                    f"{charge_id} is {charge.state.value}, only a pending hold can move"
+                )
+            moved = charge.with_state(to, amount)
+            self._charges[charge_id] = moved
+            return moved
 
     def settle(self, charge_id: str, amount: Money | None = None) -> Charge:
         """Capture a hold, optionally for less than was authorized."""
-        charge = self.charge(charge_id)
-        if amount is not None:
-            if amount.currency != charge.amount.currency:
-                raise OverCapture("capture currency does not match the hold")
-            if amount > charge.amount:
-                raise OverCapture(
-                    f"cannot capture {amount} against a {charge.amount} hold"
-                )
-        return self._move(charge_id, ChargeState.SETTLED, amount=amount)
+        with self._lock:
+            charge = self.charge(charge_id)
+            if amount is not None:
+                if amount.currency != charge.amount.currency:
+                    raise OverCapture("capture currency does not match the hold")
+                if amount > charge.amount:
+                    raise OverCapture(
+                        f"cannot capture {amount} against a {charge.amount} hold"
+                    )
+            return self._move(charge_id, ChargeState.SETTLED, amount=amount)
 
     def release(self, charge_id: str) -> Charge:
-        """Void a hold and give the budget back."""
-        return self._move(charge_id, ChargeState.RELEASED)
+        """Void a hold and give the budget back.
+
+        Not while a payout has it. The processor may already be moving that
+        money, and handing the budget back for a charge that is about to
+        settle would let the mandate spend it twice.
+        """
+        with self._lock:
+            if charge_id in self._in_flight:
+                raise IllegalTransition(
+                    f"{charge_id} is being paid out and cannot be released"
+                )
+            return self._move(charge_id, ChargeState.RELEASED)
 
     def fail(self, charge_id: str) -> Charge:
         """The processor rejected it. Budget comes back, same as a release."""
@@ -192,46 +271,52 @@ class Ledger:
         The alternative is a ledger that records what we intended rather than
         what happened, which is the thing this project is arguing against.
         """
-        charge = self.charge(charge_id)
-        if charge.state is not ChargeState.SETTLED:
-            raise IllegalTransition(
-                f"{charge_id} is {charge.state.value}, only a settled charge can come back"
-            )
-        moved = charge.with_state(ChargeState.FAILED)
-        self._charges[charge_id] = moved
-        return moved
+        with self._lock:
+            charge = self.charge(charge_id)
+            if charge.state is not ChargeState.SETTLED:
+                raise IllegalTransition(
+                    f"{charge_id} is {charge.state.value}, only a settled charge can come back"
+                )
+            moved = charge.with_state(ChargeState.FAILED)
+            self._charges[charge_id] = moved
+            return moved
 
     def revoke(self, *, at: datetime | None = None) -> tuple[Charge, ...]:
         """Kill the mandate and drop every hold that has not been captured.
 
         Settled charges stay settled. Revocation stops what has not happened;
-        it does not claw back what has.
+        it does not claw back what has. A hold a payout has already claimed
+        is left to that payout: the money may be moving as this runs, and it
+        will settle or fail on its own when the processor answers.
         """
-        moment = at or _utcnow()
-        self._mandate = self._mandate.revoked(moment)
-        dropped = [
-            self.release(c.id)
-            for c in list(self._charges.values())
-            if c.state is ChargeState.PENDING
-        ]
-        return tuple(dropped)
+        with self._lock:
+            moment = at or _utcnow()
+            self._mandate = self._mandate.revoked(moment)
+            dropped = [
+                self.release(c.id)
+                for c in list(self._charges.values())
+                if c.state is ChargeState.PENDING and c.id not in self._in_flight
+            ]
+            return tuple(dropped)
 
     # -- presentation ----------------------------------------------------
 
     def rows(self) -> list[Mapping[str, object]]:
         """Every decision, newest last, shaped for the audit grid."""
-        return [d.to_dict() for d in self._decisions]
+        with self._lock:
+            return [d.to_dict() for d in self._decisions]
 
     def summary(self) -> Mapping[str, object]:
-        return {
-            "mandate_id": self._mandate.id,
-            "agent_id": self._mandate.agent_id,
-            "status": self._mandate.status.value,
-            "currency": self._mandate.currency,
-            "total_limit": self._mandate.total_limit.minor,
-            "committed": self.committed.minor,
-            "held": self.held.minor,
-            "available": self.available.minor,
-            "attempts": len(self._decisions),
-            "blocked": sum(1 for d in self._decisions if not d.allowed),
-        }
+        with self._lock:
+            return {
+                "mandate_id": self._mandate.id,
+                "agent_id": self._mandate.agent_id,
+                "status": self._mandate.status.value,
+                "currency": self._mandate.currency,
+                "total_limit": self._mandate.total_limit.minor,
+                "committed": self.committed.minor,
+                "held": self.held.minor,
+                "available": self.available.minor,
+                "attempts": len(self._decisions),
+                "blocked": sum(1 for d in self._decisions if not d.allowed),
+            }

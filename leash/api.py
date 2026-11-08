@@ -22,7 +22,7 @@ from .catalog import Catalog, CatalogError, build_catalog
 from .config import Settings, settings as default_settings
 from .ledger import IllegalTransition, Ledger, UnknownCharge
 from .llm import build_brain
-from .models import Attempt, Charge, ChargeState, Mandate, Velocity
+from .models import Attempt, Charge, Mandate, Velocity
 from .money import Money
 from .payouts import (
     PayoutError,
@@ -435,52 +435,57 @@ async def release_payouts(
     """
     ledger = _ledger(store, mandate_id)
 
-    items: list[PayoutItem] = []
-    for charge_id in body.charge_ids:
-        try:
-            charge = ledger.charge(charge_id)
-        except UnknownCharge as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        if charge.state is not ChargeState.PENDING:
-            raise HTTPException(
-                status_code=409,
-                detail=f"{charge_id} is {charge.state.value}, not a pending hold",
-            )
-        try:
-            payee = store.payee(charge.payee)
-        except NotFound as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        items.append(
-            PayoutItem(
-                charge_id=charge.id,
-                receiver=payee.email,
-                amount=charge.amount,
-                note=charge.description or f"{charge.category} via {payee.name}",
-            )
-        )
-
-    batch_id = new_batch_id()
+    # Claim first, then go to the processor. Checking the charges were
+    # pending and then awaiting PayPal left a second request free to pass
+    # the same check during that await, and the same charges went out
+    # twice. A claim is atomic and is released however this ends.
     try:
-        result = await gateway.send(items, batch_id=batch_id)
-    except PayoutError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-    store.record_batch(result)
+        claimed = ledger.claim(body.charge_ids)
+    except UnknownCharge as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except IllegalTransition as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     settled: list[str] = []
     failed: list[str] = []
-    by_charge = {item.charge_id: item.status for item in result.items}
-    for item in items:
-        status = by_charge.get(item.charge_id, result.status)
+    try:
+        items: list[PayoutItem] = []
+        for charge in claimed:
+            try:
+                payee = store.payee(charge.payee)
+            except NotFound as exc:
+                raise HTTPException(status_code=404, detail=str(exc)) from exc
+            items.append(
+                PayoutItem(
+                    charge_id=charge.id,
+                    receiver=payee.email,
+                    amount=charge.amount,
+                    note=charge.description or f"{charge.category} via {payee.name}",
+                )
+            )
+
+        batch_id = new_batch_id()
         try:
-            if holds_money(status):
-                ledger.settle(item.charge_id)
-                settled.append(item.charge_id)
-            else:
-                ledger.fail(item.charge_id)
-                failed.append(item.charge_id)
-        except IllegalTransition as exc:  # pragma: no cover - guarded above
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            result = await gateway.send(items, batch_id=batch_id)
+        except PayoutError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+        store.record_batch(result)
+
+        by_charge = {item.charge_id: item.status for item in result.items}
+        for item in items:
+            status = by_charge.get(item.charge_id, result.status)
+            try:
+                if holds_money(status):
+                    ledger.settle(item.charge_id)
+                    settled.append(item.charge_id)
+                else:
+                    ledger.fail(item.charge_id)
+                    failed.append(item.charge_id)
+            except IllegalTransition as exc:  # pragma: no cover - the claim holds it
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
+    finally:
+        ledger.unclaim(c.id for c in claimed)
 
     return {
         "batch": result.to_dict(),

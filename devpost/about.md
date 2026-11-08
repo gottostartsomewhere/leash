@@ -52,13 +52,15 @@ Both run on Groq, and both degrade to something deterministic when the model is 
 
 **Hosting** is Render, both halves. The API is a web service and the UI is a static site, wired together with `render.yaml`. The free API sleeps after fifteen idle minutes, so `/health` reports which credentials are configured by variable name and never by value, which is also how I found a key that had been pasted onto the wrong service.
 
-Four seams use a Protocol with two implementations: the payout gateway, the agent brain, the adversary, and the catalogue. Each has a real one and a deterministic offline one. With no credentials the entire app runs offline and all 233 tests pass, which is what made it possible to build the rules properly instead of around an API.
+Four seams use a Protocol with two implementations: the payout gateway, the agent brain, the adversary, and the catalogue. Each has a real one and a deterministic offline one. With no credentials the entire app runs offline and all 246 tests pass, which is what made it possible to build the rules properly instead of around an API.
 
 ## Challenges we ran into
 
 **Structuring is harder than it sounds.** The naive version groups by payee id and catches nothing, because the whole point is that the addresses differ. Resolving `shop.acme.co.uk` and `pay.acme.com` back to the same merchant means handling compound public suffixes, and getting it wrong in the other direction is worse: merging two genuinely separate merchants would refuse honest purchases.
 
 **A test suite that was quietly lying.** Four tests only passed because no PayPal key had ever been set, so the settings fell back to the simulated gateway. They had been green for weeks and would have gone red the moment anyone configured credentials. A hermetic settings fixture fixed it. Separately, migrating to Channel3's real taxonomy exposed three tests named for stock and pacing that were actually passing on a category refusal, so they had been testing nothing at all.
+
+**Every test sent one request at a time**, which is the one situation where checking a limit and then holding the money cannot go wrong. The API is not like that: it serves purchases from a thread pool and payouts from an event loop. Fired at once, thirty-two retries of a single idempotency key made thirty-two holds instead of one, a burst got seven charges through a pace limit of six, and two payout requests for the same charge sent it to PayPal twice, with the second only noticing after the money had gone. The ledger now takes a lock, a payout claims its charges before it calls the processor rather than after, and thirteen tests fire their requests together and fail without the fix.
 
 **`env_file=".env"` resolves against the working directory.** Running uvicorn from one directory up silently fell back to the simulated gateway. Silent fallback is the worst possible failure for this: the demo runs, looks perfect, and moves no money. It now resolves from the module path.
 
