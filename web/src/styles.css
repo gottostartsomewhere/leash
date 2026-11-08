@@ -124,7 +124,10 @@ button {
 
 .body {
   display: grid;
-  grid-template-columns: var(--rail) 1fr;
+  /* minmax(0, ...) and not a bare 1fr: a 1fr track never shrinks below its
+     content, so a shelf of products widened the whole page instead of
+     scrolling inside its own box. */
+  grid-template-columns: var(--rail) minmax(0, 1fr);
   min-height: 0;
 }
 
@@ -139,6 +142,7 @@ button {
 .main {
   display: grid;
   grid-template-rows: 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
   min-width: 0;
 }

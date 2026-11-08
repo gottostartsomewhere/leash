@@ -202,7 +202,10 @@ def test_exposure_reads_a_mandate_with_every_cap_missing():
         starts_at=now,
         ends_at=now + timedelta(days=3),
     )
-    loose = {e.label for e in exposure(bare) if e.loose}
+    lines = exposure(bare)
+    loose = {e.label for e in lines if e.loose}
+    # Three days from now, read a moment later, is still three days.
+    assert next(e.value for e in lines if e.label == "Expires") == "in 3 days"
     assert loose == {
         "Largest single purchase",
         "Most with one merchant",

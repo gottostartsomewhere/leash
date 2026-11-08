@@ -45,11 +45,24 @@ export function Intro({ mandate, collapsed, busy, onWatch, onAttack, onConnect, 
     </div>
   );
 
+  // A revoked or expired mandate spends nothing, and a headline still
+  // offering its total would contradict the red status beside it.
+  const ended =
+    mandate.status === "revoked"
+      ? "This agent's authority is revoked. It can't spend anything."
+      : mandate.status === "expired"
+        ? "This agent's authority has expired. It can't spend anything."
+        : null;
+
   if (collapsed) {
     return (
       <div className="intro slim">
         <p>
-          This agent can spend <b className="num">{total}</b> of your money. Try to break it.
+          {ended ?? (
+            <>
+              This agent can spend <b className="num">{total}</b> of your money. Try to break it.
+            </>
+          )}
         </p>
         {actions}
       </div>
@@ -60,7 +73,11 @@ export function Intro({ mandate, collapsed, busy, onWatch, onAttack, onConnect, 
     <section className="intro" aria-labelledby="intro-title">
       <div className="intro-copy">
         <h1 id="intro-title">
-          This agent can spend <span className="num">{total}</span> of your money.
+          {ended ?? (
+            <>
+              This agent can spend <span className="num">{total}</span> of your money.
+            </>
+          )}
         </h1>
         <p className="intro-sub">These are the rules it can't break. Try to break them.</p>
       </div>

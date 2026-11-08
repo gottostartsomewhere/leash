@@ -79,6 +79,9 @@ Rules:
 - Amounts are US dollars as plain numbers: 80, not "$80".
 - Never invent a limit the person did not ask for. A limit they did not
   mention is null.
+- A period attached to the money is how long the authority lasts. $150 for
+  the week means total 150 and duration_days 7; $500 a month means total
+  500 and duration_days 30; a fortnight is 14 days.
 - Map a thing they name to a slug only when it obviously belongs there
   (chairs are furniture, printer paper is office-supplies), and say so in
   assumptions. Otherwise put it in unclear.
@@ -276,6 +279,16 @@ def exposure(m: Mandate) -> list[Exposure]:
         )
     )
 
-    days = (m.ends_at - datetime.now(timezone.utc)).days
-    out.append(Exposure("Expires", m.ends_at.strftime("%d %b"), note=f"in {max(days, 0)} days"))
+    # A length, not a date. The date would be UTC while the screen shows local
+    # time, so a week drafted late in the evening in India read as expiring
+    # a day before the rail said it did. And rounded, not floored: a week
+    # checked a second after drafting is still a week, not six days.
+    days = max(round((m.ends_at - datetime.now(timezone.utc)).total_seconds() / 86400), 0)
+    out.append(
+        Exposure(
+            "Expires",
+            "in 1 day" if days == 1 else f"in {days} days",
+            note="After that it can't spend anything.",
+        )
+    )
     return out
