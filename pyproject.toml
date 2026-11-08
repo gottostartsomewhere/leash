@@ -8,10 +8,15 @@ requires-python = ">=3.11"
 # An empty list worked locally and would have deployed an application with no
 # web framework in it.
 dependencies = [
-    "fastapi>=0.115",
+    # Pinned, with pydantic, because together they write the published API
+    # definition. Unpinned, CI and Render installed FastAPI 0.162 while this
+    # was being tested on 0.136, so production ran framework versions nobody
+    # had tested, and the committed definition stopped matching the one the
+    # deployed app serves. The drift test is what noticed.
+    "fastapi==0.162.2",
     "uvicorn[standard]>=0.30",
     "httpx>=0.27",
-    "pydantic>=2.8",
+    "pydantic==2.14.3",
     "pydantic-settings>=2.4",
     # The Model Context Protocol endpoint at /mcp. Pinned to 2.x: the 2.0
     # release renamed FastMCP to MCPServer and changed the transport API.
