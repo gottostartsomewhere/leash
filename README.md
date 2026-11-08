@@ -1,5 +1,7 @@
 # Leash
 
+[![test](https://github.com/gottostartsomewhere/leash/actions/workflows/test.yml/badge.svg)](https://github.com/gottostartsomewhere/leash/actions/workflows/test.yml)
+
 Scoped, revocable, auditable spending authority for AI agents, settled over PayPal Payouts.
 
 Hand an agent a wallet with rules. Every attempt to spend is evaluated before any
