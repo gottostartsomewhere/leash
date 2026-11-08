@@ -81,16 +81,21 @@ agentic commerce, LLM red team, fintech, spending limits, hackathon
 
 ## Thumbnail
 
-YouTube will offer three frames from the video. Take the one with the
-decision grid on it if offered, or upload a still: the frame around 1:19 has
-the refusal, the counter-offer and the model's own reasoning all legible in
-one shot, which is the whole project in one picture.
+`video/thumb.png`, 2560x1440, 542KB. Built from `thumb.html` with
+`node video/thumb.mjs`, in the app's own tokens, so it looks like the
+product rather than like a thumbnail about the product.
 
-Pull one with:
+It leads on the structuring catch rather than on the name, because that is
+the only thing in the project nobody else is showing: two charges that each
+pass, and a refusal anyway. A viewer who reads "$75 + $75 = REFUSED" under
+a "$100 cap" has a question, and the question is the click.
 
-```bash
-video/node_modules/ffmpeg-static/ffmpeg.exe -ss 79 -i video/leash-trailer-sound.mp4 -frames:v 1 video/thumb.png
-```
+Checked at 320x180, which is the size it is actually chosen at. The sum,
+the verdict, "PASSES" and the wordmark all survive. The line bottom right
+does not, which is fine: it is there for the larger placements.
+
+Do not use a frame from the video. The interface is legible at full size
+and turns to mush in a sidebar.
 
 ## After it is up
 

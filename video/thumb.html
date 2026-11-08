@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Leash thumbnail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* The app's own tokens. A thumbnail that does not look like the
+         product is a thumbnail that lies about the product. */
+      :root {
+        --ground: #0b0a09;
+        --ink: #ece7e1;
+        --ink-2: #9d958c;
+        --ink-3: #6a635c;
+        --line: #2b2622;
+        --amber: #dfa33c;
+        --critical: #e2553d;
+        --green: #7fa37a;
+        --ui: "Archivo", "Segoe UI", system-ui, sans-serif;
+        --mono: "JetBrains Mono", "Cascadia Mono", ui-monospace, monospace;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        width: 1280px;
+        height: 720px;
+        background: var(--ground);
+        color: var(--ink);
+        font-family: var(--ui);
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* A warm lift behind the numbers so the frame is not a flat rectangle,
+         and a vignette so the corners fall away. Both very low contrast:
+         at sidebar size the type has to be the only thing competing. */
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(58% 52% at 22% 40%, rgba(223, 163, 60, 0.11), transparent 70%),
+          radial-gradient(44% 44% at 86% 82%, rgba(226, 85, 61, 0.08), transparent 70%);
+      }
+
+      .frame {
+        position: relative;
+        height: 100%;
+        padding: 58px 64px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      /* -- the rule it is breaking ------------------------------------- */
+
+      .cap {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        font-family: var(--mono);
+        font-size: 25px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .cap b {
+        font-weight: 700;
+        color: var(--ink-2);
+        letter-spacing: 0.06em;
+      }
+      .cap i {
+        font-style: normal;
+        width: 40px;
+        height: 1px;
+        background: var(--line);
+      }
+
+      /* -- the sum ------------------------------------------------------ */
+
+      .sum {
+        display: flex;
+        align-items: baseline;
+        gap: 30px;
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 142px;
+        line-height: 0.92;
+        letter-spacing: -0.03em;
+      }
+      .sum .op { color: var(--ink-3); font-size: 96px; }
+
+      /* Each charge clears on its own, and the tick is the whole joke:
+         both are legal, and the pair is not. */
+      .charge { position: relative; }
+      .charge::after {
+        content: "PASSES";
+        position: absolute;
+        left: 4px;
+        top: calc(100% + 14px);
+        font-family: var(--mono);
+        font-size: 21px;
+        font-weight: 400;
+        letter-spacing: 0.2em;
+        color: var(--green);
+      }
+
+      .verdict {
+        margin-top: 76px;
+        display: flex;
+        align-items: center;
+        gap: 34px;
+      }
+      .verdict .eq {
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 118px;
+        line-height: 1;
+        color: var(--ink-3);
+      }
+      .verdict .word {
+        font-family: var(--ui);
+        font-weight: 800;
+        font-size: 128px;
+        line-height: 1;
+        letter-spacing: -0.015em;
+        color: var(--critical);
+        text-transform: uppercase;
+      }
+
+      .why {
+        margin-top: 26px;
+        font-family: var(--mono);
+        font-size: 30px;
+        letter-spacing: 0.02em;
+        color: var(--amber);
+      }
+
+      /* -- who is saying it --------------------------------------------- */
+
+      .foot {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+      }
+      .brand { display: flex; align-items: center; gap: 16px; }
+      .brand svg { width: 46px; height: 46px; overflow: visible; }
+      .brand .ring,
+      .brand .tether { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+      .brand .handle { fill: var(--amber); stroke: var(--ink); stroke-width: 2; }
+      .brand .word {
+        font-weight: 800;
+        font-size: 46px;
+        letter-spacing: 0.015em;
+      }
+      .tag {
+        text-align: right;
+        font-family: var(--mono);
+        font-size: 24px;
+        line-height: 1.45;
+        color: var(--ink-3);
+      }
+      .tag b { display: block; font-weight: 400; color: var(--ink-2); }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="cap">
+        <span>Per purchase cap</span><i></i><b>$100</b>
+      </div>
+
+      <div>
+        <div class="sum">
+          <span class="charge">$75</span>
+          <span class="op">+</span>
+          <span class="charge">$75</span>
+        </div>
+        <div class="verdict">
+          <span class="eq">=</span>
+          <span class="word">Refused</span>
+        </div>
+        <div class="why">same merchant, two addresses</div>
+      </div>
+
+      <div class="foot">
+        <div class="brand">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <circle class="ring" cx="13" cy="19" r="9" />
+            <path class="tether" d="M19.5 12.5 L25.5 6.5" />
+            <circle class="handle" cx="26" cy="6" r="3.5" />
+          </svg>
+          <span class="word">Leash</span>
+        </div>
+        <div class="tag">
+          <b>spending limits for AI agents</b>
+          settled over PayPal Payouts
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
