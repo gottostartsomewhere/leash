@@ -319,7 +319,7 @@
           wipe($("shop", "kicker"), cue(t, 0.2, 0.45, ease.hard));
 
           // Rolls up rather than appearing, so the size of it registers.
-          roll($("shop", "n1"), 190.49, cue(t, 0.5, 0.75));
+          roll($("shop", "n1"), 216.99, cue(t, 0.5, 0.75));
           kinetic($("shop", "k1"), t, 0.55, { gap: 0.012, dur: 0.34, rise: 14 });
 
           roll($("shop", "n2"), 100, cue(t, 1.6, 0.6));
@@ -334,7 +334,7 @@
           const row1 = $("shop", "r1");
           row1.style.opacity = 1 - 0.45 * cue(t, 2.7, 0.5);
 
-          roll($("shop", "n3"), 97.99, cue(t, 3.1, 0.7));
+          roll($("shop", "n3"), 90.55, cue(t, 3.1, 0.7));
           kinetic($("shop", "k3"), t, 3.15, { gap: 0.012, dur: 0.34, rise: 14 });
           const pop = cue(t, 3.6, 0.45, ease.back);
           $("shop", "n3").style.transform = `scale(${0.86 + 0.14 * pop})`;
@@ -408,6 +408,15 @@
           note.textContent = cue_.note ?? "";
           delete title.dataset.split;
         }
+        // Lower right, for the pushes whose subject sits in the lower left.
+        // The shade is mirrored with it, so it pools under the words.
+        const box = document.querySelector("#caption .cap");
+        const right = cue_.side === "right";
+        box.style.left = right ? "auto" : "";
+        box.style.right = right ? "92px" : "";
+        scrim.style.left = right ? "auto" : "";
+        scrim.style.right = right ? "-220px" : "";
+        scrim.style.transform = right ? "scaleX(-1)" : "";
         const inP = cue(t, cue_.from, 0.42, ease.hard);
         const outP = cue(t, cue_.to, 0.3, ease.hard);
         const live = inP * (1 - outP);

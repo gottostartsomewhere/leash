@@ -1,13 +1,14 @@
 // Builds the trailer's soundtrack and muxes it onto the picture.
 //
-//   node video/sound.mjs            everything
-//   node video/sound.mjs --vo       just the voice track, for checking
+//   python video/_transcribe.py <take.mp3> --out _vo2.json
+//   node video/sound.mjs --src <take.mp3> --take _vo2.json
+//   node video/sound.mjs --src <take.mp3> --take _vo2.json --vo   (voice only)
 //
-// The voiceover was recorded as one continuous read, 2:13 of it, against a
-// picture that runs 2:42 with the silences written in. So it is cut apart
-// here at word boundaries from the Whisper pass in `_take1.json` and each
-// line is placed at the second the script says it starts. That is the only
-// way the read and the cut can agree without re-recording to a click.
+// The voiceover is recorded as one read against a picture with the silences
+// written in. So it is cut apart here at word boundaries from a Whisper
+// pass, and each line is placed so its first word lands on the second the
+// script gives it. That is the only way the read and the cut can agree
+// without re-recording to a click.
 //
 // Every sound effect is synthesised. Nothing is licensed, nothing is
 // downloaded, and nothing costs anything.
@@ -20,13 +21,25 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WORK = path.join(HERE, "sound");
-const TAKE = path.join(HERE, "_take1.json");
-const SRC = "C:/Users/johnk/Downloads/Record (online-voice-recorder.com).mp3";
+const flag = (name) => {
+  const i = process.argv.indexOf(name);
+  return i === -1 ? undefined : process.argv[i + 1];
+};
+// The take and its transcript, named on the command line. No defaults: the
+// first video's take is still in Downloads under the obvious name, and a
+// default pointing at it would quietly cut the old voice onto the new
+// picture.
+const SRC = flag("--src");
+const TAKE = flag("--take") && path.resolve(HERE, flag("--take"));
+if (!SRC || !TAKE) {
+  console.error("usage: node video/sound.mjs --src <take.mp3> --take <transcript.json> [--vo]");
+  process.exit(1);
+}
 const PICTURE = path.join(HERE, "leash-trailer.mp4");
 const OUT = path.join(HERE, "leash-trailer-sound.mp4");
 
 const SR = 48000;
-const RUNTIME = 162.2; // the picture, 2:42.2
+const RUNTIME = 175.3; // the picture, 2:55.3
 
 function run(args) {
   execFileSync(ffmpeg, ["-hide_banner", "-loglevel", "error", "-y", ...args], {
@@ -83,71 +96,123 @@ function silences() {
 
 // ---------------------------------------------------------------- the voice
 
-// Each line, as a span of word indices in the transcript and the second the
-// script starts it. Word indices rather than timestamps because the words
-// are what was actually said: a span that starts on "refused" cannot
-// accidentally include the "This is" he put in front of it.
-// `at` is NOT the script's cue sheet. The script was timed at 150 words a
-// minute and he reads at about 128, so five lines ran straight over the
-// next cue and the back half drifted a line behind the picture. These are
-// re-spaced against the delivery that exists and the beats it has to hit:
-// "live" on the cut out of the animation at 47.9, "model" into the camera
-// landing on the byline at 75.4, "catch" on the structuring callout at
-// 101.5, "close" inside the closing card, "turn" on the end card.
+// Each line of `script.md`, and the second its first word should be heard.
 //
-// The gaps look impossibly tight because each clip carries its own
-// padding: a listed 0.3s gap is 0.3 plus this clip's 0.30s tail plus the
-// next one's 0.18s lead, so three quarters of a second of real silence.
+// `cue` is when the speech starts, not where the clip goes: each clip
+// carries a little silence in front of its first word, and the placement
+// is worked out from that, so the word itself lands on the cue. The first
+// video placed clips by hand, a quarter second early to allow for it.
+//
+// The words are found in the transcript by matching the line's own text,
+// in order, rather than by counting word indices by hand. A line read more
+// than once is taken from its last reading before the next line starts,
+// which is the retake. `words: [a, b]` on a line overrides the match, for
+// when a stumble needs a hand-picked span.
+//
+// Timed at 128 words a minute, the pace of the first video's read.
 const LINES = [
-  { name: "pitch", words: [0, 24], at: 8.0 },
-  { name: "act-one", words: [25, 47], at: 17.4 },
-  { name: "act-two", words: [48, 72], at: 29.0 },
-  { name: "counter", words: [73, 88], at: 42.6 },
-  { name: "live", words: [89, 98], at: 48.6 },
-  { name: "mandate", words: [99, 108], at: 53.4 },
-  { name: "shopping", words: [109, 124], at: 60.8 },
-  { name: "model", words: [125, 138], at: 73.6 },
-  // Keeps the "This is" he added in front of "refused".
-  //
-  // Cutting it off meant starting the clip inside a word: he runs "make.
-  // This is refused" together with no pause anywhere in it, so there was
-  // no silence to put a boundary in and the cut landed mid-syllable. It
-  // came back from the check transcript as "is ruffed". There is a real
-  // pause before "This", the sentence is no worse for carrying it, and a
-  // clean cut beats a tidier script.
-  { name: "refusal", words: [139, 153], at: 79.4 },
-  { name: "structuring", words: [154, 161], at: 85.2 },
-  { name: "split", words: [162, 179], at: 88.8 },
-  { name: "addresses", words: [180, 191], at: 95.6 },
-  { name: "catch", words: [192, 199], at: 101.9 },
-  { name: "money", words: [200, 216], at: 108.2 },
-  { name: "books", words: [217, 222], at: 121.0 },
-  { name: "revoke", words: [223, 235], at: 129.6 },
-  { name: "meaning", words: [236, 254], at: 136.4 },
-  { name: "redteam", words: [255, 263], at: 145.3 },
-  // Hard on the heels of the red team line, by request, and he is
-  // right: "two red teams, one of them a model" and the count are one
-  // sentence with a comma in it, and a second of air between them made
-  // the number sound like a new topic. 147.9 puts 0.07s between the
-  // last word of one and the first of the next, which is a breath
-  // rather than a pause. It also fixes the sync: the tally card is
-  // gone at 2:32 and the old placement ran the count past it.
-  { name: "numbers", words: [264, 267], at: 147.9 },
-  // The closing couplet, as one clip, and still stopping before the "thank
-  // you" that is not in the script and not in the cut.
-  //
-  // "...what their agent can buy. This one shows you what it cannot." runs
-  // continuously with no pause between the halves, so splitting them meant
-  // cutting inside "This", and the word simply vanished: the check
-  // transcript heard "buy. one shows you what it cannot." It is one
-  // thought and he delivered it as one, so it is one clip now. Placed so
-  // the turn lands as the end card arrives, which is where it belongs.
-  // 151.75 so the first word lands exactly on 2:32, which is where the
-  // closing card arrives: the clip carries a quarter second of silence
-  // in front of "Every", so the placement sits that much earlier than
-  // the time you hear.
-  { name: "close", words: [268, 284], at: 151.75 },
+  { name: "pitch", cue: 8.0, text: "Every agent demo ends the same way. The agent buys the thing, everyone claps, and nobody asks what happens when it buys the wrong thing." },
+  { name: "says-no", cue: 19.8, text: "Leash is the part that says no. The agent never touches a payment credential. Every purchase it tries runs eleven checks first." },
+  { name: "answer", cue: 31.2, text: "A refusal isn't a dead end. It's an answer the agent can use." },
+  { name: "live", cue: 39.0, text: "That is the idea. This is it running, for real." },
+  { name: "write", cue: 45.5, text: "You don't fill in a form. You say it the way you'd tell a person." },
+  { name: "drafts", cue: 53.2, text: "A model drafts it and shows its working, down to the worst an agent could do inside it." },
+  { name: "attacks", cue: 62.2, text: "Then it attacks the draft, before you sign." },
+  { name: "signed", cue: 66.4, text: "Sign it, and those are the rules." },
+  { name: "shopping", cue: 71.0, text: "Now send an agent at it with a goal and no budget. Find me an office chair." },
+  // Into the camera landing on the model's name at 84.6.
+  { name: "model", cue: 79.0, text: "A model chooses the product. That is the only decision it gets to make." },
+  // The callout opens at 87.1.
+  { name: "refusal", cue: 86.2, text: "Refused, told what would clear, and it came back inside." },
+  { name: "structuring", cue: 91.6, text: "Now the part I actually care about." },
+  { name: "split", cue: 95.4, text: "Tell an agent nothing over a hundred, and a competent one doesn't give up. It splits the purchase." },
+  // The callout is doing the arithmetic from 103.4.
+  { name: "catch", cue: 104.3, text: "Each half clears. Together they don't." },
+  { name: "attack", cue: 108.3, text: "Two red teams, and one of them is a model. Attack it yourself, right from the page." },
+  { name: "yours", cue: 117.2, text: "The agent in this demo is ours. Yours connects with one URL." },
+  { name: "client", cue: 123.2, text: "That's a real client, talking to the live server while you watch." },
+  { name: "money", cue: 131.0, text: "Approved spend settles through PayPal Payouts. Real batches, real money, a sandbox account on the other side." },
+  { name: "books", cue: 146.0, text: "Same amounts, in PayPal's own books." },
+  { name: "revoke", cue: 153.9, text: "And it comes off. One click, mid session. Every unsettled hold is dropped." },
+  { name: "unaware", cue: 160.4, text: "The agent doesn't know anything changed." },
+  // With the closing card, which says the same words.
+  { name: "close", cue: 165.0, text: "Every other demo shows you what their agent can buy." },
+  { name: "turn", cue: 170.0, text: "This one shows you what it cannot." },
 ];
+
+/** A word as it can be compared: no case, no punctuation, no apostrophes,
+ *  so "Don't" and "dont" and "don't," are the same word. */
+const norm = (w) => w.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** How much of `line` the transcript says, in order, starting at `i`.
+ *
+ *  An in-order walk rather than a set: "it" and "the" are everywhere, and
+ *  only the order tells one line from the next. Stops looking after a few
+ *  unmatched words, so a line cannot be assembled from scattered pieces. */
+function matchAt(heard, line, i) {
+  let j = i;
+  let first = -1;
+  let last = -1;
+  let hits = 0;
+  for (const want of line) {
+    let k = j;
+    while (k < heard.length && k < j + 3 && heard[k] !== want) k += 1;
+    if (k < heard.length && heard[k] === want) {
+      if (first === -1) first = k;
+      last = k;
+      hits += 1;
+      j = k + 1;
+    }
+  }
+  return { score: hits / line.length, first, last };
+}
+
+/** Find every line's span of words in the take. */
+function locate(words) {
+  const heard = words.map((w) => norm(w.word));
+  const lines = LINES.map((l) => l.text.split(/\s+/).map(norm).filter(Boolean));
+  const good = (k, from) => {
+    const out = [];
+    for (let i = from; i < heard.length; i += 1) {
+      if (heard[i] !== lines[k][0] && heard[i] !== lines[k][1]) continue;
+      const m = matchAt(heard, lines[k], i);
+      if (m.score < 0.7 || m.first > i + 1) continue;
+      // One reading matches from its first word and again from its second.
+      // Those overlap, and are one reading: keep the fuller of the two, or
+      // a retake check would count it twice and pick the one missing a word.
+      const prev = out[out.length - 1];
+      if (prev && m.first <= prev.last) {
+        if (m.score > prev.score) out[out.length - 1] = m;
+        continue;
+      }
+      out.push(m);
+    }
+    return out;
+  };
+
+  let cursor = 0;
+  return LINES.map((line, k) => {
+    if (line.words) {
+      cursor = line.words[1] + 1;
+      return line.words;
+    }
+    const mine = good(k, cursor);
+    if (!mine.length) {
+      throw new Error(`"${line.name}" is not in the take: ${line.text}`);
+    }
+    // The last reading that starts before the next line's first one is the
+    // retake. With no next line, or none found, the best reading wins.
+    const next = k + 1 < LINES.length ? good(k + 1, mine[0].last + 1)[0] : undefined;
+    const before = next ? mine.filter((m) => m.first < next.first) : mine;
+    const best = Math.max(...before.map((m) => m.score));
+    const pick = before.filter((m) => m.score >= best - 0.1).pop();
+    cursor = pick.last + 1;
+    if (before.length > 1) {
+      console.log(`  ${line.name.padEnd(12)} read ${before.length} times, using the last`);
+    }
+    return [pick.first, pick.last];
+  });
+}
 
 // How much silence to keep either side of a line, at most. Taken out of a
 // real silence rather than added blindly: a fixed tail on a continuous read
@@ -195,8 +260,16 @@ function cutVoice() {
   const clips = [];
 
   console.log(`voice   ${gaps.length} silences found\n`);
+  const spans = locate(words);
+  // What was actually matched, so a wrong span is caught by reading it
+  // rather than by hearing it in the mix.
+  for (const [i, [a, b]] of spans.entries()) {
+    const said = words.slice(a, b + 1).map((w) => w.word.trim()).join(" ");
+    console.log(`  ${LINES[i].name.padEnd(12)} [${a}-${b}] ${said}`);
+  }
+  console.log("");
   for (const [i, line] of LINES.entries()) {
-    const [a, b] = line.words;
+    const [a, b] = spans[i];
     const head = snap(words[a].start, -1, gaps, LEAD);
     const foot = snap(words[b].end, +1, gaps, TAIL);
     const from = Math.max(0, head.cut);
@@ -218,6 +291,9 @@ function cutVoice() {
     const lead = Math.max(0.02, Math.min(quietIn, 0.14));
     const tail = Math.max(0.03, Math.min(quietOut, 0.26));
 
+    // Placed so the first word, not the clip, lands on the cue.
+    const at = Math.max(0, line.cue - quietIn);
+
     const file = path.join(WORK, `vo-${String(i).padStart(2, "0")}-${line.name}.wav`);
     run([
       "-ss", from.toFixed(3), "-t", dur.toFixed(3), "-i", SRC,
@@ -227,7 +303,7 @@ function cutVoice() {
         `afade=t=out:st=${(dur - tail).toFixed(3)}:d=${tail.toFixed(3)}:curve=qsin`,
       file,
     ]);
-    clips.push({ ...line, file, dur, lead, tail, quietIn, quietOut, head, foot });
+    clips.push({ ...line, at, file, dur, lead, tail, quietIn, quietOut, head, foot });
   }
 
   // Reported as the gap between the last word of one line and the first
@@ -365,8 +441,9 @@ const HITS = [
   // into the animation
   { el: "riser", at: 10.1, gain: 0.32 },
   { el: "impact", at: 11.2, gain: 0.6 },
-  // the mandate being written, and the token setting off
+  // the animation: it proposes, the per-item gate refuses it, it comes back
   { el: "land", at: 20.2, gain: 0.5 },
+  { el: "impact", at: 23.75, gain: 0.55 },
   { el: "land", at: 31.2, gain: 0.5 },
   // the eleven checks, as the token runs the wall
   ...Array.from({ length: 11 }, (_, n) => ({
@@ -374,46 +451,60 @@ const HITS = [
     at: 32.6 + n * 0.46,
     gain: 0.34,
   })),
-  // refused, and the counter-offer
-  { el: "impact", at: 41.6, gain: 0.7 },
-  { el: "land", at: 45.2, gain: 0.45 },
   // hard cut out of the animation into the live app
-  { el: "riser", at: 46.8, gain: 0.44 },
-  { el: "sub", at: 47.9, gain: 0.95 },
-  // the mandate panel, each push
-  { el: "land", at: 50.5, gain: 0.4 },
-  { el: "land", at: 53.0, gain: 0.4 },
-  { el: "land", at: 56.5, gain: 0.4 },
+  { el: "riser", at: 37.15, gain: 0.44 },
+  { el: "sub", at: 38.25, gain: 0.95 },
+  { el: "land", at: 42.35, gain: 0.4 }, // the rules
+  // write a mandate: drafted, read, worst case, attacked, signed, live
+  { el: "impact", at: 44.9, gain: 0.5 },
+  { el: "tick", at: 49.75, gain: 0.45 },
+  { el: "land", at: 53.8, gain: 0.4 },
+  { el: "land", at: 58.4, gain: 0.4 },
+  { el: "land", at: 62.35, gain: 0.4 },
+  { el: "tick", at: 64.6, gain: 0.5 },
+  { el: "land", at: 66.85, gain: 0.5 },
   // into the shop
-  { el: "impact", at: 59.9, gain: 0.55 },
-  { el: "land", at: 65.2, gain: 0.4 }, // the shelf
-  { el: "tick", at: 68.7, gain: 0.5 }, // send the agent
+  { el: "impact", at: 69.55, gain: 0.55 },
+  { el: "land", at: 75.75, gain: 0.4 }, // the shelf
+  { el: "tick", at: 78.25, gain: 0.5 }, // send the agent
   // the camera landing on the model's name, then the callout opening
-  { el: "land", at: 75.4, gain: 0.6 },
-  { el: "tick", at: 77.7, gain: 0.45 },
+  { el: "land", at: 84.55, gain: 0.6 },
+  { el: "tick", at: 87.05, gain: 0.45 },
   // into structuring, which is the beat the whole thing rests on
-  { el: "riser", at: 81.4, gain: 0.44 },
-  { el: "impact", at: 82.5, gain: 0.85 },
-  { el: "tick", at: 85.6, gain: 0.45 }, // the second charge
-  { el: "land", at: 87.8, gain: 0.5 }, // the cluster
+  { el: "riser", at: 89.85, gain: 0.44 },
+  { el: "impact", at: 90.9, gain: 0.85 },
+  { el: "tick", at: 94.1, gain: 0.45 }, // the second charge
+  { el: "land", at: 96.8, gain: 0.5 }, // the cluster
   // caught
-  { el: "sub", at: 101.5, gain: 0.9 },
+  { el: "sub", at: 103.35, gain: 0.9 },
+  // attack it: the tally races, settles, the lanes
+  { el: "impact", at: 107.8, gain: 0.6 },
+  { el: "riser", at: 110.55, gain: 0.34 },
+  { el: "land", at: 111.65, gain: 0.5 },
+  { el: "land", at: 113.7, gain: 0.4 },
+  // your own agent: the URL, its first move, the other three at once
+  { el: "impact", at: 116.85, gain: 0.5 },
+  { el: "land", at: 119.05, gain: 0.45 },
+  { el: "tick", at: 121.95, gain: 0.5 },
+  { el: "tick", at: 123.4, gain: 0.5 },
+  { el: "tick", at: 123.52, gain: 0.4 },
+  { el: "tick", at: 123.64, gain: 0.35 },
+  { el: "land", at: 125.35, gain: 0.5 },
   // the money moving
-  { el: "impact", at: 106.1, gain: 0.5 },
-  { el: "land", at: 109.5, gain: 0.45 },
-  { el: "land", at: 117.1, gain: 0.45 },
+  { el: "impact", at: 130.1, gain: 0.5 },
+  { el: "land", at: 133.55, gain: 0.45 },
+  { el: "land", at: 136.45, gain: 0.45 },
   // PayPal's own books
-  { el: "land", at: 120.7, gain: 0.5 },
-  // revoke
-  { el: "riser", at: 128.2, gain: 0.40 },
-  { el: "sub", at: 129.3, gain: 1.0 },
-  { el: "land", at: 134.0, gain: 0.4 },
-  // the tally counting up
-  { el: "riser", at: 142.9, gain: 0.36 },
-  { el: "impact", at: 144.0, gain: 0.7 },
+  { el: "land", at: 144.5, gain: 0.5 },
+  // revoke, and asking again, and the stamp
+  { el: "riser", at: 152.25, gain: 0.40 },
+  { el: "sub", at: 153.35, gain: 1.0 },
+  { el: "land", at: 155.8, gain: 0.4 },
+  { el: "tick", at: 158.15, gain: 0.45 },
+  { el: "impact", at: 162.85, gain: 0.7 },
   // the close
-  { el: "impact", at: 151.6, gain: 0.65 },
-  { el: "sub", at: 157.2, gain: 0.85 },
+  { el: "impact", at: 164.6, gain: 0.65 },
+  { el: "sub", at: 170.25, gain: 0.85 },
 ];
 
 function buildEffects(els) {

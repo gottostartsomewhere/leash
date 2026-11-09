@@ -37,7 +37,17 @@ def out_name(p: pathlib.Path, n: int) -> str:
     return f"_{p.stem.replace('-', '_')}.json"
 
 
-for n, path in enumerate(sys.argv[1:], start=1):
+args = sys.argv[1:]
+# --out names the result outright. The second video's take will be called
+# "Record ..." like the first, and the rule below would then write it over
+# `_take1.json`, the first video's word timings.
+out_override = None
+if "--out" in args:
+    i = args.index("--out")
+    out_override = args[i + 1]
+    del args[i : i + 2]
+
+for n, path in enumerate(args, start=1):
     p = pathlib.Path(path)
     with httpx.Client(timeout=300.0) as client:
         r = client.post(
@@ -54,7 +64,7 @@ for n, path in enumerate(sys.argv[1:], start=1):
     if r.status_code != 200:
         sys.exit(f"HTTP {r.status_code}: {r.text[:600]}")
     out = r.json()
-    (ROOT / "video" / out_name(p, n)).write_text(
+    (ROOT / "video" / (out_override or out_name(p, n))).write_text(
         json.dumps(out, indent=1), encoding="utf-8"
     )
     print(f"\n{'=' * 72}\nTAKE {n}  {p.name}  {out.get('duration')}s\n{'=' * 72}")

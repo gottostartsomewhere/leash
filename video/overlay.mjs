@@ -35,32 +35,48 @@ const SCENES = {
 // the beats that are not a push. Anchoring to marks is what makes a
 // re-record safe: a slower catalogue search moves every later beat, and
 // hand-counted times would put the text on the wrong frames.
+//
+// No caption runs on a push whose subject is a line of the interface that
+// already says it ("Attacked before you sign: 230 attempts", the agent's
+// moves, the model's byline): a caption there covers the very words it
+// would repeat. `side: "right"` is for a push whose subject sits where the
+// caption normally goes, in the lower left.
 const CAPTIONS = {
-  mandate: [
-    { from: 0.2, to: "gauge-0.5", title: "One mandate", note: "What this agent is allowed to spend" },
-    { at: "gauge", title: "The budget", note: "$500 in total, and what is left of it" },
-    { at: "rules", title: "The terms", note: "$100 a purchase, and a pace it cannot beat" },
-    { at: "scope", title: "The scope", note: "Named merchants, named categories" },
-    { from: "scope/out+0.3", to: "END", title: "Nothing outside this is spendable" },
+  intro: [
+    { from: 0.3, to: "rules-0.5", title: "The live demo", note: "Open to anyone, no sign-in" },
+    { at: "rules", title: "The rules it can't break", note: "$100 a purchase, $200 a merchant, 6 a minute" },
+  ],
+  write: [
+    { from: 0.4, to: "draft-0.2", title: "Write a mandate in plain English", note: "The way you'd tell a person" },
+    { from: "draft+0.2", to: "read-0.5", title: "A model drafts it", note: "It never decides what's allowed" },
+    { at: "read", side: "right", title: "What it understood", note: "\"No alcohol\" can't be enforced, so it says so" },
+    { at: "exposure", title: "The worst an agent could do inside it", note: "No per-purchase cap, so one buy could take all $150" },
+    { from: "sign", to: "live-0.5", title: "Signed", note: "The demo now runs on it" },
+    { at: "live", side: "right", title: "Now these are the rules", note: "$150 for the week, $40 a shop, food only" },
   ],
   shop: [
     { from: 0.4, to: "look-0.4", title: "Send it shopping", note: "The agent gets a goal, not a budget" },
-    { from: "shelf+0.2", to: "product-0.5", title: "It searches a real catalogue", note: "Live products and real merchants, through Channel3" },
-    { at: "product", title: "Real listings, real merchants", note: "A live catalogue, not a fixture dressed up as one" },
-    { from: "result+0.4", to: "trace-0.5", title: "Now let it spend", note: "Every item checked before any money moves" },
-    // Kept short on purpose. This caption runs under a push that fills the
-    // right two thirds of the frame with the result panel, and a longer
-    // line reaches across into it and lands on the byline it is pointing at.
-    { at: "trace", title: "A model chose it", note: "The product, and nothing else" },
-    { at: "grid", title: "And the mandate refused it", note: "$190.49, over the $100 ceiling. It came back with $97.99." },
+    { from: "shelf+0.2", to: "send-0.3", title: "A live catalogue", note: "Real products and merchants, through Channel3" },
+    { from: "send+0.3", to: "result-0.2", title: "A model picks, the mandate checks", note: "Every purchase, before any money moves" },
+    { from: "result+0.2", to: "trace-0.5", title: "Refused, and told what would clear", note: "So it looked again under $100" },
   ],
   structuring: [
     { from: 0.3, to: "second-0.3", title: "$75 to Acme US", note: "Under the $100 ceiling, so it clears" },
     { from: "second+0.4", to: "cluster-0.5", title: "$75 to Acme EU", note: "Also under the ceiling" },
     { at: "cluster", title: "Same merchant, two addresses", note: "75 + 75 = 150, over the limit" },
     { at: "facts", title: "Refused as structuring", note: "The reason is kept, not just the verdict" },
-    { from: "filter+0.2", to: "search-0.6", title: "Every decision is queryable", note: "Filtered down to the refusals" },
-    { from: "search+0.3", to: "END", title: "And searchable", note: "AG Grid over the live decision log" },
+  ],
+  attack: [
+    // Right, because the tally counting up sits exactly where a caption goes.
+    { from: 0.3, to: "settled-0.2", side: "right", title: "Try to break it", note: "Three hundred attacks on a sandbox copy" },
+    { from: "settled+0.1", to: "lanes-0.5", side: "right", title: "None got through", note: "Splitting, address hopping, dripping, spraying" },
+    { at: "lanes", title: "Five objectives, all held", note: "The real mandate is never touched" },
+  ],
+  mcp: [
+    { from: 0.3, to: "url-0.5", title: "Bring your own agent", note: "Claude, ChatGPT, any MCP client" },
+    { at: "url", title: "One URL", note: "Added as a connector, nothing to install" },
+    { from: "agent+0.2", to: "moves-0.5", title: "A real MCP client, live", note: "Its requests land in the same log" },
+    { from: "moves/out+0.2", to: "END", title: "Same rules, same refusals", note: "It can ask. It can't move money." },
   ],
   payout: [
     { from: 0.3, to: "approve-0.3", title: "Approved, and waiting", note: "Nothing settles without a person saying so" },

@@ -40,3 +40,6 @@ Thumbs.db
 
 # Rendered audio stages. The mix is rebuilt from sound.mjs and the take.
 video/sound/
+
+# The first video, kept locally while the second one is made.
+video/v1/

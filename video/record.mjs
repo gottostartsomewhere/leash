@@ -14,11 +14,13 @@
 // instead of being scrubbed for by hand.
 
 import { chromium } from "playwright-core";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, "..");
 const TITLES = "file:///" + path.join(HERE, "titles.html").replace(/\\/g, "/");
 // localhost rather than 127.0.0.1: Vite binds to the IPv6 loopback, and the
 // numeric v4 address is refused.
@@ -151,8 +153,22 @@ async function card(index, name, seconds) {
 
 /* -- the app ------------------------------------------------------------ */
 
-async function openApp() {
+/** The app, with its first-visit intro folded or showing.
+ *
+ *  Folded for every shot but the arrival: the intro is what a judge reads
+ *  first, and in the middle of the film it is a band of chrome pushing the
+ *  thing being demonstrated down the screen. Set before the page loads, so
+ *  no frame ever catches it folding. */
+async function openApp({ folded = true } = {}) {
   const page = await context.newPage();
+  await page.addInitScript((fold) => {
+    try {
+      if (fold) localStorage.setItem("leash.intro.folded", "1");
+      else localStorage.removeItem("leash.intro.folded");
+    } catch {
+      /* storage blocked: the app shows the intro, which is the safe default */
+    }
+  }, folded);
   await page.goto(APP);
   await page.addStyleTag({ content: `html { zoom: ${ZOOM} }` });
   // The rail only renders once the mandate has loaded.
@@ -284,9 +300,116 @@ async function ask(page, { payee, category, amount }) {
   await page.getByRole("button", { name: "Ask to spend" }).click();
 }
 
+/** The sentence typed on camera. Drafted three times against the real model
+ *  before it was chosen: $150, $40 a shop, food, a week, and "no alcohol"
+ *  under not-enforced, every time. */
+const GROCERIES =
+  "Groceries only. $150 for the week, never more than $40 at any one shop, and no alcohol.";
+
 const SHOTS = {
   // Longer, busier takes. Camera moves can cover a short shot, but real
   // motion underneath is what stops a segment reading as a still.
+
+  /** What a judge sees first, then the terms that headline is about. */
+  async intro() {
+    await reset();
+    const page = await openApp({ folded: false });
+    await page.locator(".intro h1").waitFor();
+    await take("intro", page, async (mark) => {
+      mark("arrive");
+      await sleep(2800);
+      await look(page, mark, ".rules", "rules", { scale: 1.6, hold: 2000 });
+      await sleep(400);
+    });
+    await page.close();
+  },
+
+  /** Plain English in, a draft the engine has checked and attacked out. */
+  async write() {
+    await reset();
+    const page = await openApp();
+    await take("write", page, async (mark) => {
+      await page.getByRole("tab", { name: "Write a mandate" }).click();
+      await sleep(800);
+      const box = page.getByLabel("What the agent may spend, in plain English");
+      await box.fill("");
+      mark("typing");
+      await box.pressSequentially(GROCERIES, { delay: 30 });
+      await sleep(500);
+      mark("draft");
+      await page.getByRole("button", { name: "Draft it" }).click();
+      await page.locator(".draft").waitFor({ timeout: 90_000 });
+      mark("drafted");
+      await sleep(900);
+      // The two columns together are wider than any push can hold, so each
+      // gets its own: what it read (with "no alcohol" not enforced), then
+      // the worst an agent could do inside it.
+      await look(page, mark, ".draft-cols > div:first-child", "read", { scale: 1.6, hold: 2600 });
+      await look(page, mark, ".exposure", "exposure", { scale: 1.6, hold: 2000 });
+      await look(page, mark, ".attacked", "attacked", { scale: 1.8, hold: 1500 });
+      mark("sign");
+      await page.getByRole("button", { name: "Sign it and use it" }).click();
+      await page.locator(".signed").waitFor({ timeout: 30_000 });
+      mark("signed");
+      await sleep(900);
+      // The payoff: the rail is now the mandate that was just written.
+      await look(page, mark, ".rules", "live", { scale: 1.5, hold: 2200 });
+      await sleep(300);
+    });
+    await page.close();
+  },
+
+  /** Three hundred attacks on a sandbox copy, replayed. */
+  async attack() {
+    await reset();
+    const page = await openApp();
+    await take("attack", page, async (mark) => {
+      await page.getByRole("tab", { name: "Try to break it" }).click();
+      await sleep(900);
+      mark("fire");
+      await page.getByRole("button", { name: "Run 300 attacks" }).click();
+      await page.locator(".attack-verdict.settled").waitFor({ timeout: 30_000 });
+      mark("settled");
+      await sleep(800);
+      // Aimed at the words beside the count, not the panel: the panel is as
+      // wide as the window, and a push on it cut the lane names off. From
+      // here the count, the verdict and the lanes' names share the frame.
+      await look(page, mark, ".tally-of", "lanes", { scale: 1.8, hold: 2400 });
+      await sleep(400);
+    });
+    await page.close();
+  },
+
+  /** An agent that is not ours, over MCP, landing on the screen live. */
+  async mcp() {
+    await reset();
+    const page = await openApp();
+    await take("mcp", page, async (mark) => {
+      await page.getByRole("tab", { name: "Connect your agent" }).click();
+      await sleep(900);
+      await look(page, mark, ".copyable", "url", { scale: 1.8, hold: 1400 });
+      // The real client, over the real protocol, while the screen watches.
+      // Nothing tells the screen it happened; it notices on its own poll.
+      mark("agent");
+      const agent = spawn("python", ["scripts/agent_probe.py", `${API}/mcp`], {
+        cwd: ROOT,
+        env: { ...process.env, PYTHONPATH: "." },
+        stdio: "ignore",
+      });
+      const finished = new Promise((r) => agent.on("exit", r));
+      await page.locator(".their-moves li").first().waitFor({ timeout: 60_000 });
+      mark("first-move");
+      await Promise.race([finished, sleep(60_000)]);
+      // The screen polls every four seconds, so one full poll after the
+      // agent hangs up is enough for its last move to land.
+      await sleep(4300);
+      mark("landed");
+      await look(page, mark, ".their-moves", "moves", { scale: 1.7, hold: 2800 });
+      await sleep(400);
+      agent.kill();
+    });
+    await page.close();
+  },
 
   async mandate() {
     await reset();
@@ -326,11 +449,8 @@ const SHOTS = {
       mark("shelf");
       await sleep(1200);
       await look(page, mark, ".product", "product", { scale: 2.0, hold: 1500 });
-      // Scroll the shelf itself. A sideways wheel moves the whole document,
-      // because the shelf overflows the page rather than scrolling inside
-      // its own box, and the page then stays a thousand pixels off-origin
-      // with every width:100% container stretched to the wider document.
-      // Every framing after this point was being computed against that.
+      // Scroll the shelf inside its own box. (It used to widen the whole
+      // page instead, until the layout grid got minmax(0, 1fr) columns.)
       await page.evaluate(() => {
         const shelf = document.querySelector(".shelf");
         if (shelf) shelf.scrollBy({ left: 900, behavior: "smooth" });
@@ -342,26 +462,6 @@ const SHOTS = {
       await page.getByText("What it did").waitFor({ timeout: 90_000 });
       mark("result");
       await sleep(1100);
-      // Put the document back on its origin before framing anything.
-      //
-      // The shelf makes the page 2747px wide, and the browser leaves it
-      // scrolled 827px to the right once the result renders. The trace rows
-      // are 2387px wide, so their left edge sits at -481: the verdict, the
-      // product and the byline are all off the left of the frame, and the
-      // only part of the row still in shot is the price column at the far
-      // right. Every framing taken from here was being computed against
-      // that, which is why a push onto the byline landed on empty space.
-      await page.evaluate(() => window.scrollTo({ left: 0, behavior: "smooth" }));
-      await sleep(700);
-      // Held full frame rather than pushed into.
-      //
-      // The shelf overflows the document instead of scrolling inside its
-      // own box, so once it has rendered, the result panel and the grid
-      // header are both laid out wider than the window. A subject wider
-      // than the frame has no framing to find: every push either cuts off
-      // the columns that matter or lands beside them. Both beats read at
-      // full size anyway, and the callout that follows does the explaining
-      // with numbers.
       // Push onto the byline rather than holding the whole frame.
       //
       // `Chose` is the last row of the result: who picked the product, and
@@ -404,16 +504,9 @@ const SHOTS = {
       // The grid doing grid things, which is also the AG Grid story.
       mark("filter");
       await page.getByRole("button", { name: "Only refusals" }).click();
-      await sleep(2800);
-      await page.getByRole("button", { name: "Only refusals" }).click();
-      await sleep(2000);
-
-      mark("search");
-      const find = page.getByLabel("Search the decision log");
-      await find.pressSequentially("acme", { delay: 110 });
-      await sleep(2400);
-      await find.fill("");
       await sleep(2200);
+      await page.getByRole("button", { name: "Only refusals" }).click();
+      await sleep(1200);
     });
     await page.close();
   },
@@ -485,7 +578,7 @@ const SHOTS = {
       await sleep(1100);
       await look(page, mark, ".ag-header", "grid", { scale: 1.7, hold: 1800 });
       await ask(page, { payee: "northwind", category: "office-supplies", amount: "5.00" });
-      await sleep(4000);
+      await sleep(1500);
     });
     await page.close();
   },

@@ -69,18 +69,29 @@ const SEGMENTS = [
   // the flow says each of them better, and says them while something is
   // moving. Everything after the flow is the live product doing the thing
   // the animation just promised.
+  //
+  // The second cut, around the product as it is now: write a mandate in
+  // plain English, attack it, and put an outside agent on it over MCP. Every
+  // slot is its take's own length, so nothing holds on a frozen frame for
+  // long, and every callout hangs off a mark rather than a counted second.
   { name: "problem", kind: "seq", seconds: 7 },
   { name: "lower", kind: "seq", seconds: 5 },
-  { name: "flow", kind: "seq", seconds: 37 },
+  // Acts one to three only. Act four explains structuring, and the live
+  // structuring shot is a minute later saying the same thing for real.
+  // 27.3 lands on "Paid, and recorded with its reason" before it fades.
+  { name: "flow", kind: "seq", seconds: 27.3 },
 
-  { name: "mandate", kind: "seq", seconds: 12 },
-  // 23s, not 20. The take runs 20.0s now: the agent's result is network
-  // bound, and the beat that reads the byline is a push that did not exist
-  // before. The callout cannot start until that push has unwound, which is
-  // 17.8, and it needs 4.6s of its own.
-  { name: "shop", kind: "seq", seconds: 23, callout: { at: 17.8 } },
-  { name: "structuring", kind: "seq", seconds: 24, callout: { at: 19.0 } },
-  { name: "payout", kind: "seq", seconds: 15 },
+  { name: "intro", kind: "seq", seconds: 7 },
+  { name: "write", kind: "seq", seconds: 25 },
+  // The callout waits for the push onto the model's byline to unwind, then
+  // needs 4.6s of its own.
+  { name: "shop", kind: "seq", seconds: 21.7, callout: { after: "trace/out", lead: 0.7 } },
+  { name: "structuring", kind: "seq", seconds: 17.2, callout: { after: "facts/out", lead: 0.6 } },
+  { name: "attack", kind: "seq", seconds: 9.4 },
+  // 13.6, not the take's 11.5: the last caption lands as the camera unwinds
+  // and needs a couple of seconds on screen before the dip.
+  { name: "mcp", kind: "seq", seconds: 13.6 },
+  { name: "payout", kind: "seq", seconds: 14.7 },
   {
     name: "paypal",
     kind: "video",
@@ -98,8 +109,7 @@ const SEGMENTS = [
       { from: 22.4, length: 5.4 },
     ],
   },
-  { name: "revoke", kind: "seq", seconds: 15, callout: { at: 12.0 } },
-  { name: "tally", kind: "seq", seconds: 8 },
+  { name: "revoke", kind: "seq", seconds: 11.6, callout: { after: "grid/out", lead: 0.5 } },
   { name: "closing", kind: "seq", seconds: 6 },
   { name: "endcard", kind: "seq", seconds: 5 },
 ];

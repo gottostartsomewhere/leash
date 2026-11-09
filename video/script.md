@@ -1,6 +1,7 @@
-# Leash · voiceover script
+# Leash · voiceover script, second cut
 
-Written against the cut that exists: **`video/leash-trailer.mp4`, 2:42.**
+Written against the cut that exists: **`video/leash-trailer.mp4`, 2:55.**
+The first video's script, transcript and files are kept in `video/v1/`.
 
 **Do not change a segment length after recording.** Everything below is
 timed to the picture, and moving a slot by two seconds slides every cue
@@ -9,195 +10,223 @@ after it.
 ## How to read this
 
 - Times are where you **start** the line, not where it ends.
-- Lines are timed at a normal **150 words a minute**. The gaps between them
-  bring the whole thing down to about **108**, which is why it does not
-  feel rushed even though no single line is slow.
+- Lines are timed at **128 words a minute**, which is how fast you actually
+  read last time. Match that pace and every line ends before the next cue.
 - **The silences are written in and they are not padding.** The picture is
   doing the work in those gaps.
-- Every line ends before the next one starts, with room to spare. If you
-  are colliding with the next cue you are reading too slowly, not too much.
+- If you collide with the next cue, you are reading too slowly, not too
+  much. And you don't need to hit the times exactly: like last time, each
+  line gets cut out of your take and placed on its cue.
 
 ## The one rule
 
-**Never read what is already on screen.** The cards, the animation captions
-and the callouts carry the *mechanics*. Your job is the *argument*. There
-is one deliberate exception, the last two lines, where saying it with the
-card is the point.
+**Never read what is already on screen.** The cards, the animation's own
+lines, the captions and the callouts carry the *mechanics*. Your job is the
+*argument*. Same exception as last time: the last two lines, where saying
+it with the card is the point.
+
+Lines 1, 4, 10, 12, 18, 19, 20, 22 and 23 are word for word from the
+first video, because they worked.
 
 ---
 
 ## 0:00 · the problem card · 7s
 
-The card writes itself: *the agent books the flight, orders the parts, pays
-the invoice, and if it gets it wrong.* Reading that aloud would be reading
-the screen.
-
 > *(silent, let it land)*
 
 ---
 
-## 0:08 · title, into the animation · 24 words · ends 0:17.6
+## 0:08.0 · title, into the animation · 24 words · ends 0:19.3
 
-Start just as the Leash wordmark settles. Flat delivery. This is the whole
-pitch and it should sound like an observation, not a slogan.
+Start just as the Leash wordmark settles. Flat delivery, an observation,
+not a slogan.
 
-> Every agent demo ends the same way. The agent buys the thing, everyone
-> claps, and nobody asks what happens when it buys the wrong thing.
-
----
-
-## 0:20 · the animation, act one · 23 words · ends 0:29.2
-
-The track and the eleven checks are on screen now.
-
-> Leash is the part that says no. You write a mandate. A total, a ceiling
-> per purchase, which merchants, which categories, how fast.
+> **1.** Every agent demo ends the same way. The agent buys the thing,
+> everyone claps, and nobody asks what happens when it buys the wrong thing.
 
 ---
 
-## 0:31 · the animation, act two · 25 words · ends 0:41.0
+## 0:19.8 · the animation, the refusal · 22 words · ends 0:30.1
 
-The token is running at the wall.
+The track and its eleven gates are on screen. The refusal lands on screen
+at 0:23.8, while you're mid-line. That's fine, keep going.
 
-> The agent gets a goal, not a budget. It never touches a payment
-> credential. Every purchase it tries runs eleven checks before any money
-> moves.
-
----
-
-## 0:42 · the counter-offer · 14 words · ends 0:47.6
-
-> And when it is refused, it is not just blocked. It is told what would
-> have cleared.
+> **2.** Leash is the part that says no. The agent never touches a payment
+> credential. Every purchase it tries runs eleven checks first.
 
 ---
 
-## 0:49 · the live app · 11 words · ends 0:53.4
+## 0:31.2 · the animation, coming back inside · 13 words · ends 0:37.3
 
-Hard cut from animation to the real thing. Mark the change in your voice.
+The screen has just said it was told what would clear. Don't repeat that.
+Say why it matters.
 
-> That is the idea. This is it running, for real.
-
----
-
-## 0:54 · the mandate · 13 words · ends 0:59.2
-
-> One mandate. Five hundred dollars. A hundred a purchase. Named merchants,
-> named categories.
+> **3.** A refusal isn't a dead end. It's an answer the agent can use.
 
 ---
 
-## 1:01 · shopping · 16 words · ends 1:07.4
+## 0:39.0 · the live app · 10 words · ends 0:43.7
 
-The shelf is sliding in under you. Real products, real merchants, live
-through Channel3.
+Cut from the animation to the real thing. Mark the change in your voice.
 
-> Now send an agent at it with a goal and no budget. Find me an office
+> **4.** That is the idea. This is it running, for real.
+
+---
+
+## 0:45.5 · write a mandate · 15 words · ends 0:52.5
+
+The sentence is being typed on screen under you.
+
+> **5.** You don't fill in a form. You say it the way you'd tell a person.
+
+---
+
+## 0:53.2 · what the model made of it · 18 words · ends 1:01.6
+
+The camera is on the draft: what it read, then the worst case. The
+caption covers "no alcohol can't be enforced", so you don't have to.
+
+> **6.** A model drafts it and shows its working, down to the worst an agent
+> could do inside it.
+
+---
+
+## 1:02.2 · attacked before signing · 8 words · ends 1:06.0
+
+The screen says "230 attempts, none got through". Don't say the number.
+
+> **7.** Then it attacks the draft, before you sign.
+
+---
+
+## 1:06.4 · signed · 7 words · ends 1:09.7
+
+The rail on the left changes to the new mandate as you say this.
+
+> **8.** Sign it, and those are the rules.
+
+---
+
+## 1:11.0 · shopping · 16 words · ends 1:18.5
+
+> **9.** Now send an agent at it with a goal and no budget. Find me an office
 > chair.
 
----
-
-## 1:12 · the model picks · 14 words · ends 1:17.6
-
-The result lands at 1:11.7 and the camera pushes onto the byline at 1:15.4.
-**Say this into the push**, so the words land as the model's name does.
-
-> A model chooses the product. That is the only decision it gets to make.
+Last time this came out as "send an agent **as** it". It's **at** it.
 
 ---
 
-## 1:18 · the refusal · 13 words · ends 1:23.2
+## 1:19.0 · the model picks · 14 words · ends 1:25.6
 
-The callout comes up at 1:17.7 with the arithmetic on it. Say the shape of
+The camera pushes onto the model's name at 1:24.6, so the end of this
+line lands on it.
+
+> **10.** A model chooses the product. That is the only decision it gets to
+> make.
+
+---
+
+## 1:26.2 · the refusal · 10 words · ends 1:30.9
+
+The callout comes up at 1:27.1 with the numbers on it. Say the shape of
 it, not the digits.
 
-> Refused on the ceiling, told what would clear, and it came back inside.
+> **11.** Refused, told what would clear, and it came back inside.
 
 ---
 
-## 1:25 · structuring · 7 words · ends 1:27.8
+## 1:31.6 · structuring · 7 words · ends 1:34.9
 
 Slow down here. This is the beat the whole submission rests on.
 
-> Now the part I actually care about.
+> **12.** Now the part I actually care about.
 
 ---
 
-## 1:29 · the split · 19 words · ends 1:36.6
+## 1:35.4 · the split · 18 words · ends 1:43.8
 
-> Tell an agent nothing over a hundred, and a competent one does not give
-> up. It splits the purchase.
+> **13.** Tell an agent nothing over a hundred, and a competent one doesn't
+> give up. It splits the purchase.
 
----
-
-## 1:38 · two addresses · 14 words · ends 1:43.6
-
-> Seventy five to Acme US, seventy five to Acme EU. Each clears the cap.
+Last time Whisper heard "a teleagent" here, twice. Give "tell an agent" a
+little air.
 
 ---
 
-## 1:44 · the catch · 8 words · ends 1:47.2
+## 1:44.3 · the catch · 6 words · ends 1:47.1
 
-Land this one hard, then nothing. The callout is holding the arithmetic
-while you say it.
+The callout is doing the arithmetic. Land this hard, then nothing.
 
-> Only the cluster does not. Refused as structuring.
-
----
-
-## 1:52 · the money · 17 words · ends 1:58.8
-
-> Approved spend settles through PayPal Payouts. Real batches, real money,
-> a sandbox account on the other side.
+> **14.** Each half clears. Together they don't.
 
 ---
 
-## 2:02 · PayPal's own ledger · 6 words · ends 2:04.4
+## 1:48.3 · attack it · 17 words · ends 1:56.3
 
-> Same amounts, in PayPal's own books.
+The tally is racing up to 316 under you.
 
----
-
-## 2:10 · revoke · 13 words · ends 2:15.2
-
-> And it comes off. One click, mid session. Every unsettled hold is dropped.
+> **15.** Two red teams, and one of them is a model. Attack it yourself,
+> right from the page.
 
 ---
 
-## 2:16 · what revocation actually means · 20 words · ends 2:24.0
+## 1:57.2 · your own agent · 12 words · ends 2:02.8
 
-> Money that already moved stays moved. The agent does not know anything
-> changed. It keeps asking, it keeps getting nothing.
+The camera pushes onto the connector URL at 1:59.1.
 
----
-
-## 2:25 · the red team · 9 words · ends 2:28.6
-
-> Two red teams. One of them was a model.
+> **16.** The agent in this demo is ours. Yours connects with one URL.
 
 ---
 
-## 2:29 · the numbers · 8 words · ends 2:32.2
+## 2:03.2 · it lands, live · 12 words · ends 2:08.8
 
-The card is showing 5 / 322 / 0 while you say this. You are naming them,
-not reading them.
+Its first move lands at 2:01.9, the other three at 2:03.4.
 
-> Three hundred and twenty two attempts, zero breaches.
+> **17.** That's a real client, talking to the live server while you watch.
 
 ---
 
-## 2:33 · the close · 10 words · ends 2:37.0
+## 2:11.0 · the money · 17 words · ends 2:19.0
+
+> **18.** Approved spend settles through PayPal Payouts. Real batches, real
+> money, a sandbox account on the other side.
+
+---
+
+## 2:26.0 · PayPal's own ledger · 6 words · ends 2:28.8
+
+> **19.** Same amounts, in PayPal's own books.
+
+---
+
+## 2:33.9 · revoke · 13 words · ends 2:40.0
+
+> **20.** And it comes off. One click, mid session. Every unsettled hold is
+> dropped.
+
+---
+
+## 2:40.4 · what revocation means · 6 words · ends 2:43.2
+
+The caption and the stamp say the rest.
+
+> **21.** The agent doesn't know anything changed.
+
+---
+
+## 2:45.0 · the close · 10 words · ends 2:49.7
 
 **The exception to the rule.** The card says these words and so do you.
-Say them with it, not over it.
+Say them with it, not over it. It's "**can** buy". Last time's second
+take said "can't buy", which kills the turn.
 
-> Every other demo shows you what their agent can buy.
+> **22.** Every other demo shows you what their agent can buy.
 
 ---
 
-## 2:38 · the turn · 7 words · ends 2:40.8
+## 2:50.0 · the turn · 7 words · ends 2:53.3
 
-> This one shows you what it cannot.
+> **23.** This one shows you what it cannot.
 
 > *(out, let the end card hold)*
 
@@ -205,53 +234,59 @@ Say them with it, not over it.
 
 ## Where the picture actually cuts
 
-Useful if a line feels like it is landing on the wrong thing. These are the
-real segment boundaries in the finished file, after the crossfades.
+The real segment boundaries in the finished file, after the dips.
 
 | Segment | Runs |
 | --- | --- |
 | problem | 0:00 to 0:07 |
-| wordmark | 0:06.6 to 0:11.6 |
-| flow animation | 0:11.2 to 0:48.2 |
-| mandate | 0:47.9 to 0:59.9 |
-| shop | 0:59.9 to 1:22.9 |
-| structuring | 1:22.5 to 1:46.5 |
-| payout | 1:46.1 to 2:01.1 |
-| PayPal | 2:00.7 to 2:09.9 |
-| revoke | 2:09.3 to 2:24.3 |
-| red team | 2:24.0 to 2:32.0 |
-| closing | 2:31.6 to 2:37.6 |
-| end card | 2:37.2 to 2:42.2 |
+| wordmark | 0:06.7 to 0:11.7 |
+| flow animation | 0:11.3 to 0:38.6 |
+| the live demo | 0:38.3 to 0:45.3 |
+| write a mandate | 0:44.9 to 1:09.9 |
+| shop | 1:09.6 to 1:31.3 |
+| structuring | 1:31.0 to 1:48.2 |
+| attack it | 1:47.8 to 1:57.2 |
+| your own agent | 1:56.9 to 2:10.5 |
+| payout | 2:10.1 to 2:24.8 |
+| PayPal | 2:24.5 to 2:33.7 |
+| revoke | 2:33.4 to 2:45.0 |
+| closing | 2:44.6 to 2:50.6 |
+| end card | 2:50.3 to 2:55.3 |
 
 ## Numbers, so none of them drift
 
-Everything the voice says has to match what is on screen.
+Everything the voice says has to match what is on screen. Most of these
+the voice deliberately doesn't say, because the screen does.
 
 | Where | Figure | Source |
 | --- | --- | --- |
-| mandate | $500 total, $100 a purchase | the demo mandate in `leash/store.py` |
-| shop | $190.49 refused, $97.99 bought | the live run in the footage |
-| structuring | $75 + $75 to two Acme addresses | the live run |
-| red team | 5 objectives, 322 attempts, 0 breaches | 316 strategy + 6 model, both artifacts |
+| live demo | $500 total, $100 a purchase, $200 a merchant | the demo mandate in `leash/store.py` |
+| write a mandate | $150 for the week, $40 a shop, food, "no alcohol" not enforced, 230 attacks | this take, drafted live by the model |
+| shop | $216.99 refused, $100 would clear, $90.55 bought | this take |
+| structuring | $75 + $75 to two Acme addresses | this take |
+| attack it | 316 attacks, none through | this take |
+| your own agent | 4 moves: $999 refused, $90.55 held, $75 held, $75 refused as structuring | this take, live server |
+| payout | $125 settled, $375 left | this take |
+| red team | two red teams, one a model, 322 attempts | the intro line on the live page |
 
-Two sets of numbers died along the way and are still quotable by accident:
+Numbers from the first video that are now wrong for this one:
 
-- **Not 338 attempts, not 319 refused.** Those were the totals before the
-  boundary bug was fixed. The strategy run is 316 and 297 now, and the card
-  in the video says 322, which is both adversaries together.
-- **Not a $999 chair.** That was the ranking fallback picking the top of the
-  shelf, back when the agent had no model in it. The model picks the
-  $190.49 one and the chair it settles on is $97.99. The $999 chair is
-  still sitting on the shelf in that same shot, which is why the wrong
-  number is easy to say.
+- **Not $190.49 and $97.99.** That was the first video's chair. This take
+  refused $216.99 and bought $90.55.
+- **Not "five hundred dollars" over the write-a-mandate beat.** That shot
+  signs a $150 groceries mandate, and the rail changes to it on camera.
 
 ## Recording notes
 
-- One take per section is fine. They are cut to timecode, not performed
-  continuously, so a fluff only costs you that section.
-- Record dry and close. No music, no room. The picture has no audio at all,
-  so the voice sits on a silent bed and anything in the room will be heard.
+- One take per line is fine. They are cut to timecode, not performed
+  continuously, so a fluff only costs you that line.
+- Record the way take 1 was recorded last time: same distance, same room,
+  same recorder. Its gate gave a noise floor of -95 dB, which is what let
+  every cut land in real silence. Take 2's room hiss was audible.
+- **Louder than last time.** Both takes needed more than 20 dB of gain.
+- Leave a clear pause between lines, half a second or more. Last time two
+  joins had no silence at all, and the cut took a syllable with it.
 - Lower than feels natural. The material is dry on purpose, and selling it
   harder makes it sound less true.
-- Total spoken: **291 words over 2:42**. That is unhurried. If you are
-  running out of breath, you are going too fast, not too long.
+- Total spoken: **288 words over 2:55**, about 99 a minute overall. That
+  is unhurried.
