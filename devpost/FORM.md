@@ -233,7 +233,10 @@ Lengths: 124, 113, 131, 131, 124, 100.
 
 # Upload a File (optional)
 
-`judges-evidence.zip` in this folder: both red team reports as raw JSON, and
-the committed OpenAPI definition. It is the evidence behind the two claims in
-the writeup that a judge cannot check by clicking around, namely 322 attempts
-with zero breaches, and a contract that is enforced rather than described.
+`judges-evidence.zip` in this folder: both red team reports as raw JSON, a
+plain-English mandate drafted and attacked by the live model, a real MCP
+client's session against the live server, and the committed OpenAPI
+definition. It is the evidence behind the claims in the writeup that a judge
+cannot easily check by clicking around: 322 attempts with zero breaches, an
+outside agent held to the same rules, and a contract that is enforced rather
+than described.
