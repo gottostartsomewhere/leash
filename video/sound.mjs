@@ -175,7 +175,10 @@ const LINES = [
   { name: "unaware", cue: 160.8, text: "The agent doesn't know anything changed." },
   // With the closing card, which says the same words.
   { name: "close", cue: 165.0, text: "Every other demo shows you what their agent can buy." },
-  { name: "turn", cue: 170.0, text: "This one shows you what it cannot." },
+  // Close behind the line before, by request: two seconds of air between
+  // "can buy" and "This one" made the turn feel like a new thought rather
+  // than the second half of one. 168.2 leaves about a third of a second.
+  { name: "turn", cue: 168.2, text: "This one shows you what it cannot." },
 ];
 
 /** A word as it can be compared: no case, no punctuation, no apostrophes,
