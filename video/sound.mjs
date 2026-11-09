@@ -67,8 +67,39 @@ function capture(args) {
  *  almost every word. That is a gift for cutting: a boundary placed inside
  *  one of these can neither clip the word before it nor let the word after
  *  it bleed in, because there is nothing there to bleed. */
+/** The loudness, in dB, under which this take is silent.
+ *
+ *  Measured, not fixed. The first take was loud enough that -45dB sat
+ *  between its words and its gate; the second is quieter, its soft syllables
+ *  run -50 to -60, and at -45 the tail of "cannot", the last word of the
+ *  film, counted as silence and got faded out. So: the gate's floor, taken
+ *  as the 10th percentile of 20ms frames, plus 20dB, kept inside -70 to -45.
+ *  `--silence <dB>` overrides it. */
+function threshold() {
+  const given = flag("--silence");
+  if (given !== undefined) return Number(given);
+  const raw = spawnSync(
+    ffmpeg,
+    ["-hide_banner", "-loglevel", "error", "-i", SRC, "-ac", "1", "-ar", "16000", "-f", "s16le", "-"],
+    { maxBuffer: 1 << 28 },
+  ).stdout;
+  const pcm = new Int16Array(raw.buffer, raw.byteOffset, Math.floor(raw.length / 2));
+  const step = 320;
+  const frames = [];
+  for (let i = 0; i + step <= pcm.length; i += step) {
+    let sum = 0;
+    for (let k = i; k < i + step; k += 1) sum += pcm[k] * pcm[k];
+    frames.push(20 * Math.log10(Math.max(1, Math.sqrt(sum / step)) / 32768));
+  }
+  frames.sort((a, b) => a - b);
+  const floor = frames[Math.floor(frames.length * 0.1)];
+  return Math.min(-45, Math.max(-70, floor + 20));
+}
+
 function silences() {
-  // -45dB and 30ms, not -50 and 100ms.
+  const db = threshold();
+  console.log(`silence  under ${db.toFixed(1)} dB`);
+  // 30ms, not 100ms.
   //
   // At the coarse setting six of the twenty one boundaries had no silence
   // within reach at all, because he ran those sentences together without
@@ -78,7 +109,7 @@ function silences() {
   // put a boundary, and `snap` still prefers the longest silence it can
   // find, so a real sentence break wins wherever there is one.
   const out = capture([
-    "-i", SRC, "-af", "silencedetect=noise=-45dB:d=0.03", "-f", "null", "-",
+    "-i", SRC, "-af", `silencedetect=noise=${db.toFixed(1)}dB:d=0.03`, "-f", "null", "-",
   ]);
   const spans = [];
   let start = null;
@@ -119,22 +150,29 @@ const LINES = [
   { name: "drafts", cue: 53.2, text: "A model drafts it and shows its working, down to the worst an agent could do inside it." },
   { name: "attacks", cue: 62.2, text: "Then it attacks the draft, before you sign." },
   { name: "signed", cue: 66.4, text: "Sign it, and those are the rules." },
-  { name: "shopping", cue: 71.0, text: "Now send an agent at it with a goal and no budget. Find me an office chair." },
+  // Spans pinned for the 2026-11-10 take. Whisper heard "chair" as
+  // "share", so the match stopped at "office" and dropped the last word.
+  { name: "shopping", cue: 71.0, words: [117, 133], text: "Now send an agent at it with a goal and no budget. Find me an office chair." },
   // Into the camera landing on the model's name at 84.6.
   { name: "model", cue: 79.0, text: "A model chooses the product. That is the only decision it gets to make." },
   // The callout opens at 87.1.
   { name: "refusal", cue: 86.2, text: "Refused, told what would clear, and it came back inside." },
   { name: "structuring", cue: 91.6, text: "Now the part I actually care about." },
   { name: "split", cue: 95.4, text: "Tell an agent nothing over a hundred, and a competent one doesn't give up. It splits the purchase." },
-  // The callout is doing the arithmetic from 103.4.
-  { name: "catch", cue: 104.3, text: "Each half clears. Together they don't." },
+  // The callout is doing the arithmetic from 103.4. 103.6, not the script's
+  // 104.3: the 2026-11-10 read pauses before "Together", and at 104.3 the
+  // last word ran across the cut into the attack shot.
+  { name: "catch", cue: 103.6, text: "Each half clears. Together they don't." },
   { name: "attack", cue: 108.3, text: "Two red teams, and one of them is a model. Attack it yourself, right from the page." },
   { name: "yours", cue: 117.2, text: "The agent in this demo is ours. Yours connects with one URL." },
   { name: "client", cue: 123.2, text: "That's a real client, talking to the live server while you watch." },
   { name: "money", cue: 131.0, text: "Approved spend settles through PayPal Payouts. Real batches, real money, a sandbox account on the other side." },
-  { name: "books", cue: 146.0, text: "Same amounts, in PayPal's own books." },
+  // He read it as "These are the same amounts", one breath, so the clip
+  // starts on "These" rather than cutting into the sentence at "same".
+  { name: "books", cue: 146.0, words: [249, 257], text: "Same amounts, in PayPal's own books." },
   { name: "revoke", cue: 153.9, text: "And it comes off. One click, mid session. Every unsettled hold is dropped." },
-  { name: "unaware", cue: 160.4, text: "The agent doesn't know anything changed." },
+  // 160.8, not 160.4: the revoke line reads long and needs a breath after it.
+  { name: "unaware", cue: 160.8, text: "The agent doesn't know anything changed." },
   // With the closing card, which says the same words.
   { name: "close", cue: 165.0, text: "Every other demo shows you what their agent can buy." },
   { name: "turn", cue: 170.0, text: "This one shows you what it cannot." },

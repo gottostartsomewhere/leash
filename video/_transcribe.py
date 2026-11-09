@@ -68,5 +68,8 @@ for n, path in enumerate(args, start=1):
         json.dumps(out, indent=1), encoding="utf-8"
     )
     print(f"\n{'=' * 72}\nTAKE {n}  {p.name}  {out.get('duration')}s\n{'=' * 72}")
-    for s in out.get("segments", []):
+    # Groq can return words without segments; print the text then.
+    if not out.get("segments"):
+        print(out.get("text", "").strip())
+    for s in out.get("segments") or []:
         print(f"  [{s['start']:7.2f} {s['end']:7.2f}]  {s['text'].strip()}")

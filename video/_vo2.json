@@ -1,0 +1,1477 @@
+{
+ "task": "transcribe",
+ "language": "English",
+ "duration": 124.919997696,
+ "text": " Every agent demo ends the same way. The agent buys the thing, everyone claps, and nobody asks what happens when it buys the wrong thing. Leash is the part that says no. The agent never touches a payment credential. Every purchase it tries runs 11 checks first. A refusal isn't a dead end, it's an answer the agent can use. That is the idea. This is it running, for real. You don't fill a form, you say it the way you tell a person. A model drafts it and shows it's working, down to the worst an agent could do inside it. Then it attacks the draft before you sign. Sign it, and those are the rules. Now send an agent at it, with a goal and no budget. Find me an office share. A model chooses the product that is the only decision it gets to make Refused Told what would clear and it came back inside Now the part that I actually care about Tell an agent nothing over a hundred and a competent one doesn't give up. It splits the purchase. Each half clears. Together they don't. Two red teams and one of them is a model. Attack it yourself right from the page. The agent in this demo is ours, yours connects with one URL. That's a real client talking to the live server while you watch. Approved spend settles through PayPal payouts, real patches, real money, and a sandbox account on the other side. These are the same amounts in PayPal's own books. And it comes off, one click, mid-session. Every unsettled hold is dropped. The agent doesn't know anything changed. Every other demo shows you what their agent can buy. This one shows you what it cannot.",
+ "words": [
+  {
+   "word": "Every",
+   "start": 4.86,
+   "end": 5.02
+  },
+  {
+   "word": "agent",
+   "start": 5.02,
+   "end": 5.32
+  },
+  {
+   "word": "demo",
+   "start": 5.32,
+   "end": 5.76
+  },
+  {
+   "word": "ends",
+   "start": 5.76,
+   "end": 6.14
+  },
+  {
+   "word": "the",
+   "start": 6.14,
+   "end": 6.36
+  },
+  {
+   "word": "same",
+   "start": 6.36,
+   "end": 6.6
+  },
+  {
+   "word": "way.",
+   "start": 6.6,
+   "end": 7.18
+  },
+  {
+   "word": "The",
+   "start": 7.18,
+   "end": 7.36
+  },
+  {
+   "word": "agent",
+   "start": 7.36,
+   "end": 7.62
+  },
+  {
+   "word": "buys",
+   "start": 7.62,
+   "end": 7.92
+  },
+  {
+   "word": "the",
+   "start": 7.92,
+   "end": 8.16
+  },
+  {
+   "word": "thing,",
+   "start": 8.16,
+   "end": 8.86
+  },
+  {
+   "word": "everyone",
+   "start": 8.86,
+   "end": 9.02
+  },
+  {
+   "word": "claps,",
+   "start": 9.02,
+   "end": 9.86
+  },
+  {
+   "word": "and",
+   "start": 9.86,
+   "end": 9.88
+  },
+  {
+   "word": "nobody",
+   "start": 9.88,
+   "end": 10.18
+  },
+  {
+   "word": "asks",
+   "start": 10.18,
+   "end": 10.6
+  },
+  {
+   "word": "what",
+   "start": 10.6,
+   "end": 10.86
+  },
+  {
+   "word": "happens",
+   "start": 10.86,
+   "end": 11.44
+  },
+  {
+   "word": "when",
+   "start": 11.44,
+   "end": 11.84
+  },
+  {
+   "word": "it",
+   "start": 11.84,
+   "end": 11.94
+  },
+  {
+   "word": "buys",
+   "start": 11.94,
+   "end": 12.18
+  },
+  {
+   "word": "the",
+   "start": 12.18,
+   "end": 12.38
+  },
+  {
+   "word": "wrong",
+   "start": 12.38,
+   "end": 12.58
+  },
+  {
+   "word": "thing.",
+   "start": 12.58,
+   "end": 12.88
+  },
+  {
+   "word": "Leash",
+   "start": 13.7,
+   "end": 14.02
+  },
+  {
+   "word": "is",
+   "start": 14.02,
+   "end": 14.22
+  },
+  {
+   "word": "the",
+   "start": 14.22,
+   "end": 14.42
+  },
+  {
+   "word": "part",
+   "start": 14.42,
+   "end": 14.64
+  },
+  {
+   "word": "that",
+   "start": 14.64,
+   "end": 14.88
+  },
+  {
+   "word": "says",
+   "start": 14.88,
+   "end": 15.14
+  },
+  {
+   "word": "no.",
+   "start": 15.14,
+   "end": 16
+  },
+  {
+   "word": "The",
+   "start": 16,
+   "end": 16.4
+  },
+  {
+   "word": "agent",
+   "start": 16.4,
+   "end": 16.64
+  },
+  {
+   "word": "never",
+   "start": 16.64,
+   "end": 16.9
+  },
+  {
+   "word": "touches",
+   "start": 16.9,
+   "end": 17.28
+  },
+  {
+   "word": "a",
+   "start": 17.28,
+   "end": 17.42
+  },
+  {
+   "word": "payment",
+   "start": 17.42,
+   "end": 17.72
+  },
+  {
+   "word": "credential.",
+   "start": 17.72,
+   "end": 18.78
+  },
+  {
+   "word": "Every",
+   "start": 18.78,
+   "end": 18.96
+  },
+  {
+   "word": "purchase",
+   "start": 18.96,
+   "end": 19.42
+  },
+  {
+   "word": "it",
+   "start": 19.42,
+   "end": 19.54
+  },
+  {
+   "word": "tries",
+   "start": 19.54,
+   "end": 20
+  },
+  {
+   "word": "runs",
+   "start": 20,
+   "end": 20.48
+  },
+  {
+   "word": "11",
+   "start": 20.48,
+   "end": 20.8
+  },
+  {
+   "word": "checks",
+   "start": 20.8,
+   "end": 21.08
+  },
+  {
+   "word": "first.",
+   "start": 21.08,
+   "end": 21.68
+  },
+  {
+   "word": "A",
+   "start": 22.32,
+   "end": 22.56
+  },
+  {
+   "word": "refusal",
+   "start": 22.56,
+   "end": 22.96
+  },
+  {
+   "word": "isn't",
+   "start": 22.96,
+   "end": 23.36
+  },
+  {
+   "word": "a",
+   "start": 23.36,
+   "end": 23.56
+  },
+  {
+   "word": "dead",
+   "start": 23.56,
+   "end": 23.84
+  },
+  {
+   "word": "end,",
+   "start": 23.84,
+   "end": 24.68
+  },
+  {
+   "word": "it's",
+   "start": 24.68,
+   "end": 24.9
+  },
+  {
+   "word": "an",
+   "start": 24.9,
+   "end": 25.1
+  },
+  {
+   "word": "answer",
+   "start": 25.1,
+   "end": 25.52
+  },
+  {
+   "word": "the",
+   "start": 25.52,
+   "end": 25.76
+  },
+  {
+   "word": "agent",
+   "start": 25.76,
+   "end": 26
+  },
+  {
+   "word": "can",
+   "start": 26,
+   "end": 26.24
+  },
+  {
+   "word": "use.",
+   "start": 26.24,
+   "end": 27.18
+  },
+  {
+   "word": "That",
+   "start": 27.6,
+   "end": 27.9
+  },
+  {
+   "word": "is",
+   "start": 27.9,
+   "end": 28.26
+  },
+  {
+   "word": "the",
+   "start": 28.26,
+   "end": 28.42
+  },
+  {
+   "word": "idea.",
+   "start": 28.42,
+   "end": 29.24
+  },
+  {
+   "word": "This",
+   "start": 29.24,
+   "end": 29.36
+  },
+  {
+   "word": "is",
+   "start": 29.36,
+   "end": 29.54
+  },
+  {
+   "word": "it",
+   "start": 29.54,
+   "end": 29.68
+  },
+  {
+   "word": "running,",
+   "start": 29.68,
+   "end": 30.14
+  },
+  {
+   "word": "for",
+   "start": 30.14,
+   "end": 30.64
+  },
+  {
+   "word": "real.",
+   "start": 30.64,
+   "end": 31.26
+  },
+  {
+   "word": "You",
+   "start": 32.18,
+   "end": 32.3
+  },
+  {
+   "word": "don't",
+   "start": 32.3,
+   "end": 32.54
+  },
+  {
+   "word": "fill",
+   "start": 32.54,
+   "end": 32.74
+  },
+  {
+   "word": "a",
+   "start": 32.74,
+   "end": 32.84
+  },
+  {
+   "word": "form,",
+   "start": 32.84,
+   "end": 33.42
+  },
+  {
+   "word": "you",
+   "start": 33.42,
+   "end": 33.6
+  },
+  {
+   "word": "say",
+   "start": 33.6,
+   "end": 33.76
+  },
+  {
+   "word": "it",
+   "start": 33.76,
+   "end": 33.84
+  },
+  {
+   "word": "the",
+   "start": 33.84,
+   "end": 34.02
+  },
+  {
+   "word": "way",
+   "start": 34.02,
+   "end": 34.14
+  },
+  {
+   "word": "you",
+   "start": 34.14,
+   "end": 34.36
+  },
+  {
+   "word": "tell",
+   "start": 34.36,
+   "end": 34.52
+  },
+  {
+   "word": "a",
+   "start": 34.52,
+   "end": 34.64
+  },
+  {
+   "word": "person.",
+   "start": 34.64,
+   "end": 34.96
+  },
+  {
+   "word": "A",
+   "start": 36.1,
+   "end": 36.24
+  },
+  {
+   "word": "model",
+   "start": 36.24,
+   "end": 36.54
+  },
+  {
+   "word": "drafts",
+   "start": 36.54,
+   "end": 36.98
+  },
+  {
+   "word": "it",
+   "start": 36.98,
+   "end": 37.2
+  },
+  {
+   "word": "and",
+   "start": 37.2,
+   "end": 37.42
+  },
+  {
+   "word": "shows",
+   "start": 37.42,
+   "end": 37.7
+  },
+  {
+   "word": "it's",
+   "start": 37.7,
+   "end": 37.9
+  },
+  {
+   "word": "working,",
+   "start": 37.9,
+   "end": 38.8
+  },
+  {
+   "word": "down",
+   "start": 38.8,
+   "end": 38.94
+  },
+  {
+   "word": "to",
+   "start": 38.94,
+   "end": 39.1
+  },
+  {
+   "word": "the",
+   "start": 39.1,
+   "end": 39.24
+  },
+  {
+   "word": "worst",
+   "start": 39.24,
+   "end": 39.64
+  },
+  {
+   "word": "an",
+   "start": 39.64,
+   "end": 39.94
+  },
+  {
+   "word": "agent",
+   "start": 39.94,
+   "end": 40.3
+  },
+  {
+   "word": "could",
+   "start": 40.3,
+   "end": 40.52
+  },
+  {
+   "word": "do",
+   "start": 40.52,
+   "end": 40.8
+  },
+  {
+   "word": "inside",
+   "start": 40.8,
+   "end": 41.26
+  },
+  {
+   "word": "it.",
+   "start": 41.26,
+   "end": 41.5
+  },
+  {
+   "word": "Then",
+   "start": 42.02,
+   "end": 42.2
+  },
+  {
+   "word": "it",
+   "start": 42.2,
+   "end": 42.34
+  },
+  {
+   "word": "attacks",
+   "start": 42.34,
+   "end": 42.7
+  },
+  {
+   "word": "the",
+   "start": 42.7,
+   "end": 42.88
+  },
+  {
+   "word": "draft",
+   "start": 42.88,
+   "end": 43.28
+  },
+  {
+   "word": "before",
+   "start": 43.28,
+   "end": 43.7
+  },
+  {
+   "word": "you",
+   "start": 43.7,
+   "end": 43.9
+  },
+  {
+   "word": "sign.",
+   "start": 43.9,
+   "end": 44.68
+  },
+  {
+   "word": "Sign",
+   "start": 44.94,
+   "end": 45.18
+  },
+  {
+   "word": "it,",
+   "start": 45.18,
+   "end": 45.6
+  },
+  {
+   "word": "and",
+   "start": 45.6,
+   "end": 45.92
+  },
+  {
+   "word": "those",
+   "start": 45.92,
+   "end": 46.2
+  },
+  {
+   "word": "are",
+   "start": 46.2,
+   "end": 46.38
+  },
+  {
+   "word": "the",
+   "start": 46.38,
+   "end": 46.48
+  },
+  {
+   "word": "rules.",
+   "start": 46.48,
+   "end": 46.74
+  },
+  {
+   "word": "Now",
+   "start": 47.64,
+   "end": 47.84
+  },
+  {
+   "word": "send",
+   "start": 47.84,
+   "end": 48.04
+  },
+  {
+   "word": "an",
+   "start": 48.04,
+   "end": 48.2
+  },
+  {
+   "word": "agent",
+   "start": 48.2,
+   "end": 48.5
+  },
+  {
+   "word": "at",
+   "start": 48.5,
+   "end": 48.78
+  },
+  {
+   "word": "it,",
+   "start": 48.78,
+   "end": 49
+  },
+  {
+   "word": "with",
+   "start": 49,
+   "end": 49.22
+  },
+  {
+   "word": "a",
+   "start": 49.22,
+   "end": 49.36
+  },
+  {
+   "word": "goal",
+   "start": 49.36,
+   "end": 49.68
+  },
+  {
+   "word": "and",
+   "start": 49.68,
+   "end": 50.02
+  },
+  {
+   "word": "no",
+   "start": 50.02,
+   "end": 50.24
+  },
+  {
+   "word": "budget.",
+   "start": 50.24,
+   "end": 51.06
+  },
+  {
+   "word": "Find",
+   "start": 50.58,
+   "end": 51.62
+  },
+  {
+   "word": "me",
+   "start": 51.62,
+   "end": 51.9
+  },
+  {
+   "word": "an",
+   "start": 51.9,
+   "end": 52.22
+  },
+  {
+   "word": "office",
+   "start": 52.22,
+   "end": 52.52
+  },
+  {
+   "word": "share.",
+   "start": 52.52,
+   "end": 52.98
+  },
+  {
+   "word": "A",
+   "start": 55.08,
+   "end": 55.16
+  },
+  {
+   "word": "model",
+   "start": 55.16,
+   "end": 55.5
+  },
+  {
+   "word": "chooses",
+   "start": 55.5,
+   "end": 55.86
+  },
+  {
+   "word": "the",
+   "start": 55.86,
+   "end": 56.06
+  },
+  {
+   "word": "product",
+   "start": 56.06,
+   "end": 56.5
+  },
+  {
+   "word": "that",
+   "start": 56.5,
+   "end": 57.14
+  },
+  {
+   "word": "is",
+   "start": 57.14,
+   "end": 57.38
+  },
+  {
+   "word": "the",
+   "start": 57.38,
+   "end": 57.54
+  },
+  {
+   "word": "only",
+   "start": 57.54,
+   "end": 57.82
+  },
+  {
+   "word": "decision",
+   "start": 57.82,
+   "end": 58.32
+  },
+  {
+   "word": "it",
+   "start": 58.32,
+   "end": 58.66
+  },
+  {
+   "word": "gets",
+   "start": 58.66,
+   "end": 58.92
+  },
+  {
+   "word": "to",
+   "start": 58.92,
+   "end": 59.1
+  },
+  {
+   "word": "make.",
+   "start": 59.1,
+   "end": 59.44
+  },
+  {
+   "word": "Refused.",
+   "start": 60.74,
+   "end": 62.04
+  },
+  {
+   "word": "Told",
+   "start": 62.04,
+   "end": 62.06
+  },
+  {
+   "word": "what",
+   "start": 62.06,
+   "end": 62.3
+  },
+  {
+   "word": "would",
+   "start": 62.3,
+   "end": 62.46
+  },
+  {
+   "word": "clear",
+   "start": 62.46,
+   "end": 62.76
+  },
+  {
+   "word": "and",
+   "start": 62.76,
+   "end": 63.3
+  },
+  {
+   "word": "it",
+   "start": 63.3,
+   "end": 63.44
+  },
+  {
+   "word": "came",
+   "start": 63.44,
+   "end": 63.64
+  },
+  {
+   "word": "back",
+   "start": 63.64,
+   "end": 63.92
+  },
+  {
+   "word": "inside.",
+   "start": 63.92,
+   "end": 64.9
+  },
+  {
+   "word": "Now",
+   "start": 65.58,
+   "end": 65.74
+  },
+  {
+   "word": "the",
+   "start": 65.74,
+   "end": 65.92
+  },
+  {
+   "word": "part",
+   "start": 65.92,
+   "end": 66.2
+  },
+  {
+   "word": "that",
+   "start": 66.2,
+   "end": 66.4
+  },
+  {
+   "word": "I",
+   "start": 66.4,
+   "end": 66.479996
+  },
+  {
+   "word": "actually",
+   "start": 66.479996,
+   "end": 66.9
+  },
+  {
+   "word": "care",
+   "start": 66.9,
+   "end": 67.119995
+  },
+  {
+   "word": "about.",
+   "start": 67.119995,
+   "end": 68.64
+  },
+  {
+   "word": "Tell",
+   "start": 68.64,
+   "end": 68.86
+  },
+  {
+   "word": "an",
+   "start": 68.86,
+   "end": 69.08
+  },
+  {
+   "word": "agent",
+   "start": 69.08,
+   "end": 69.32
+  },
+  {
+   "word": "nothing",
+   "start": 69.32,
+   "end": 69.68
+  },
+  {
+   "word": "over",
+   "start": 69.68,
+   "end": 69.96
+  },
+  {
+   "word": "a",
+   "start": 69.96,
+   "end": 70.1
+  },
+  {
+   "word": "hundred",
+   "start": 70.1,
+   "end": 70.32
+  },
+  {
+   "word": "and",
+   "start": 70.32,
+   "end": 70.78
+  },
+  {
+   "word": "a",
+   "start": 70.78,
+   "end": 70.9
+  },
+  {
+   "word": "competent",
+   "start": 70.9,
+   "end": 71.3
+  },
+  {
+   "word": "one",
+   "start": 71.3,
+   "end": 71.64
+  },
+  {
+   "word": "doesn't",
+   "start": 71.479996,
+   "end": 72.1
+  },
+  {
+   "word": "give",
+   "start": 72.1,
+   "end": 72.32
+  },
+  {
+   "word": "up.",
+   "start": 72.32,
+   "end": 72.96
+  },
+  {
+   "word": "It",
+   "start": 72.96,
+   "end": 73.119995
+  },
+  {
+   "word": "splits",
+   "start": 73.119995,
+   "end": 73.38
+  },
+  {
+   "word": "the",
+   "start": 73.38,
+   "end": 73.6
+  },
+  {
+   "word": "purchase.",
+   "start": 73.6,
+   "end": 75.06
+  },
+  {
+   "word": "Each",
+   "start": 75.06,
+   "end": 75.24
+  },
+  {
+   "word": "half",
+   "start": 75.24,
+   "end": 75.6
+  },
+  {
+   "word": "clears.",
+   "start": 75.6,
+   "end": 76.74
+  },
+  {
+   "word": "Together",
+   "start": 76.74,
+   "end": 77.02
+  },
+  {
+   "word": "they",
+   "start": 77.02,
+   "end": 77.44
+  },
+  {
+   "word": "don't.",
+   "start": 77.44,
+   "end": 78.979996
+  },
+  {
+   "word": "Two",
+   "start": 78.979996,
+   "end": 79.119995
+  },
+  {
+   "word": "red",
+   "start": 79.119995,
+   "end": 79.4
+  },
+  {
+   "word": "teams",
+   "start": 79.4,
+   "end": 79.8
+  },
+  {
+   "word": "and",
+   "start": 79.479996,
+   "end": 80.22
+  },
+  {
+   "word": "one",
+   "start": 80.22,
+   "end": 80.36
+  },
+  {
+   "word": "of",
+   "start": 80.36,
+   "end": 80.52
+  },
+  {
+   "word": "them",
+   "start": 80.52,
+   "end": 80.66
+  },
+  {
+   "word": "is",
+   "start": 80.66,
+   "end": 80.759995
+  },
+  {
+   "word": "a",
+   "start": 80.759995,
+   "end": 80.9
+  },
+  {
+   "word": "model.",
+   "start": 80.9,
+   "end": 81.64
+  },
+  {
+   "word": "Attack",
+   "start": 81.64,
+   "end": 81.96
+  },
+  {
+   "word": "it",
+   "start": 81.96,
+   "end": 82.1
+  },
+  {
+   "word": "yourself",
+   "start": 82.1,
+   "end": 82.64
+  },
+  {
+   "word": "right",
+   "start": 82.64,
+   "end": 83
+  },
+  {
+   "word": "from",
+   "start": 83,
+   "end": 83.18
+  },
+  {
+   "word": "the",
+   "start": 83.18,
+   "end": 83.34
+  },
+  {
+   "word": "page.",
+   "start": 83.34,
+   "end": 84.64
+  },
+  {
+   "word": "The",
+   "start": 84.64,
+   "end": 84.84
+  },
+  {
+   "word": "agent",
+   "start": 84.84,
+   "end": 85.08
+  },
+  {
+   "word": "in",
+   "start": 85.08,
+   "end": 85.3
+  },
+  {
+   "word": "this",
+   "start": 85.3,
+   "end": 85.5
+  },
+  {
+   "word": "demo",
+   "start": 85.5,
+   "end": 85.759995
+  },
+  {
+   "word": "is",
+   "start": 85.759995,
+   "end": 86.16
+  },
+  {
+   "word": "ours,",
+   "start": 86.18,
+   "end": 87.22
+  },
+  {
+   "word": "yours",
+   "start": 87.22,
+   "end": 87.42
+  },
+  {
+   "word": "connects",
+   "start": 87.42,
+   "end": 87.88
+  },
+  {
+   "word": "with",
+   "start": 87.88,
+   "end": 88.24
+  },
+  {
+   "word": "one",
+   "start": 88.24,
+   "end": 88.52
+  },
+  {
+   "word": "URL.",
+   "start": 88.52,
+   "end": 90.020004
+  },
+  {
+   "word": "That's",
+   "start": 90.020004,
+   "end": 90.58
+  },
+  {
+   "word": "a",
+   "start": 90.58,
+   "end": 90.68
+  },
+  {
+   "word": "real",
+   "start": 90.68,
+   "end": 90.84
+  },
+  {
+   "word": "client",
+   "start": 90.84,
+   "end": 91.259995
+  },
+  {
+   "word": "talking",
+   "start": 91.259995,
+   "end": 91.72
+  },
+  {
+   "word": "to",
+   "start": 91.72,
+   "end": 92.119995
+  },
+  {
+   "word": "the",
+   "start": 92.119995,
+   "end": 92.399994
+  },
+  {
+   "word": "live",
+   "start": 92.399994,
+   "end": 92.6
+  },
+  {
+   "word": "server",
+   "start": 92.6,
+   "end": 92.94
+  },
+  {
+   "word": "while",
+   "start": 92.94,
+   "end": 93.22
+  },
+  {
+   "word": "you",
+   "start": 93.22,
+   "end": 93.36
+  },
+  {
+   "word": "watch.",
+   "start": 93.36,
+   "end": 93.74
+  },
+  {
+   "word": "Approved",
+   "start": 94.899994,
+   "end": 95.28
+  },
+  {
+   "word": "spend",
+   "start": 95.28,
+   "end": 95.68
+  },
+  {
+   "word": "settles",
+   "start": 95.68,
+   "end": 96.16
+  },
+  {
+   "word": "through",
+   "start": 96.16,
+   "end": 96.479996
+  },
+  {
+   "word": "PayPal",
+   "start": 96.479996,
+   "end": 96.88
+  },
+  {
+   "word": "payouts,",
+   "start": 96.88,
+   "end": 97.94
+  },
+  {
+   "word": "real",
+   "start": 97.94,
+   "end": 98.119995
+  },
+  {
+   "word": "patches,",
+   "start": 98.119995,
+   "end": 99.1
+  },
+  {
+   "word": "real",
+   "start": 99.1,
+   "end": 99.24
+  },
+  {
+   "word": "money,",
+   "start": 99.24,
+   "end": 99.88
+  },
+  {
+   "word": "and",
+   "start": 99.88,
+   "end": 99.94
+  },
+  {
+   "word": "a",
+   "start": 99.94,
+   "end": 100.04
+  },
+  {
+   "word": "sandbox",
+   "start": 100.04,
+   "end": 100.399994
+  },
+  {
+   "word": "account",
+   "start": 100.399994,
+   "end": 100.78
+  },
+  {
+   "word": "on",
+   "start": 100.619995,
+   "end": 101.18
+  },
+  {
+   "word": "the",
+   "start": 101.18,
+   "end": 101.34
+  },
+  {
+   "word": "other",
+   "start": 101.34,
+   "end": 101.54
+  },
+  {
+   "word": "side.",
+   "start": 101.54,
+   "end": 102.74
+  },
+  {
+   "word": "These",
+   "start": 102.74,
+   "end": 103.28
+  },
+  {
+   "word": "are",
+   "start": 103.28,
+   "end": 103.44
+  },
+  {
+   "word": "the",
+   "start": 103.44,
+   "end": 103.6
+  },
+  {
+   "word": "same",
+   "start": 103.6,
+   "end": 103.8
+  },
+  {
+   "word": "amounts",
+   "start": 103.8,
+   "end": 104.36
+  },
+  {
+   "word": "in",
+   "start": 104.36,
+   "end": 104.7
+  },
+  {
+   "word": "PayPal's",
+   "start": 104.7,
+   "end": 105.3
+  },
+  {
+   "word": "own",
+   "start": 105.3,
+   "end": 105.520004
+  },
+  {
+   "word": "books.",
+   "start": 105.520004,
+   "end": 105.899994
+  },
+  {
+   "word": "And",
+   "start": 105.899994,
+   "end": 106.899994
+  },
+  {
+   "word": "it",
+   "start": 106.899994,
+   "end": 107.020004
+  },
+  {
+   "word": "comes",
+   "start": 107.020004,
+   "end": 107.3
+  },
+  {
+   "word": "off,",
+   "start": 107.3,
+   "end": 107.619995
+  },
+  {
+   "word": "one",
+   "start": 108.22,
+   "end": 108.479996
+  },
+  {
+   "word": "click,",
+   "start": 108.479996,
+   "end": 109.04
+  },
+  {
+   "word": "mid-session.",
+   "start": 109.04,
+   "end": 110.2
+  },
+  {
+   "word": "Every",
+   "start": 110.2,
+   "end": 110.520004
+  },
+  {
+   "word": "unsettled",
+   "start": 110.520004,
+   "end": 111.020004
+  },
+  {
+   "word": "hold",
+   "start": 111.020004,
+   "end": 111.34
+  },
+  {
+   "word": "is",
+   "start": 111.34,
+   "end": 111.619995
+  },
+  {
+   "word": "dropped.",
+   "start": 111.619995,
+   "end": 112.84
+  },
+  {
+   "word": "The",
+   "start": 112.84,
+   "end": 112.979996
+  },
+  {
+   "word": "agent",
+   "start": 112.979996,
+   "end": 113.28
+  },
+  {
+   "word": "doesn't",
+   "start": 113.28,
+   "end": 113.6
+  },
+  {
+   "word": "know",
+   "start": 113.6,
+   "end": 113.86
+  },
+  {
+   "word": "anything",
+   "start": 113.86,
+   "end": 114.24
+  },
+  {
+   "word": "changed.",
+   "start": 114.24,
+   "end": 115.34
+  },
+  {
+   "word": "Every",
+   "start": 116.18,
+   "end": 116.44
+  },
+  {
+   "word": "other",
+   "start": 116.44,
+   "end": 116.66
+  },
+  {
+   "word": "demo",
+   "start": 116.66,
+   "end": 116.96
+  },
+  {
+   "word": "shows",
+   "start": 116.96,
+   "end": 117.34
+  },
+  {
+   "word": "you",
+   "start": 117.34,
+   "end": 117.56
+  },
+  {
+   "word": "what",
+   "start": 117.56,
+   "end": 117.8
+  },
+  {
+   "word": "their",
+   "start": 117.8,
+   "end": 118.06
+  },
+  {
+   "word": "agent",
+   "start": 118.06,
+   "end": 118.3
+  },
+  {
+   "word": "can",
+   "start": 118.3,
+   "end": 118.56
+  },
+  {
+   "word": "buy.",
+   "start": 118.56,
+   "end": 119.46
+  },
+  {
+   "word": "This",
+   "start": 119.1,
+   "end": 119.66
+  },
+  {
+   "word": "one",
+   "start": 119.66,
+   "end": 119.86
+  },
+  {
+   "word": "shows",
+   "start": 119.86,
+   "end": 120.14
+  },
+  {
+   "word": "you",
+   "start": 120.14,
+   "end": 120.42
+  },
+  {
+   "word": "what",
+   "start": 120.42,
+   "end": 120.58
+  },
+  {
+   "word": "it",
+   "start": 120.58,
+   "end": 120.72
+  },
+  {
+   "word": "cannot.",
+   "start": 120.72,
+   "end": 121.259995
+  }
+ ],
+ "segments": null,
+ "x_groq": {
+  "id": "req_01m70w7t44egf89cba1gb73vgz"
+ }
+}
